@@ -48,6 +48,9 @@ export async function extractPdfText(arrayBuffer, { onProgress, askPassword } = 
 }
 
 /** Ricostruisce righe e paragrafi a partire dagli elementi di testo di pdf.js. */
+/** Versione dell'algoritmo: se cambia, i PDF riaperti vengono rielaborati. */
+export const TEXT_VERSION = 2;
+
 export function cleanPageText(items) {
   // 1) righe, con la loro posizione verticale
   const lines = [];
@@ -85,16 +88,24 @@ export function cleanPageText(items) {
   gaps.sort((a, b) => a - b);
   const lineGap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 0;
 
-  // 3) paragrafi: riga vuota, spazio verticale ampio, o riga corta che chiude una frase
+  // 3) paragrafi. Le righe vuote NON contano: molti PDF ne inseriscono una dopo ogni riga.
+  //    Si va a capo solo con: spazio verticale ampio, riga corta che chiude una frase,
+  //    titoli in MAIUSCOLO, punti di un elenco.
+  const isHeading = (t) => { const letters = t.match(/\p{L}/gu) || []; return letters.length >= 3 && t.length <= 90 && !/\p{Ll}/u.test(t); };
+  const isBullet = (t) => /^([●•▪◦■□➢➤►▶✓✔◆◇○–—*-]\s|\d{1,2}[.)]\s|[a-z][)]\s)/u.test(t);
   const paras = [];
   let para = '';
   let prev = null;
   for (const line of ls) {
-    if (!line.text) { if (para) { paras.push(para); para = ''; } prev = null; continue; }
-    const bigGap = prev && lineGap && line.y != null && prev.y != null && Math.abs(prev.y - line.y) > lineGap * 1.45;
-    const prevClosed = prev && /[.!?:;…»"”)]$/.test(prev.text) && prev.text.length < typical * 0.8;
-    if (para && (bigGap || prevClosed)) { paras.push(para); para = ''; }
-
+    if (!line.text) continue;
+    if (prev) {
+      const dy = line.y != null && prev.y != null ? prev.y - line.y : null;
+      const bigGap = lineGap && dy != null && (dy > lineGap * 1.6 || dy < -lineGap * 0.5); // più spazio, o salto di colonna
+      const prevClosed = /[.!?:;…»"”)]$/.test(prev.text) && prev.text.length < typical * 0.8;
+      if (bigGap || prevClosed || isHeading(prev.text) || isHeading(line.text) || isBullet(line.text)) {
+        paras.push(para); para = '';
+      }
+    }
     if (!para) para = line.text;
     else if (/[\p{L}]-$/u.test(para) && /^\p{Ll}/u.test(line.text)) para = para.slice(0, -1) + line.text; // parola divisa a capo
     else para += ' ' + line.text;

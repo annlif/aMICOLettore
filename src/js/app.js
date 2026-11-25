@@ -1,7 +1,7 @@
 // aMICOLettore – logica principale dell'interfaccia e della lettura.
 import { db, loadSettings, saveSettings, sha256Hex, getUsage, requestPersistentStorage, FREE_CHARS_PER_MONTH } from './store.js';
 import { sysVoice } from './sysvoice.js';
-import { extractPdfText, letterCount, pageModel, findWords } from './text.js';
+import { extractPdfText, letterCount, pageModel, findWords, TEXT_VERSION } from './text.js';
 import { Speaker, ITALIAN_VOICES, TTSError } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -87,6 +87,11 @@ function showPage(p) {
 
 function updateNotice() {
   const n = $('notice');
+  if (state.doc && (state.doc.textVersion || 1) < TEXT_VERSION) {
+    n.textContent = 'Ho migliorato il modo in cui leggo i PDF. Per una lettura più scorrevole, torna alla libreria e riapri questo stesso file con “Apri un PDF”: la pagina a cui eri arrivata resta.';
+    n.hidden = false;
+    return;
+  }
   const empty = state.doc?.emptyPages || 0;
   if (empty && !model(state.page).sentences.length) {
     n.textContent = 'Pagina senza testo: probabilmente è un\'immagine. aMICOLettore può leggere solo il testo vero del PDF.';
@@ -497,7 +502,8 @@ async function openFile(file) {
   try {
     const buf = await file.arrayBuffer();
     const id = await sha256Hex(buf);
-    if (await db.getDoc(id)) { hideToast(); await openDoc(id); return; }
+    const existing = await db.getDoc(id);
+    if (existing && (existing.textVersion || 1) >= TEXT_VERSION) { hideToast(); await openDoc(id); return; }
 
     const { pages, title } = await extractPdfText(buf, {
       onProgress: (i, n) => toast(`Estraggo il testo… pagina ${i} di ${n}`, 0),
@@ -517,10 +523,11 @@ async function openFile(file) {
 
     const name = file.name.replace(/\.pdf$/i, '');
     const firstPage = Math.max(0, counts.findIndex((c) => c >= 15));
-    const doc = {
-      id, name, title, numPages: pages.length, emptyPages,
-      page: firstPage, sentence: 0, createdAt: Date.now(), updatedAt: Date.now(),
-    };
+    const doc = existing
+      // stesso PDF già in libreria con il testo estratto da una versione precedente: lo rielaboro e tengo la pagina
+      ? { ...existing, title, numPages: pages.length, emptyPages, sentence: 0, offlineVoice: null, textVersion: TEXT_VERSION, updatedAt: Date.now() }
+      : { id, name, title, numPages: pages.length, emptyPages, textVersion: TEXT_VERSION,
+          page: firstPage, sentence: 0, createdAt: Date.now(), updatedAt: Date.now() };
     await db.putText({ id, pages });
     await db.putDoc(doc);
     requestPersistentStorage();
