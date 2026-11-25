@@ -1,1 +1,66 @@
-# aMICOLettore
+<p align="center"><img src="docs/logo.png" alt="aMICOLettore" width="520"></p>
+
+**aMICOLettore** (sull'iPad: **aMICOL**) è una web app che legge ad alta voce i PDF con le voci neurali di
+**Azure Speech**, evidenziando la parola pronunciata. Si installa nella schermata Home dell'iPad come una vera app.
+
+👉 Indirizzo dell'app, una volta pubblicata: **https://annlif.github.io/aMICOLettore/**
+
+## Cosa fa
+
+- **Apre un PDF** dall'iPad (app File, iCloud, allegati…) ed estrae il testo con pdf.js.
+  Se il PDF è una **scansione** (solo immagini, senza testo) lo segnala; le singole pagine senza testo vengono saltate.
+- **Legge frase per frase** con la voce **it-IT-IsabellaNeural** (predefinita) o un'altra voce italiana:
+  Isabella Multilingual, Elsa, Diego, Giuseppe Multilingual e tutte le altre disponibili nella tua regione Azure.
+- **Evidenzia la parola** che sta pronunciando (eventi *word boundary* di Azure) e colora la frase in corso.
+- **Comandi**: play/pausa, velocità (da 0,6× a 2×), frase precedente/successiva, pagina precedente/successiva.
+  Si può anche **toccare una frase** per farla leggere da lì.
+- **Riprende da dove eri arrivata**: il punto di lettura di ogni documento viene salvato; all'apertura l'app riapre
+  l'ultimo documento sulla frase giusta.
+- **Salva l'audio sul dispositivo**: ogni frase generata viene conservata sull'iPad. Rileggere le stesse pagine
+  **non consuma la quota gratuita** e funziona anche senza internet. Cambiare velocità non rigenera l'audio.
+- **Testo regolabile** (A− / A+), colori chiari e tema scuro automatico.
+
+## La chiave di Azure
+
+La chiave **non è nel codice**: si inserisce una sola volta nelle **Impostazioni** dell'app (icona ⚙︎) e resta
+salvata soltanto su quell'iPad. Il repository è pubblico, quindi non bisogna mai scriverla in nessun file.
+
+Dove trovarla: [portale Azure](https://portal.azure.com) → la tua risorsa **Speech** → **Chiavi ed endpoint** (*Keys and Endpoint*).
+Copia **KEY 1** e il valore di **Posizione/Area** (*Location/Region*, per esempio `westeurope`).
+
+### Piano gratuito F0
+
+- Include **0,5 milioni di caratteri al mese** per le voci neurali. Nelle impostazioni l'app mostra una **stima** dei
+  caratteri inviati da quell'iPad nel mese in corso.
+- L'app raggruppa le frasi brevi in un'unica richiesta, per non superare il limite di richieste al minuto del piano F0,
+  e se Azure risponde "troppe richieste" riprova da sola dopo qualche secondo.
+- Mentre leggi, prepara in anticipo il blocco di frasi successivo, così non ci sono pause.
+
+## Installare l'app sull'iPad
+
+1. Apri **Safari** sull'iPad e vai su **https://annlif.github.io/aMICOLettore/**
+2. Tocca il pulsante **Condividi** (il quadrato con la freccia in su).
+3. Scegli **Aggiungi alla schermata Home**, poi **Aggiungi**. Comparirà l'icona **aMICOL**.
+4. Apri l'app dalla Home, tocca ⚙︎ e inserisci **chiave** e **regione**. Tocca **Prova la voce**, poi **Salva**.
+
+> L'app installata nella Home ha un archivio separato da Safari: inserisci la chiave **dall'app installata**.
+> Se elimini l'app dalla Home, o cancelli i dati dei siti web, si perdono anche l'audio salvato e i punti di lettura.
+
+## Pubblicazione (GitHub Pages)
+
+La pubblicazione è automatica: a ogni modifica del ramo `main` la GitHub Action
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) scarica le librerie (pdf.js e Azure Speech SDK),
+prepara la cartella `dist/` e la pubblica su GitHub Pages. Va attivata una sola volta in
+**Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+## Per chi sviluppa
+
+```bash
+npm install
+npm start        # prepara dist/ e la apre su http://localhost:8080
+```
+
+- `src/` contiene l'app (HTML, CSS, JavaScript senza framework); `scripts/build.mjs` copia le librerie in `dist/vendor/`.
+- `npm run icons` rigenera le icone PNG e `docs/logo.png` dagli SVG (richiede Playwright).
+- Il testo del PDF e l'audio sono salvati in IndexedDB; le impostazioni in `localStorage`.
+- Il testo da leggere viene inviato soltanto ad Azure Speech; non c'è nessun altro server.

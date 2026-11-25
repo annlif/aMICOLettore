@@ -1,0 +1,16 @@
+{
+  "name": "amicolettore",
+  "version": "1.0.0",
+  "private": true,
+  "description": "aMICOLettore – lettore di PDF ad alta voce con le voci neurali di Azure Speech",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/build.mjs && node scripts/serve.mjs",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "1.53.0",
+    "pdfjs-dist": "4.10.38"
+  }
+}

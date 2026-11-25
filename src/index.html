@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>aMICOLettore</title>
+  <meta name="description" content="Legge ad alta voce i PDF con le voci neurali di Azure.">
+  <meta name="theme-color" content="#12355B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="aMICOL">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- Simbolo dell'altoparlante usato come "O" nel nome -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="speaker-o" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="15"/>
+      <circle cx="50" cy="50" r="34.5" fill="currentColor" opacity=".18"/>
+      <circle cx="50" cy="50" r="24" fill="none" stroke="currentColor" stroke-width="4" opacity=".7"/>
+      <circle cx="50" cy="50" r="12.5" fill="currentColor"/>
+      <g fill="#fff" opacity=".9"><circle cx="50" cy="8" r="3"/><circle cx="92" cy="50" r="3"/><circle cx="50" cy="92" r="3"/><circle cx="8" cy="50" r="3"/></g>
+    </symbol>
+  </svg>
+
+  <header class="topbar">
+    <button class="brand" id="btn-home" type="button" aria-label="aMICOLettore – torna alla libreria">
+      <img src="icons/logo-mark.svg" alt="" class="brand-mark">
+      <span class="wordmark" aria-hidden="true"><span class="wm-grey">a</span><span class="wm-coral">MIC<svg class="wm-o"><use href="#speaker-o"/></svg>L</span><span class="wm-grey">ettore</span></span>
+    </button>
+    <div class="topbar-actions">
+      <button class="tbtn" id="btn-font-down" type="button" aria-label="Testo più piccolo">A<small>−</small></button>
+      <button class="tbtn" id="btn-font-up" type="button" aria-label="Testo più grande">A<small>+</small></button>
+      <button class="tbtn" id="btn-settings" type="button" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- LIBRERIA -->
+  <main id="view-home" class="view">
+    <section class="hero">
+      <h1 class="visually-hidden">aMICOLettore</h1>
+      <p class="hero-text">Apri un PDF e lo leggo io per te, frase per frase.</p>
+      <label class="big-btn" for="file-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>
+        Apri un PDF
+      </label>
+      <input id="file-input" type="file" accept="application/pdf,.pdf" hidden>
+      <p class="hint" id="key-hint" hidden>Prima volta? Inserisci la chiave di Azure nelle <button type="button" class="link" id="btn-hint-settings">impostazioni</button>.</p>
+    </section>
+
+    <section class="library" aria-labelledby="lib-title">
+      <h2 id="lib-title">I tuoi documenti</h2>
+      <p class="empty" id="lib-empty">Ancora nessun documento. I PDF che apri compariranno qui, con il punto in cui eri arrivata.</p>
+      <ul id="lib-list" class="lib-list"></ul>
+    </section>
+  </main>
+
+  <!-- LETTURA -->
+  <main id="view-reader" class="view" hidden>
+    <div class="doc-head">
+      <h1 id="doc-title" class="doc-title"></h1>
+      <div class="page-nav">
+        <button class="pbtn" id="btn-page-prev" type="button" aria-label="Pagina precedente">‹</button>
+        <label class="page-label">Pagina
+          <select id="page-select" aria-label="Vai alla pagina"></select>
+          <span id="page-total"></span>
+        </label>
+        <button class="pbtn" id="btn-page-next" type="button" aria-label="Pagina successiva">›</button>
+      </div>
+    </div>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <article id="reader" class="reader" aria-live="off"></article>
+  </main>
+
+  <!-- COMANDI DI LETTURA -->
+  <footer id="controls" class="controls" hidden>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div class="controls-row">
+      <div class="speed" role="group" aria-label="Velocità">
+        <button class="cbtn small" id="btn-slower" type="button" aria-label="Più lento">−</button>
+        <span class="speed-val" id="speed-val">1×</span>
+        <button class="cbtn small" id="btn-faster" type="button" aria-label="Più veloce">+</button>
+      </div>
+      <div class="transport">
+        <button class="cbtn" id="btn-prev" type="button" aria-label="Frase precedente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5 9 12l10 7Z"/></svg>
+        </button>
+        <button class="cbtn play" id="btn-play" type="button" aria-label="Leggi">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15L20 12Z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+          <span class="spinner" aria-hidden="true"></span>
+        </button>
+        <button class="cbtn" id="btn-next" type="button" aria-label="Frase successiva">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7Z"/></svg>
+        </button>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </footer>
+
+  <!-- IMPOSTAZIONI -->
+  <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+    <form method="dialog" id="settings-form">
+      <h2 id="settings-title">Impostazioni</h2>
+
+      <fieldset>
+        <legend>Azure Speech</legend>
+        <p class="help">La chiave resta salvata solo su questo iPad. Si trova nel portale Azure, nella risorsa Speech, alla voce <em>Chiavi ed endpoint</em>.</p>
+        <label>Chiave (KEY 1 o KEY 2)
+          <span class="key-row">
+            <input id="set-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="incolla qui la chiave">
+            <button type="button" class="ghost" id="btn-toggle-key">Mostra</button>
+          </span>
+        </label>
+        <label>Area geografica (regione)
+          <input id="set-region" list="regions" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="es. westeurope">
+          <datalist id="regions">
+            <option value="westeurope"><option value="northeurope"><option value="italynorth"><option value="francecentral">
+            <option value="germanywestcentral"><option value="swedencentral"><option value="switzerlandnorth"><option value="uksouth">
+            <option value="eastus"><option value="eastus2"><option value="westus"><option value="westus2"><option value="centralindia"><option value="southeastasia">
+          </datalist>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Voce</legend>
+        <label>Voce di lettura
+          <select id="set-voice"></select>
+        </label>
+        <div class="btn-row">
+          <button type="button" class="secondary" id="btn-test-voice">Prova la voce</button>
+          <button type="button" class="ghost" id="btn-load-voices">Aggiorna elenco voci</button>
+        </div>
+        <p class="help" id="voice-msg" role="status"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Audio salvato sul dispositivo</legend>
+        <p class="help">Le frasi già ascoltate vengono salvate: rileggerle è gratis e funziona anche senza internet.</p>
+        <p id="cache-info" class="cache-info">—</p>
+        <p id="quota-info" class="cache-info">—</p>
+        <div class="btn-row">
+          <button type="button" class="danger" id="btn-clear-cache">Cancella audio salvato</button>
+        </div>
+      </fieldset>
+
+      <div class="sheet-actions">
+        <button value="cancel" class="ghost" type="submit">Annulla</button>
+        <button value="save" class="primary" type="submit" id="btn-save-settings">Salva</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="alert" hidden></div>
+
+  <script src="vendor/speech-sdk.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
