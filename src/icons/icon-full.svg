@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="aMICOLettore">
+  <rect width="512" height="512" fill="#12355B"/>
+  <g transform="translate(51.2 57.2) scale(.8)">
+    <!-- copertina -->
+    <path d="M78 236 V410 C150 396 214 402 256 432 C298 402 362 396 434 410 V236" fill="none" stroke="#8FB8E8" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- pagine -->
+    <path d="M249 238 C208 210 150 202 96 214 V392 C150 380 208 386 249 414 Z" fill="#FFFFFF"/>
+    <path d="M263 238 C304 210 362 202 416 214 V392 C362 380 304 386 263 414 Z" fill="#FFFFFF"/>
+    <!-- righe di testo -->
+    <g stroke="#12355B" stroke-opacity=".22" stroke-width="9" stroke-linecap="round" fill="none">
+      <path d="M128 258 C160 252 196 254 224 266"/><path d="M128 292 C160 286 196 288 224 300"/><path d="M128 326 C160 320 196 322 224 334"/>
+      <path d="M384 258 C352 252 316 254 288 266"/><path d="M384 292 C352 286 316 288 288 300"/><path d="M384 326 C352 320 316 322 288 334"/>
+    </g>
+    <!-- onde sonore -->
+    <g stroke="#FF7A6B" stroke-width="22" stroke-linecap="round" fill="none">
+      <path d="M225.1 193.2 A48 48 0 0 1 286.9 193.2"/>
+      <path d="M200.7 164.1 A86 86 0 0 1 311.3 164.1"/>
+      <path d="M176.3 135 A124 124 0 0 1 335.7 135"/>
+    </g>
+  </g>
+</svg>
