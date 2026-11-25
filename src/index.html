@@ -51,6 +51,7 @@
         Apri un PDF
       </label>
       <input id="file-input" type="file" accept="application/pdf,.pdf" hidden>
+      <div class="usage" id="usage-home"></div>
       <p class="hint" id="key-hint" hidden>Prima volta? Inserisci la chiave di Azure nelle <button type="button" class="link" id="btn-hint-settings">impostazioni</button>.</p>
     </section>
 
@@ -65,6 +66,10 @@
   <main id="view-reader" class="view" hidden>
     <div class="doc-head">
       <h1 id="doc-title" class="doc-title"></h1>
+      <button class="prep-btn" id="btn-prepare" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        <span id="prepare-label">Prepara per offline</span>
+      </button>
       <div class="page-nav">
         <button class="pbtn" id="btn-page-prev" type="button" aria-label="Pagina precedente">‹</button>
         <label class="page-label">Pagina
@@ -73,6 +78,13 @@
         </label>
         <button class="pbtn" id="btn-page-next" type="button" aria-label="Pagina successiva">›</button>
       </div>
+    </div>
+    <div id="prep" class="prep" role="status" hidden>
+      <div class="prep-row">
+        <span id="prep-text"></span>
+        <button type="button" class="ghost small-btn" id="btn-prep-cancel">Interrompi</button>
+      </div>
+      <div class="meter"><span id="prep-bar"></span></div>
     </div>
     <div id="notice" class="notice" role="status" hidden></div>
     <article id="reader" class="reader" aria-live="off"></article>
@@ -141,10 +153,27 @@
       </fieldset>
 
       <fieldset>
+        <legend>Senza internet</legend>
+        <label class="check"><input type="checkbox" id="set-fallback"> Se manca internet o finisce la quota di Azure, leggi con la voce dell'iPad</label>
+        <label>Voce dell'iPad
+          <select id="set-sysvoice"></select>
+        </label>
+        <div class="btn-row">
+          <button type="button" class="ghost" id="btn-test-sys">Prova la voce dell'iPad</button>
+        </div>
+        <p class="help">Per una voce più naturale: Impostazioni dell'iPad → Accessibilità → Contenuto letto ad alta voce → Voci → Italiano, e scarica una voce “Migliorata” o “Premium”. Poi riapri l'app.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Quota gratuita di Azure</legend>
+        <div class="usage" id="usage-settings"></div>
+        <p class="help">È una stima dei caratteri inviati ad Azure da questo dispositivo nel mese in corso (il piano gratuito F0 ne include 500.000). Se usi l'app su più dispositivi, somma i valori. Il dato esatto è nel portale Azure: risorsa Speech → Monitoring → Metrics → “Synthesized Characters”.</p>
+      </fieldset>
+
+      <fieldset>
         <legend>Audio salvato sul dispositivo</legend>
         <p class="help">Le frasi già ascoltate vengono salvate: rileggerle è gratis e funziona anche senza internet.</p>
         <p id="cache-info" class="cache-info">—</p>
-        <p id="quota-info" class="cache-info">—</p>
         <div class="btn-row">
           <button type="button" class="danger" id="btn-clear-cache">Cancella audio salvato</button>
         </div>

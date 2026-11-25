@@ -1,10 +1,10 @@
 // aMICOLettore – logica principale dell'interfaccia e della lettura.
-import { db, loadSettings, saveSettings, sha256Hex, getUsage, requestPersistentStorage } from './store.js';
+import { db, loadSettings, saveSettings, sha256Hex, getUsage, requestPersistentStorage, FREE_CHARS_PER_MONTH } from './store.js';
+import { sysVoice } from './sysvoice.js';
 import { extractPdfText, letterCount, pageModel, findWords } from './text.js';
 import { Speaker, ITALIAN_VOICES, TTSError } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
-const FREE_CHARS_PER_MONTH = 500_000; // piano F0: 0,5 milioni di caratteri al mese per le voci neurali
 const RATES = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5, 1.75, 2];
 const VOICES_KEY = 'amicolettore.voices';
 const nf = new Intl.NumberFormat('it-IT');
@@ -173,6 +173,7 @@ function silentWavUrl() {
 function unlockAudio() {
   if (unlocked) return;
   unlocked = true;
+  if (settings.offlineVoice) sysVoice.unlock();
   audio.src = silentWavUrl();
   audio.play().catch(() => {});
 }
@@ -231,17 +232,29 @@ async function playFrom(p, s) {
   const ci = chunkIndex(p, s);
   const c = m.chunks[ci];
 
+  sysVoice.cancel();
+  sysPlaying = null;
   let data = loaded && loaded.page === p && loaded.ci === ci && loaded.res.voice === settings.voice ? loaded : null;
   if (!data) {
     setLoading(true);
     audio.pause();
-    setStatus('Preparo la voce…');
+    // Mentre Azure non è raggiungibile non perdiamo tempo a riprovare a ogni frase
+    const skipAzure = canFallback() && (!navigator.onLine || Date.now() < fallbackUntil);
+    if (!skipAzure) setStatus('Preparo la voce…');
     try {
-      data = await getChunkData(p, ci);
+      data = await getChunkData(p, ci, { cacheOnly: skipAzure });
       if (my !== token) return;
+      if (!data) { playSystem(p, s, my); return; }
+      if (!data.fromCache) { fallbackUntil = 0; checkUsage(); }
       await loadAudio(data);
     } catch (e) {
       if (my !== token) return;
+      if (canFallback() && e instanceof TTSError && ['network', 'quota', 'throttle'].includes(e.kind)) {
+        fallbackUntil = Date.now() + 60_000;
+        fallbackReason = e.kind;
+        playSystem(p, s, my);
+        return;
+      }
       handleError(e);
       return;
     }
@@ -278,6 +291,48 @@ function prefetchAfter(p, ci) {
   getChunkData(tp, tci).catch(() => {});
 }
 
+// ---------- riserva: voce dell'iPad ----------
+let sysPlaying = null;      // {p, s} mentre legge la voce dell'iPad
+let fallbackUntil = 0;      // fino a quando evitare Azure dopo un errore di rete
+let fallbackReason = 'network';
+
+function canFallback() { return settings.offlineVoice !== false && sysVoice.available(); }
+
+function playSystem(p, s, my) {
+  const m = model(p);
+  const sent = m.sentences[s];
+  audio.pause();
+  sysPlaying = { p, s };
+  setLoading(false);
+  setPlaying(true);
+  setStatus(fallbackReason === 'quota' || fallbackReason === 'throttle'
+    ? 'Azure non risponde (quota?): leggo con la voce dell\'iPad.'
+    : 'Senza internet: leggo con la voce dell\'iPad. Le parti già salvate restano con la voce di Azure.');
+  sysVoice.speak(m.text.slice(sent.start, sent.end), {
+    voiceName: settings.sysVoice,
+    rate: settings.rate,
+    onWord: (ci) => { if (my === token) highlightWord(sent.start + ci); },
+    onEnd: () => {
+      if (my !== token) return;
+      sysPlaying = null;
+      const next = nextSentence(p, s);
+      if (!next) { stopPlayback('Fine del documento. 🎉'); return; }
+      playFrom(next.p, next.s);
+    },
+    onError: (e) => {
+      if (my !== token) return;
+      sysPlaying = null;
+      handleError(new Error(`La voce dell'iPad non è disponibile (${e.error || 'errore'}).`));
+    },
+  });
+}
+
+function nextSentence(p, s) {
+  if (s + 1 < model(p).sentences.length) return { p, s: s + 1 };
+  const np = nextPageWithText(p, 1);
+  return np < 0 ? null : { p: np, s: 0 };
+}
+
 function onEnded() {
   if (!loaded || !state.playing) return;
   const { page: p, ci } = loaded;
@@ -290,6 +345,8 @@ function onEnded() {
 
 function stopPlayback(msg) {
   token++;
+  sysVoice.cancel();
+  sysPlaying = null;
   audio.pause();
   setLoading(false);
   setPlaying(false);
@@ -401,7 +458,7 @@ function handleError(e) {
 audio.addEventListener('ended', onEnded);
 audio.addEventListener('pause', () => {
   // pausa decisa dal sistema (es. telefonata, Centro di Controllo)
-  if (state.playing && !state.loading && !audio.ended) { setPlaying(false); setStatus('In pausa.'); saveProgressNow(); }
+  if (state.playing && !state.loading && !audio.ended && !sysPlaying) { setPlaying(false); setStatus('In pausa.'); saveProgressNow(); }
 });
 audio.addEventListener('play', () => {
   if (!state.playing && !state.loading && loaded && audio.src === loaded.url) setPlaying(true);
@@ -486,6 +543,7 @@ async function openFile(file) {
 async function openDoc(id) {
   const [doc, text] = await Promise.all([db.getDoc(id), db.getText(id)]);
   if (!doc || !text) { toast('Documento non trovato sul dispositivo.'); return renderLibrary(); }
+  cancelPrepare();
   stopPlayback();
   if (loaded?.url) URL.revokeObjectURL(loaded.url);
   loaded = null;
@@ -510,6 +568,7 @@ async function openDoc(id) {
   view.sentEl = null;
   setPosition(sentence, { scroll: false });
   requestAnimationFrame(() => { if (sentence > 0) scrollToSentence(); else window.scrollTo({ top: 0 }); });
+  updatePrepareButton();
   setStatus(doc.page || doc.sentence ? 'Tocca ▶ per riprendere da dove eri arrivata.' : 'Tocca ▶ per iniziare, oppure tocca una frase.');
   updateMediaSession();
 }
@@ -532,6 +591,12 @@ async function renderLibrary() {
     open.innerHTML = `<span class="lib-name"></span><span class="lib-meta"></span><span class="lib-bar"><span style="width:${pct}%"></span></span>`;
     open.querySelector('.lib-name').textContent = d.title && d.title.length < 120 ? d.title : d.name;
     open.querySelector('.lib-meta').textContent = `${d.page || d.sentence ? `Riprendi da pagina ${d.page + 1}` : 'Da iniziare'} · ${d.numPages} pagine · ${when}`;
+    if (d.offlineVoice && d.offlineVoice === settings.voice) {
+      const r = document.createElement('span');
+      r.className = 'lib-ready';
+      r.textContent = '✓ Pronto anche senza internet';
+      open.querySelector('.lib-meta').after(r);
+    }
     open.setAttribute('aria-label', `Apri ${d.name}`);
     open.addEventListener('click', () => openDoc(d.id));
     const del = document.createElement('button');
@@ -548,13 +613,14 @@ async function renderLibrary() {
     list.append(li);
   }
   $('key-hint').hidden = !!settings.key;
+  renderUsage();
 }
 
 function showView(name) {
   $('view-home').hidden = name !== 'home';
   $('view-reader').hidden = name !== 'reader';
   $('controls').hidden = name !== 'reader';
-  if (name === 'home') { stopPlayback(); saveProgressNow(); state.doc = null; renderLibrary(); window.scrollTo({ top: 0 }); }
+  if (name === 'home') { cancelPrepare(); stopPlayback(); saveProgressNow(); state.doc = null; renderLibrary(); window.scrollTo({ top: 0 }); }
 }
 
 // =====================================================================
@@ -572,9 +638,28 @@ function fillVoices(selected) {
   if (!voices.some((v) => v.id === selected)) sel.add(new Option(selected, selected));
   sel.value = selected;
 }
+function fillSysVoices() {
+  const sel = $('set-sysvoice');
+  sel.textContent = '';
+  const voices = sysVoice.voices();
+  if (!voices.length) {
+    sel.add(new Option('Nessuna voce italiana trovata su questo dispositivo', ''));
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  const best = sysVoice.pick('');
+  sel.add(new Option(`Automatica (${best?.name || 'migliore disponibile'})`, ''));
+  for (const v of voices) sel.add(new Option(`${v.name}${v.localService ? '' : ' (online)'}`, v.name));
+  sel.value = voices.some((v) => v.name === settings.sysVoice) ? settings.sysVoice : '';
+}
+sysVoice.onVoicesChanged(() => { if ($('settings').open) fillSysVoices(); });
+
 function formSettings() {
   return {
     ...settings,
+    offlineVoice: $('set-fallback').checked,
+    sysVoice: $('set-sysvoice').value,
     key: $('set-key').value.trim(),
     region: $('set-region').value.trim().toLowerCase().replace(/\s+/g, ''),
     voice: $('set-voice').value,
@@ -590,8 +675,7 @@ async function refreshCacheInfo() {
     if (est?.usage) size = ` · spazio usato dall'app: ${nf.format(Math.round(est.usage / 1048576))} MB`;
   } catch { /* ignora */ }
   $('cache-info').textContent = `${nf.format(n)} ${n === 1 ? 'blocco' : 'blocchi'} di frasi salvati${size}`;
-  const used = getUsage();
-  $('quota-info').textContent = `Caratteri inviati ad Azure questo mese da questo iPad: ${nf.format(used)} su ${nf.format(FREE_CHARS_PER_MONTH)} gratuiti (stima).`;
+  renderUsage();
 }
 
 function openSettings() {
@@ -602,6 +686,8 @@ function openSettings() {
   $('btn-toggle-key').textContent = 'Mostra';
   $('set-region').value = settings.region;
   fillVoices(settings.voice);
+  $('set-fallback').checked = settings.offlineVoice !== false;
+  fillSysVoices();
   $('voice-msg').textContent = '';
   refreshCacheInfo();
   dlg.showModal();
@@ -618,6 +704,7 @@ $('settings-form').addEventListener('submit', (ev) => {
   speaker.reset();
   if (voiceChanged && (state.playing || state.loading)) { stopPlayback(); playFrom(state.page, state.sentence); }
   $('key-hint').hidden = !!settings.key;
+  updatePrepareButton();
   toast('Impostazioni salvate.');
 });
 
@@ -651,6 +738,18 @@ $('btn-test-voice').addEventListener('click', async () => {
   }
 });
 
+$('btn-test-sys').addEventListener('click', () => {
+  const msg = $('voice-msg');
+  if (!sysVoice.available()) { msg.textContent = 'Su questo dispositivo non ci sono voci italiane di sistema.'; return; }
+  stopPlayback();
+  sysVoice.speak('Ciao! Questa è la voce dell\'iPad, la uso quando manca internet.', {
+    voiceName: $('set-sysvoice').value,
+    rate: settings.rate,
+    onError: (e) => { msg.textContent = `Errore della voce dell'iPad: ${e.error || 'sconosciuto'}`; },
+  });
+  msg.textContent = 'Senti la voce dell\'iPad?';
+});
+
 $('btn-load-voices').addEventListener('click', async () => {
   const s = formSettings();
   const msg = $('voice-msg');
@@ -680,6 +779,144 @@ $('btn-clear-cache').addEventListener('click', async () => {
   refreshCacheInfo();
   toast('Audio salvato cancellato.');
 });
+
+// =====================================================================
+// Contatore dei caratteri (quota gratuita F0)
+// =====================================================================
+const WARN_KEY = 'amicolettore.usageWarned';
+function usageLevel(used) {
+  const pct = used / FREE_CHARS_PER_MONTH;
+  return pct >= 0.95 ? 'danger' : pct >= 0.8 ? 'warn' : '';
+}
+function renderUsage() {
+  const used = getUsage();
+  const pct = Math.min(100, (used / FREE_CHARS_PER_MONTH) * 100);
+  const left = Math.max(0, FREE_CHARS_PER_MONTH - used);
+  const pctTxt = pct > 0 && pct < 1 ? '<1' : nf.format(Math.round(pct));
+  for (const id of ['usage-home', 'usage-settings']) {
+    const el = $(id);
+    if (!el) continue;
+    el.className = `usage ${usageLevel(used)}`;
+    el.innerHTML = `<div class="usage-text"><span>Caratteri Azure usati questo mese: <strong></strong></span><span></span></div>
+      <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="${FREE_CHARS_PER_MONTH}" aria-valuenow="${used}"><span style="width:${pct}%"></span></div>`;
+    el.querySelector('strong').textContent = `${nf.format(used)} su ${nf.format(FREE_CHARS_PER_MONTH)} (${pctTxt}%)`;
+    el.querySelector('.usage-text > span:last-child').textContent = left ? `ne restano ${nf.format(left)}` : 'quota esaurita (stima)';
+  }
+}
+function checkUsage() {
+  renderUsage();
+  const used = getUsage();
+  const month = new Date().toISOString().slice(0, 7);
+  let warned = {};
+  try { warned = JSON.parse(localStorage.getItem(WARN_KEY) || '{}'); } catch { /* ignora */ }
+  if (warned.month !== month) warned = { month, level: 0 };
+  const pct = used / FREE_CHARS_PER_MONTH;
+  const level = pct >= 1 ? 100 : pct >= 0.95 ? 95 : pct >= 0.8 ? 80 : 0;
+  if (level > warned.level) {
+    warned.level = level;
+    try { localStorage.setItem(WARN_KEY, JSON.stringify(warned)); } catch { /* ignora */ }
+    const msg = level === 100
+      ? 'Quota gratuita di Azure probabilmente esaurita per questo mese. Le parti già salvate si leggono comunque; per il resto userò la voce dell\'iPad.'
+      : `Attenzione: hai usato circa il ${level}% dei caratteri gratuiti di Azure di questo mese.`;
+    toast(msg, 8000);
+  }
+}
+
+// =====================================================================
+// Prepara per offline: genera e salva l'audio di tutto il documento
+// =====================================================================
+const MIN_REQUEST_GAP = 3200; // ms: resta sotto il limite di richieste al minuto del piano F0
+let prep = null;
+
+function updatePrepareButton() {
+  const ready = state.doc?.offlineVoice && state.doc.offlineVoice === settings.voice;
+  $('btn-prepare').classList.toggle('ready', !!ready);
+  $('prepare-label').textContent = ready ? 'Pronto offline ✓' : 'Prepara per offline';
+}
+
+function cancelPrepare() {
+  if (prep) prep.cancel = true;
+}
+
+async function prepareDocument() {
+  if (!state.doc || prep) return;
+  if (!settings.key || !settings.region) { toast('Prima inserisci la chiave di Azure nelle impostazioni.'); openSettings(); return; }
+  if (!navigator.onLine) { toast('Per preparare l\'audio serve internet (meglio il Wi-Fi).'); return; }
+
+  const doc = state.doc;
+  const job = { cancel: false, doc };
+  prep = job;
+  toast('Controllo cosa è già salvato…', 0);
+  const todo = [];
+  let missing = 0;
+  for (let p = 0; p < state.pages.length; p++) {
+    for (let ci = 0; ci < model(p).chunks.length; ci++) {
+      const c = model(p).chunks[ci];
+      if (!(await speaker.isCached(c.text))) { todo.push({ p, ci }); missing += c.text.length; }
+    }
+  }
+  hideToast();
+  if (job.cancel || state.doc !== doc) { prep = null; return; }
+
+  const markReady = () => { doc.offlineVoice = settings.voice; db.putDoc(doc).catch(() => {}); updatePrepareButton(); };
+  if (!todo.length) {
+    prep = null;
+    markReady();
+    toast('Tutto il documento è già salvato: puoi leggerlo anche senza internet. ✓', 6000);
+    return;
+  }
+
+  const used = getUsage();
+  const left = Math.max(0, FREE_CHARS_PER_MONTH - used);
+  const minutes = Math.max(1, Math.ceil((todo.length * MIN_REQUEST_GAP) / 60000));
+  const ok = confirm(
+    `Per salvare tutto il documento servono circa ${nf.format(missing)} caratteri ` +
+    `(${todo.length} richieste ad Azure, circa ${minutes} ${minutes === 1 ? 'minuto' : 'minuti'}).\n\n` +
+    `Questo mese ne hai usati circa ${nf.format(used)} su ${nf.format(FREE_CHARS_PER_MONTH)}: ne restano ${nf.format(left)}.` +
+    (missing > left ? '\n\nAttenzione: probabilmente non bastano, verrà salvata solo una parte.' : '') +
+    '\n\nTieni l\'app aperta e l\'iPad acceso finché non ha finito. Vuoi continuare?');
+  if (!ok) { prep = null; return; }
+
+  const box = $('prep');
+  box.hidden = false;
+  keepAwake();
+  let done = 0;
+  let lastStart = 0;
+  let error = null;
+  const show = () => {
+    $('prep-text').textContent = `Salvo l'audio: ${done} di ${todo.length} (pagina ${todo[Math.min(done, todo.length - 1)].p + 1})`;
+    $('prep-bar').style.width = `${(done / todo.length) * 100}%`;
+  };
+  show();
+  for (const { p, ci } of todo) {
+    if (job.cancel) break;
+    const wait = lastStart + MIN_REQUEST_GAP - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    if (job.cancel) break;
+    lastStart = Date.now();
+    try {
+      const text = model(p).chunks[ci].text;
+      const res = await speaker.get(text);
+      if (!res.fromCache) checkUsage();
+    } catch (e) {
+      error = e;
+      break;
+    }
+    done++;
+    show();
+  }
+  prep = null;
+  box.hidden = true;
+  if (!state.playing) releaseAwake();
+  if (done === todo.length) {
+    markReady();
+    toast('Fatto! Tutto il documento è salvato: ora puoi leggerlo anche senza internet. ✓', 8000);
+  } else if (error) {
+    toast(`Mi sono fermata a ${done} di ${todo.length}: ${error.message || error}. Quello già salvato resta; puoi riprendere più tardi.`, 10000);
+  } else {
+    toast(`Interrotto: salvati ${done} di ${todo.length}. Puoi riprendere quando vuoi.`, 6000);
+  }
+}
 
 // =====================================================================
 // Velocità, dimensione del testo
@@ -756,6 +993,8 @@ $('btn-hint-settings').addEventListener('click', openSettings);
 $('btn-font-up').addEventListener('click', () => changeFont(2));
 $('btn-font-down').addEventListener('click', () => changeFont(-2));
 $('btn-play').addEventListener('click', togglePlay);
+$('btn-prepare').addEventListener('click', prepareDocument);
+$('btn-prep-cancel').addEventListener('click', cancelPrepare);
 $('btn-prev').addEventListener('click', () => step(-1));
 $('btn-next').addEventListener('click', () => step(1));
 $('btn-slower').addEventListener('click', () => changeRate(-1));
@@ -784,6 +1023,7 @@ document.addEventListener('drop', (e) => { e.preventDefault(); openFile(e.dataTr
 // =====================================================================
 applyFont();
 applyRate();
+renderUsage();
 renderLibrary().then(async () => {
   // riapre l'ultimo documento letto, così si riprende subito da dove si era rimasti
   const docs = await db.listDocs().catch(() => []);

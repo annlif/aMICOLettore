@@ -18,6 +18,12 @@
   l'ultimo documento sulla frase giusta.
 - **Salva l'audio sul dispositivo**: ogni frase generata viene conservata sull'iPad. Rileggere le stesse pagine
   **non consuma la quota gratuita** e funziona anche senza internet. Cambiare velocità non rigenera l'audio.
+- **Prepara per offline**: un pulsante genera e salva in anticipo l'audio di tutto il documento (prima dice quanti
+  caratteri servono e quanti ne restano nel mese). Poi il documento si legge anche senza internet, con le voci di Azure.
+- **Voce dell'iPad di riserva**: se manca internet o la quota di Azure è finita, le parti non ancora salvate vengono lette
+  con una voce italiana installata sull'iPad (gratis e offline, meno naturale). Si può disattivare nelle impostazioni.
+- **Contatore dei caratteri**: barra con i caratteri inviati ad Azure nel mese (stima per dispositivo), con avvisi
+  all'80%, al 95% e al 100% della quota gratuita.
 - **Testo regolabile** (A− / A+), colori chiari e tema scuro automatico.
 
 ## La chiave di Azure
@@ -35,6 +41,15 @@ Copia **KEY 1** e il valore di **Posizione/Area** (*Location/Region*, per esempi
 - L'app raggruppa le frasi brevi in un'unica richiesta, per non superare il limite di richieste al minuto del piano F0,
   e se Azure risponde "troppe richieste" riprova da sola dopo qualche secondo.
 - Mentre leggi, prepara in anticipo il blocco di frasi successivo, così non ci sono pause.
+- Il valore esatto dei caratteri usati è nel portale Azure: risorsa Speech → **Monitoring → Metrics** → *Synthesized Characters*.
+
+### Usarla senza internet
+
+- Serve internet solo la prima volta, per installare l'app, e per generare voci nuove con Azure.
+- L'app, la libreria e tutto l'audio già salvato funzionano senza connessione.
+- Per un documento intero: aprilo con il Wi-Fi e tocca **Prepara per offline**; quando compare *Pronto offline ✓* si legge ovunque.
+- Per una voce di riserva migliore: Impostazioni dell'iPad → Accessibilità → Contenuto letto ad alta voce → Voci → Italiano,
+  e scarica una voce “Migliorata” o “Premium”.
 
 ## Installare l'app sull'iPad
 

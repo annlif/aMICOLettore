@@ -141,6 +141,33 @@ svg { flex: none; }
 .reader .w.on { background: var(--word-bg); color: var(--word-fg); box-shadow: 0 0 0 2px var(--word-bg); }
 .reader .no-text { color: var(--muted); font-style: italic; }
 
+/* ---------- contatore e preparazione offline ---------- */
+.usage { max-width: 520px; margin: 22px auto 0; text-align: left; }
+.usage-text { font-size: 16px; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.usage-text strong { color: var(--text); }
+.usage.warn .usage-text strong { color: #B25E00; }
+.usage.danger .usage-text strong { color: var(--coral-strong); }
+.meter { height: 10px; border-radius: 5px; background: var(--blue-soft); overflow: hidden; margin-top: 6px; }
+.meter > span { display: block; height: 100%; width: 0; background: var(--blue); border-radius: 5px; transition: width .3s; }
+.usage.warn .meter > span { background: #F0A030; }
+.usage.danger .meter > span { background: var(--coral-strong); }
+#usage-settings { margin: 6px 0 0; }
+
+.prep-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 700;
+}
+.prep-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.prep-btn.ready { border-color: #3C9A5F; color: #2E7D4B; }
+@media (prefers-color-scheme: dark) { .prep-btn.ready { color: #7FD39E; } }
+.prep { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; }
+.prep-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; }
+.small-btn { height: 40px; padding: 0 14px; }
+.lib-ready { color: #2E7D4B; font-weight: 700; }
+@media (prefers-color-scheme: dark) { .lib-ready { color: #7FD39E; } }
+.sheet label.check { display: flex; align-items: flex-start; gap: 10px; font-weight: 600; }
+.sheet label.check input { width: 24px; height: 24px; flex: none; margin-top: 1px; accent-color: var(--coral); }
+
 /* ---------- comandi ---------- */
 .controls {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;

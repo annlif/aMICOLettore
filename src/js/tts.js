@@ -78,6 +78,11 @@ export class Speaker {
   /** Chiave della cache: dipende solo da voce e testo (la velocità si regola in riproduzione). */
   cacheKey(text, voice) { return sha256Hex(`${voice}\u0001${text}`); }
 
+  /** true se l'audio di questo testo è già salvato sul dispositivo. */
+  async isCached(text) {
+    return db.hasAudio(await this.cacheKey(text, this.getSettings().voice)).catch(() => false);
+  }
+
   /**
    * Restituisce {audio: ArrayBuffer, mime, words: [{o, len, t}], fromCache}.
    * o = posizione del carattere nel testo, t = istante in secondi.
@@ -88,6 +93,7 @@ export class Speaker {
     const cached = await db.getAudio(key).catch(() => null);
     if (cached) return { ...cached, fromCache: true };
     if (cacheOnly) return null;
+    if (!navigator.onLine) throw new TTSError('Sei senza internet e questa parte non è ancora stata salvata sul dispositivo.', 'network');
     if (this.inflight.has(key)) return this.inflight.get(key);
 
     const p = (this.queue = this.queue.catch(() => {}).then(() => this.synthesizeWithRetry(text, voice)))
