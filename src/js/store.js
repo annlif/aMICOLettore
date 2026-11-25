@@ -45,6 +45,7 @@ export const db = {
     await run('texts', 'readwrite', (s) => s.delete(id));
   },
   getAudio: (key) => run('audio', 'readonly', (s) => s.get(key)),
+  hasAudio: async (key) => (await run('audio', 'readonly', (s) => s.count(key))) > 0,
   putAudio: (rec) => run('audio', 'readwrite', (s) => s.put(rec)),
   countAudio: () => run('audio', 'readonly', (s) => s.count()),
   clearAudio: () => run('audio', 'readwrite', (s) => s.clear()),
@@ -58,6 +59,8 @@ export const DEFAULT_SETTINGS = {
   voice: 'it-IT-IsabellaNeural',
   rate: 1,
   fontSize: 22,
+  offlineVoice: true, // usa la voce dell'iPad se manca internet
+  sysVoice: '',
 };
 
 function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
@@ -70,6 +73,7 @@ export function loadSettings() {
 export function saveSettings(s) { safeSet(SETTINGS_KEY, JSON.stringify(s)); }
 
 // ---------- contatore caratteri inviati ad Azure (stima, per il piano F0) ----------
+export const FREE_CHARS_PER_MONTH = 500_000; // piano F0: 0,5 milioni di caratteri al mese (voci neurali)
 const USAGE_KEY = 'amicolettore.usage';
 function monthId(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
 export function getUsage() {
