@@ -101,6 +101,11 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   Con *sum* chiede se il predicato è verbale o nominale; per gli altri elementi Micol sceglie dall'**elenco completo dei
   complementi** (più attributo e apposizione) e l'app controlla che la scelta sia compatibile con caso e preposizione.
   Alla fine compare l'**analisi logica scritta**, che resta sotto la frase e può andare nel PDF. Non traduce mai.
+- **Intelligenza artificiale per la guida (facoltativa)** – con una chiave di **Gemini** (Google AI Studio, quota
+  gratuita) o di **Azure OpenAI** (anche Azure for Students), la guida usa l'analisi dell'IA per verbo principale, soggetto,
+  complementi, attributi e tipo di subordinata, e capisce quando una scelta è possibile per la grammatica ma non per il senso.
+  L'IA **non traduce**: restituisce solo la struttura della frase (numeri delle parole), salvata con la frase. Senza chiave
+  o senza internet la guida usa le regole dell'app.
 - **Significato al passaggio** – passando sopra una parola con trackpad, mouse o Apple Pencil compare il significato del lemma.
 - **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
 - **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,

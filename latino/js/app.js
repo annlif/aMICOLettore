@@ -3,6 +3,7 @@ import { loadSettings, saveSettings, askPersistence, db } from './store.js';
 import { $, toast, closeMenu, esc } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
 import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, audioState, pulisciAudioVecchio } from './voce.js';
+import { loadIA, saveIA, provaIA } from './ai.js';
 import { makeBackup, readBackup, restoreBackup, shareFile } from './esporta.js';
 import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
@@ -62,7 +63,23 @@ function voceStato(v) {
   if (v.key && v.region) return `Voce di Azure collegata (regione ${v.region})${v.from === 'amicolettore' ? ', presa da aMICOLettore' : ''}. ✓`;
   return 'La voce di Azure non è ancora collegata: per ora "Ascolta" usa la voce dell\'iPad.';
 }
-function openSettings() { fillSettings(); renderAudio(); $('settings').showModal(); }
+function openSettings() { fillSettings(); fillIA(); renderAudio(); $('settings').showModal(); }
+
+// ---------- intelligenza artificiale (facoltativa) ----------
+function fillIA() {
+  const v = loadIA();
+  $('ia-provider').value = v.provider; $('ia-endpoint').value = v.endpoint; $('ia-deployment').value = v.deployment;
+  $('ia-azure').hidden = v.provider !== 'azure';
+  $('ia-key').value = v.key; $('ia-on').checked = v.on !== false; $('ia-msg').textContent = v.key ? '' : 'Nessuna chiave: la guida usa le regole dell\'app.';
+}
+const formIA = () => ({ ...loadIA(), provider: $('ia-provider').value, endpoint: $('ia-endpoint').value.trim(), deployment: $('ia-deployment').value.trim(), key: $('ia-key').value.trim(), on: $('ia-on').checked });
+for (const id of ['ia-provider', 'ia-endpoint', 'ia-deployment', 'ia-key', 'ia-on']) $(id).addEventListener('change', () => { saveIA(formIA()); $('ia-azure').hidden = $('ia-provider').value !== 'azure'; });
+$('ia-prova').addEventListener('click', async () => {
+  saveIA(formIA());
+  $('ia-msg').textContent = 'Provo…';
+  try { $('ia-msg').textContent = (await provaIA()) ? 'Funziona! ✓ La guida userà l\'intelligenza artificiale.' : 'Risponde, ma l\'analisi di prova non è quella attesa.'; }
+  catch (e) { $('ia-msg').textContent = e.message; }
+});
 
 // ---------- audio salvato ----------
 const kb = (b) => (b >= 1048576 ? `${(b / 1048576).toLocaleString('it-IT', { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
