@@ -47,16 +47,29 @@ export function itemsToLines(items) {
   const lines = [];
   let cur = '';
   let lastY = null;
+  let lastEndX = null;
   for (const it of items) {
     if (!('str' in it)) continue;
     const y = it.transform ? it.transform[5] : null;
-    if (cur && lastY != null && y != null && Math.abs(y - lastY) > Math.max(2, (it.height || 10) * 0.6) && !cur.endsWith(' ')) { lines.push(cur); cur = ''; }
+    const x = it.transform ? it.transform[4] : null;
+    if (cur && lastY != null && y != null && Math.abs(y - lastY) > Math.max(2, (it.height || 10) * 0.6) && !cur.endsWith(' ')) { lines.push(cur); cur = ''; lastEndX = null; }
+    // spazio "visivo" fra due pezzi di testo che nel PDF non hanno lo spazio
+    if (cur && it.str && !/\s$/.test(cur) && !/^\s/.test(it.str) && lastEndX != null && x != null && x - lastEndX > Math.max(1, (it.height || 10) * 0.18)) cur += ' ';
     cur += it.str;
     if (y != null && it.str.trim()) lastY = y;
-    if (it.hasEOL) { lines.push(cur); cur = ''; }
+    if (x != null && it.str) lastEndX = x + (it.width || 0);
+    if (it.hasEOL) { lines.push(cur); cur = ''; lastEndX = null; }
   }
   if (cur) lines.push(cur);
-  return lines.map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  return lines.map((l) => fixSpacing(l.replace(/\s+/g, ' ').trim())).filter(Boolean);
+}
+
+/** Aggiunge lo spazio dopo la punteggiatura attaccata alla parola seguente (come in aMICOLettore). */
+export function fixSpacing(t) {
+  return t
+    .replace(/(\p{Ll}{2,}[.!?;:]+)(?=\p{Lu})/gu, '$1 ')
+    .replace(/(\p{Ll}{2,}[.!?]+["”»’)\]])(?=\p{L})/gu, '$1 ')
+    .replace(/(\p{L}{2,}[,;])(?=\p{L})/gu, '$1 ');
 }
 
 /** Conta le lettere vere: serve a capire se il PDF è una scansione (solo immagini). */

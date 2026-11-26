@@ -49,7 +49,19 @@ export async function extractPdfText(arrayBuffer, { onProgress, askPassword } = 
 
 /** Ricostruisce righe e paragrafi a partire dagli elementi di testo di pdf.js. */
 /** Versione dell'algoritmo: se cambia, i PDF riaperti vengono rielaborati. */
-export const TEXT_VERSION = 2;
+export const TEXT_VERSION = 3;
+
+/**
+ * Rete di sicurezza per i PDF che "attaccano" le frasi: aggiunge lo spazio dopo la punteggiatura
+ * quando segue subito una parola ("scurità.A volte" → "scurità. A volte", "casa,albero" → "casa, albero").
+ * Le sigle (S.p.A., a.C., U.S.A.) e i numeri (3,5 · 10:30) restano come sono.
+ */
+export function fixSpacing(t) {
+  return t
+    .replace(/(\p{Ll}{2,}[.!?…;:]+)(?=\p{Lu})/gu, '$1 ')
+    .replace(/(\p{Ll}{2,}[.!?…]+["”»’)\]])(?=\p{L})/gu, '$1 ')
+    .replace(/(\p{L}{2,}[,;])(?=\p{L})/gu, '$1 ');
+}
 
 export function cleanPageText(items) {
   // 1) righe, con la loro posizione verticale
@@ -58,19 +70,24 @@ export function cleanPageText(items) {
   let curY = null;
   let lastY = null;
   const push = () => { lines.push({ text: cur, y: curY }); cur = ''; curY = null; };
+  let lastEndX = null;
   for (const it of items) {
     if (!('str' in it)) continue;
     const y = it.transform ? it.transform[5] : null;
+    const x = it.transform ? it.transform[4] : null;
     // cambio di riga non segnalato (alcuni PDF non usano hasEOL)
-    if (cur && lastY != null && y != null && Math.abs(y - lastY) > Math.max(2, (it.height || 10) * 0.6) && !cur.endsWith(' ')) push();
+    if (cur && lastY != null && y != null && Math.abs(y - lastY) > Math.max(2, (it.height || 10) * 0.6) && !cur.endsWith(' ')) { push(); lastEndX = null; }
     if (curY == null && it.str.trim() && y != null) curY = y;
+    // spazio "visivo" fra due pezzi di testo che nel PDF non hanno lo spazio (es. "scurità." + "A volte")
+    if (cur && it.str && !/\s$/.test(cur) && !/^\s/.test(it.str) && lastEndX != null && x != null && x - lastEndX > Math.max(1, (it.height || 10) * 0.18)) cur += ' ';
     cur += it.str;
     if (y != null && it.str.trim()) lastY = y;
-    if (it.hasEOL) push();
+    if (x != null && it.str) lastEndX = x + (it.width || 0);
+    if (it.hasEOL) { push(); lastEndX = null; }
   }
   if (cur) push();
 
-  let ls = lines.map((l) => ({ text: l.text.replace(/\s+/g, ' ').trim(), y: l.y }));
+  let ls = lines.map((l) => ({ text: fixSpacing(l.text.replace(/\s+/g, ' ').trim()), y: l.y }));
   // numeri di pagina isolati all'inizio o alla fine
   const isPageNum = (t) => /^(pag\.?\s*)?[-–]?\s*\d{1,4}\s*[-–]?$/i.test(t);
   while (ls.length && (!ls[0].text || isPageNum(ls[0].text))) ls.shift();
