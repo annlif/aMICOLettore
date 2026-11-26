@@ -130,6 +130,15 @@ function renderVocabList(L) {
 }
 
 export function initVocab() {
+  $('vocab-pdf').addEventListener('click', async () => {
+    try {
+      toast('Preparo l\'elenco…', 1500);
+      const { lexiconPdf, shareFile } = await import('./esporta.js');
+      const L = await lexicon();
+      const list = [...L.entries.values()].sort((a, b) => normalize(a.lemma).replace(/^-/, '').localeCompare(normalize(b.lemma).replace(/^-/, '')));
+      await shareFile(await lexiconPdf(list, classeOf), 'Lessico da verificare');
+    } catch (e) { toast(e.message || String(e), 5000); }
+  });
   $('word-sheet').addEventListener('close', () => { wordCtx = null; });
   $('vocab-chips').addEventListener('click', async (e) => {
     const b = e.target.closest('[data-f]');

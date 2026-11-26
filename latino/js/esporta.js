@@ -125,3 +125,51 @@ export async function restoreBackup(data, mode) {
 }
 
 export { toast };
+
+// ---------- elenco del lessico per la professoressa ----------
+const GRUPPI = [['cong', 'Congiunzioni'], ['avv', 'Avverbi'], ['prep', 'Preposizioni'], ['pron', 'Pronomi'], ['num', 'Numerali'],
+  ['n', 'Nomi'], ['agg', 'Aggettivi'], ['v', 'Verbi'], ['inter', 'Interiezioni']];
+const STATI = { 'da verificare': 'da verificare', controllata: "controllata sull'Olivetti", verificata: 'verificata' };
+
+/** PDF con tutte le voci del vocabolario, per la verifica con la professoressa. */
+export async function lexiconPdf(entries, classeOf) {
+  const { jsPDF } = await loadJsPDF();
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const M = 16, W = 210 - 2 * M;
+  let y = 20;
+  const need = (h) => { if (y + h > 282) { doc.addPage(); y = 18; } };
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(18, 53, 91);
+  doc.text('aMICOLatino - lessico di base da verificare', M, y); y += 7;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(91, 107, 125);
+  doc.text(`${entries.length} voci - ${fmtDate(Date.now())}. Segnare le correzioni accanto a ogni voce.`, M, y); y += 8;
+  for (const [cat, title] of GRUPPI) {
+    const list = entries.filter((e) => e.cat === cat);
+    if (!list.length) continue;
+    need(14);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(226, 85, 74);
+    doc.text(`${title} (${list.length})`, M, y); y += 6;
+    for (const e of list) {
+      const head = pdfSafe(e.paradigma);
+      const info = [e.categoria, classeOf(e), e.regge ? `regge ${e.regge}` : '', e.connettivo ? `connettivo: ${e.connettivo}` : ''].filter(Boolean).join(' - ');
+      const sig = doc.splitTextToSize(pdfSafe(e.significati.join('; ')), W - 6);
+      const ex = e.esempio ? doc.splitTextToSize(pdfSafe(e.esempio), W - 6) : [];
+      need(6 + 4.6 * (1 + sig.length + ex.length));
+      doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(28, 39, 51);
+      doc.text(head, M, y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+      doc.text(`[${STATI[e.stato] || e.stato}]`, 210 - M, y, { align: 'right' });
+      y += 4.6;
+      doc.setFontSize(9); doc.setTextColor(91, 107, 125);
+      doc.text(pdfSafe(info), M + 4, y); y += 4.4;
+      doc.setFontSize(10.5); doc.setTextColor(31, 95, 173);
+      sig.forEach((l) => { doc.text(l, M + 4, y); y += 4.6; });
+      doc.setFont('times', 'italic'); doc.setFontSize(10); doc.setTextColor(91, 107, 125);
+      ex.forEach((l) => { doc.text(l, M + 4, y); y += 4.4; });
+      y += 2.4;
+    }
+    y += 2;
+  }
+  const n = doc.getNumberOfPages();
+  for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.text(`aMICOLatino - lessico - pagina ${p} di ${n}`, M, 291); }
+  return new File([doc.output('blob')], 'aMICOLatino-lessico-da-verificare.pdf', { type: 'application/pdf' });
+}
