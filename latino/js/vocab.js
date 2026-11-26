@@ -58,16 +58,24 @@ export function entryCard(e, opts = {}) {
 }
 
 /** Riquadro "non trovata". */
+/** Scheda di una parola che non è ancora nel vocabolario: stesso formato delle altre, "in preparazione". */
 function notFound(word, extra = '') {
-  return `<div class="notfound">
-    <p><b lang="la">${esc(word)}</b> non è ancora nel tuo vocabolario.</p>
+  return `<article class="card card-wait">
+    <header class="card-h">
+      <div>
+        <h3 class="card-lemma" lang="la">${esc(word)}</h3>
+        <p class="card-cat">scheda in preparazione</p>
+      </div>
+      <span class="badge warn">non ancora nel vocabolario</span>
+    </header>
     ${extra}
+    <p class="card-wait-txt">Questa parola non è ancora nel vocabolario di aMICOLatino. Tocca <b>Aggiungi al vocabolario</b>: la sua scheda (paradigma, significati, esempio) verrà preparata e comparirà qui con un prossimo aggiornamento.</p>
     <div class="card-actions">
-      <a class="pill" href="${olivettiUrl(word)}" target="_blank" rel="noopener">${ICON_EXT}Cerca nell'Olivetti</a>
       <button class="pill coral" type="button" data-act="dacompletare" data-word="${esc(word)}">${ICON_HEART}Aggiungi al vocabolario</button>
+      <button class="pill" type="button" data-act="ascolta" data-text="${esc(word)}">${ICON_SOUND}Ascolta</button>
+      <a class="pill" href="${olivettiUrl(word)}" target="_blank" rel="noopener">${ICON_EXT}Olivetti</a>
     </div>
-    <p class="muted small">"Aggiungi al vocabolario" la mette nella lista <b>da completare</b>: la scheda verrà compilata seguendo l'Olivetti.</p>
-  </div>`;
+  </article>`;
 }
 
 // ---------- finestra della parola (dal menu nella versione) ----------

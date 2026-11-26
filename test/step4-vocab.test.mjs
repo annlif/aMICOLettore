@@ -45,7 +45,7 @@ test('vocabolario e analisi nell\'app', async () => {
     // parola sconosciuta → da completare
     await page.locator('.sent-la .w', { hasText: 'Quiritiumque' }).click();
     await page.click('.popmenu button:has-text("Cerca nel vocabolario")');
-    await page.waitForSelector('#word-sheet[open] .notfound');
+    await page.waitForSelector('#word-sheet[open] .card-wait');
     await page.click('#word-body [data-act="dacompletare"]');
     await page.click('#word-sheet .close-x');
 
