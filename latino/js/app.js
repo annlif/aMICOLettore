@@ -68,11 +68,14 @@ function openSettings() { fillSettings(); fillIA(); renderAudio(); $('settings')
 // ---------- intelligenza artificiale (facoltativa) ----------
 function fillIA() {
   const v = loadIA();
+  $('ia-provider').value = v.provider; $('ia-endpoint').value = v.endpoint; $('ia-deployment').value = v.deployment;
+  $('ia-azure').hidden = v.provider !== 'azure';
   $('ia-key').value = v.key; $('ia-on').checked = v.on !== false; $('ia-msg').textContent = v.key ? '' : 'Nessuna chiave: la guida usa le regole dell\'app.';
 }
-for (const id of ['ia-key', 'ia-on']) $(id).addEventListener('change', () => saveIA({ ...loadIA(), key: $('ia-key').value.trim(), on: $('ia-on').checked }));
+const formIA = () => ({ ...loadIA(), provider: $('ia-provider').value, endpoint: $('ia-endpoint').value.trim(), deployment: $('ia-deployment').value.trim(), key: $('ia-key').value.trim(), on: $('ia-on').checked });
+for (const id of ['ia-provider', 'ia-endpoint', 'ia-deployment', 'ia-key', 'ia-on']) $(id).addEventListener('change', () => { saveIA(formIA()); $('ia-azure').hidden = $('ia-provider').value !== 'azure'; });
 $('ia-prova').addEventListener('click', async () => {
-  saveIA({ ...loadIA(), key: $('ia-key').value.trim(), on: $('ia-on').checked });
+  saveIA(formIA());
   $('ia-msg').textContent = 'Provo…';
   try { $('ia-msg').textContent = (await provaIA()) ? 'Funziona! ✓ La guida userà l\'intelligenza artificiale.' : 'Risponde, ma l\'analisi di prova non è quella attesa.'; }
   catch (e) { $('ia-msg').textContent = e.message; }

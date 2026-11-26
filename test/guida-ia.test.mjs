@@ -19,6 +19,33 @@ test('analisi dell\'IA: indici controllati', () => {
   assert.equal(v.complementi.length, 0, 'complementi non validi scartati');
 });
 
+test('Azure OpenAI: richiesta con schema JSON rigoroso e chiave nell\'intestazione', async () => {
+  const server = await startPagesServer(8074);
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  let req = null;
+  try {
+    await page.route('https://prova.openai.azure.com/**', async (route) => {
+      req = { url: route.request().url(), key: route.request().headers()['api-key'], body: route.request().postDataJSON() };
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ...ANALISI, principale: { verbo: 2, tipo: 'verbale', nomePredicato: -1 }, soggetto: 0, complementi: [{ parole: [1], tipo: 'oggetto' }] }) } }] }) });
+    });
+    await page.goto('http://localhost:8074/aMICOLettore/latino/');
+    const ok = await page.evaluate(async () => {
+      localStorage.setItem('amicolatino.ia', JSON.stringify({ provider: 'azure', endpoint: 'https://prova.openai.azure.com/', deployment: 'gpt-mini', key: 'k-azure', on: true }));
+      const { provaIA } = await import('./js/ai.js');
+      return provaIA();
+    });
+    assert.equal(ok, true);
+    assert.match(req.url, /^https:\/\/prova\.openai\.azure\.com\/openai\/deployments\/gpt-mini\/chat\/completions\?api-version=/);
+    assert.equal(req.key, 'k-azure');
+    assert.equal(req.body.response_format.json_schema.strict, true);
+    assert.equal(req.body.response_format.json_schema.schema.additionalProperties, false);
+  } finally {
+    await browser.close();
+    server.close();
+  }
+});
+
 test('guida con Gemini: il senso decide il complemento', async () => {
   const server = await startPagesServer(8075);
   const browser = await chromium.launch();
