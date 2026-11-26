@@ -477,3 +477,14 @@ button.big-btn { border: 0; }
 .guiding .sent:not(.guided) { opacity: .45; }
 .sent.guided { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
 .guiding #view-versione { padding-bottom: calc(var(--tabbar-h) + 46vh + 20px); }
+.g-chip.g-attr { background: #8E5BA8; } .g-chip.g-sub { background: #6B819B; }
+.w.g-attr { box-shadow: inset 0 -4px 0 #8E5BA8; }
+.guide-btns.chips-list { gap: 6px; }
+.guide-btns .chip-btn { min-height: 40px; height: auto; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-weight: 700; font-size: 15px; }
+.guide-btns .chip-btn:hover { border-color: var(--blue); }
+.an-logica details { margin-top: 6px; background: var(--blue-soft); border-radius: 12px; padding: 6px 12px; font-size: 16px; }
+.an-logica summary { font-weight: 800; cursor: pointer; color: var(--blue-dark); }
+@media (prefers-color-scheme: dark) { .an-logica summary { color: var(--text); } }
+.an-logica ul { margin: 6px 0 2px; padding-left: 18px; }
+.hover-tip { position: fixed; z-index: 70; max-width: min(380px, calc(100vw - 16px)); background: var(--blue-dark); color: #fff; padding: 8px 12px; border-radius: 12px; font-size: 16px; line-height: 1.4; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.hover-tip b { color: #FFC2BA; }

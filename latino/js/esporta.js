@@ -52,7 +52,7 @@ function loadJsPDF() {
 // i caratteri standard del PDF non hanno le vocali con il segno di quantità: le togliamo
 const pdfSafe = (s) => s.normalize('NFD').replace(/[̄̆]/g, '').normalize('NFC').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/–|—/g, '-');
 
-export async function versionPdf(v) {
+export async function versionPdf(v, { analisi = false } = {}) {
   const { jsPDF } = await loadJsPDF();
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210, M = 18, maxW = W - 2 * M - 8;
@@ -75,6 +75,14 @@ export async function versionPdf(v) {
     la.forEach((l) => { doc.text(l, M + 8, y); y += 6; });
     doc.setFont('helvetica', s.it.trim() ? 'normal' : 'italic'); doc.setFontSize(12); doc.setTextColor(s.it.trim() ? 31 : 150, s.it.trim() ? 95 : 150, s.it.trim() ? 173 : 150);
     it.forEach((l) => { doc.text(l, M + 8, y); y += 5.6; });
+    if (analisi && s.guida?.rows?.length) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(91, 107, 125);
+      for (const r of s.guida.rows) {
+        const lines = doc.splitTextToSize(pdfSafe(`${r.testo} -> ${r.ruolo}${r.nota ? ` (${r.nota})` : ''}`), maxW - 4);
+        newPageIfNeeded(lines.length * 4.6);
+        lines.forEach((l) => { doc.text(l, M + 12, y); y += 4.6; });
+      }
+    }
     y += 4;
   });
   const n = doc.getNumberOfPages();

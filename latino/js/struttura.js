@@ -205,7 +205,12 @@ export function checkComplement(S, k, p, id, { passive = false } = {}) {
   const w = S.words[k];
   if (w.unknown) return { ok: true, unsure: true, msg: 'Non conosco questa parola, quindi non posso controllare il caso: verifica nell\'Olivetti.' };
   const prep = p == null ? null : low(S.words[p].t);
-  const cases = new Set(w.an.filter((a) => a.caso).map((a) => a.caso));
+  let cases = new Set(w.an.filter((a) => a.caso).map((a) => a.caso));
+  if (p != null) { // con la preposizione contano solo i casi che regge
+    const r = (S.words[p].res.find((x) => x.entry.cat === 'prep')?.entry.regge || '').toLowerCase();
+    const pc = ['acc', 'abl'].filter((c) => r.includes(c === 'acc' ? 'accusativo' : 'ablativo'));
+    if (pc.length) cases = new Set([...cases].filter((c) => pc.includes(c)));
+  }
   const fits = c.forme.some((f) => (f.preps ? f.preps.includes(prep) : prep == null) && cases.has(f.caso));
   if (c.passivo && !passive) return { ok: false, msg: `Il ${c.nome} si usa con un verbo <b>passivo</b>, e il verbo principale qui non lo è.` };
   if (fits) return { ok: true, msg: '' };

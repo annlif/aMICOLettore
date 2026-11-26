@@ -56,12 +56,14 @@ test('guida nell\'app: si arriva alla struttura toccando le parole', async () =>
   try {
     await page.goto('http://localhost:8082/aMICOLettore/latino/');
     await page.click('#btn-paste');
-    await page.fill('#paste-text', 'Cum milites ad urbem venissent, consul legatos misit. Milites duci parent.');
+    await page.fill('#paste-text', 'Cum milites ad urbem venissent, consul legatos misit. Milites duci parent. Puella laeta est. Magnus nauta rosas puellae dat.');
     await page.click('#paste-dialog button[value="ok"]');
     await page.waitForSelector('#view-versione', { state: 'visible' });
+    const sent = (n) => page.locator('.sent').nth(n);
+    const choose = (id) => page.click(`#guide-btns [data-g="comp"][data-id="${id}"]`);
 
-    // frase 1
-    await page.locator('.sent').first().locator('[data-guide]').click();
+    // frase 1: subordinata, Mostrami, soggetto, oggetto, complemento con preposizione
+    await sent(0).locator('[data-guide]').click();
     await q(/2 verbi.*verbo principale/);
     await tap('venissent');
     await fb(/subordinata/);
@@ -77,32 +79,37 @@ test('guida nell\'app: si arriva alla struttura toccando le parole', async () =>
     await tap('consul');
     await q(/complemento oggetto/);
     await tap('legatos');
-    await q(/preposizioni/);
-    await page.click('#guide-btns [data-g="fine-prep"]');
-    await fb(/almeno una preposizione/);
+    await q(/altri elementi/);
     await tap('ad');
     await q(/regge/);
     await tap('urbem');
-    await fb(/ad \+ accusativo/);
-    await q(/altre preposizioni/);
-    await page.click('#guide-btns [data-g="fine-prep"]');
-    await q(/struttura della frase/);
+    await q(/Scegli dall'elenco/);
+    assert.ok(await page.locator('#guide-btns [data-g="comp"]').count() >= 25, 'elenco completo dei complementi');
+    await choose('termine');
+    await fb(/dativo senza preposizione\. Qui c'è ad \+ accusativo/);
+    await choose('moto-a-luogo');
+    await fb(/complemento di moto a luogo/);
+    await q(/altri complementi/);
+    await page.click('#guide-btns [data-g="fine-altri"]');
+    await q(/analisi logica/);
     const sum = await page.textContent('#guide-q');
-    assert.match(sum, /verbo principale\s*misit/);
+    assert.match(sum, /predicato verbale\s*misit/);
     assert.match(sum, /soggetto\s*consul/);
     assert.match(sum, /complemento oggetto\s*legatos/);
+    assert.match(sum, /complemento di moto a luogo\s*ad urbem/);
+    assert.match(sum, /proposizione subordinata/);
     await page.click('#guide-btns [data-g="traduci"]');
     assert.ok(await page.locator('#guide-bar').isHidden());
     await page.waitForFunction(() => document.activeElement?.tagName === 'TEXTAREA');
-    // i segni restano anche dopo aver riaperto l'app
+    // l'analisi resta sotto la frase, anche dopo aver riaperto l'app
     await page.waitForTimeout(700);
     await page.reload();
     await page.waitForSelector('.sent .w.g-verb');
-    assert.equal(await page.locator('.sent').first().locator('.w.g-verb').textContent(), 'misit');
-    assert.equal(await page.locator('.sent').first().locator('.w.g-subj').textContent(), 'consul');
+    assert.equal(await sent(0).locator('.w.g-verb').textContent(), 'misit');
+    assert.match(await sent(0).locator('.an-logica').textContent(), /misit → predicato verbale/);
 
     // frase 2: parent viene da pareo o da paro
-    await page.locator('.sent').nth(1).locator('[data-guide]').click();
+    await sent(1).locator('[data-guide]').click();
     await q(/verbo principale/);
     await tap('parent');
     await q(/2 verbi diversi/);
@@ -112,7 +119,54 @@ test('guida nell\'app: si arriva alla struttura toccando le parole', async () =>
     await q(/regge il dativo/);
     await tap('duci');
     await fb(/complemento di termine/);
-    await page.click('#guide-btns [data-g="esci"]').catch(() => {});
+    await page.click('#guide-btns [data-g="esci"]');
+
+    // frase 3: predicato nominale
+    await sent(2).locator('[data-guide]').click();
+    await q(/verbo principale/);
+    await tap('est');
+    await q(/predicato verbale.*predicato nominale/);
+    await page.click('#guide-btns [data-g="pt"][data-id="verbale"]');
+    await fb(/Guarda meglio/);
+    await page.click('#guide-btns [data-g="pt"][data-id="nominale"]');
+    await fb(/copula/);
+    await q(/soggetto/);
+    await tap('Puella');
+    await q(/nome del predicato/);
+    await tap('laeta');
+    await q(/altri elementi/);
+    await page.click('#guide-btns [data-g="fine-altri"]');
+    await q(/analisi logica/);
+    assert.match(await page.textContent('#guide-q'), /predicato nominale\s*laeta … est/);
+    await page.click('#guide-btns [data-g="esci"]');
+
+    // frase 4: attributo e complemento di termine
+    await sent(3).locator('[data-guide]').click();
+    await q(/verbo principale/);
+    await tap('dat');
+    await q(/soggetto/);
+    await tap('nauta');
+    await q(/complemento oggetto/);
+    await tap('rosas');
+    await q(/altri elementi/);
+    await tap('Magnus');
+    await q(/Scegli dall'elenco/);
+    await choose('attributo');
+    await q(/a cui si riferisce/);
+    await tap('rosas');
+    await fb(/non concordano/);
+    await tap('nauta');
+    await fb(/attributo di nauta/);
+    await q(/altri complementi/);
+    await tap('puellae');
+    await choose('termine');
+    await fb(/complemento di termine/);
+    await q(/altri complementi/);
+    await page.click('#guide-btns [data-g="fine-altri"]');
+    await q(/analisi logica/);
+    const s4 = await page.textContent('#guide-q');
+    assert.match(s4, /attributo di nauta\s*Magnus/);
+    assert.match(s4, /complemento di termine\s*puellae/);
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

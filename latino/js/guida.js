@@ -236,8 +236,9 @@ export function tapWord(k) {
       const c = COMPLEMENTI.find((y) => y.id === G.compId);
       if (k === G.target) return wrong('Tocca il nome a cui si riferisce, non la stessa parola.');
       if (agree(S, G.target, k, c.id === 'attributo')) {
-        addItem([G.target], c, k);
-        feedback(`Sì! ${tw(G.target)} è ${c.id === 'apposizione' ? 'apposizione' : 'attributo'} di ${tw(k)}: ${c.id === 'apposizione' ? 'sono nello stesso caso' : 'concordano in genere, numero e caso'}.`, true);
+        const t0 = G.target;
+        addItem([t0], c, k);
+        feedback(`Sì! ${tw(t0)} è ${c.id === 'apposizione' ? 'apposizione' : 'attributo'} di ${tw(k)}: ${c.id === 'apposizione' ? 'sono nello stesso caso' : 'concordano in genere, numero e caso'}.`, true);
         return next('altri', 1500);
       }
       return wrong(`${tw(G.target)} e ${tw(k)} non concordano (${c.id === 'apposizione' ? 'caso e numero' : 'genere, numero e caso'}): cerca un altro nome.`);
@@ -309,7 +310,7 @@ function chooseComplement(id) {
   const r = checkComplement(G.S, G.target, G.prep, id, { passive: verbPassive(G.S, G.v ?? 0, G.lemmaId) });
   if (!r.ok) return wrong(r.msg);
   const lbl = G.prep != null ? `<b lang="la">${esc(w(G.prep).t)} ${esc(w(G.target).t)}</b>` : tw(G.target);
-  addItem([G.target], c);
+  addItem([G.target], c); // (lbl calcolata prima: addItem azzera la scelta)
   feedback(`Va bene: ${lbl} può essere un <b>${esc(c.nome)}</b>.${r.unsure ? ` ${esc(r.msg)}` : ' Controlla che abbia senso nella frase.'}`, true);
   return next('altri', 1700);
 }
