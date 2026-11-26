@@ -82,3 +82,24 @@ test('vocabolario e analisi nell\'app', async () => {
     server.close();
   }
 });
+
+test('significato al passaggio sopra la parola', async () => {
+  const server = await startPagesServer(8078);
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 1180, height: 820 } });
+  try {
+    await page.goto('http://localhost:8078/aMICOLettore/latino/');
+    await page.click('#btn-paste');
+    await page.fill('#paste-text', 'Nauta rosas puellae dat.');
+    await page.click('#paste-dialog button[value="ok"]');
+    await page.waitForSelector('#view-versione', { state: 'visible' });
+    await page.locator('.sent-la .w', { hasText: 'puellae' }).hover();
+    await page.waitForSelector('#hover-tip:not([hidden])');
+    assert.match(await page.textContent('#hover-tip'), /puella: fanciulla, ragazza/);
+    await page.mouse.move(5, 5);
+    await page.waitForSelector('#hover-tip', { state: 'hidden' });
+  } finally {
+    await browser.close();
+    server.close();
+  }
+});

@@ -98,7 +98,10 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
 - **Guida all'analisi** ("🧭 Sono bloccata: aiutami") – solo quando serve: una domanda alla volta (verbo principale →
   da quale verbo viene, se la forma è ambigua → soggetto → complemento retto dal verbo, o nome del predicato con *sum* →
   preposizioni), Micol risponde toccando le parole e riceve un riscontro, un indizio o, dopo due tentativi, "Mostrami".
-  Alla fine compare la struttura della frase e le parole restano sottolineate a colori. Non traduce mai.
+  Con *sum* chiede se il predicato è verbale o nominale; per gli altri elementi Micol sceglie dall'**elenco completo dei
+  complementi** (più attributo e apposizione) e l'app controlla che la scelta sia compatibile con caso e preposizione.
+  Alla fine compare l'**analisi logica scritta**, che resta sotto la frase e può andare nel PDF. Non traduce mai.
+- **Significato al passaggio** – passando sopra una parola con trackpad, mouse o Apple Pencil compare il significato del lemma.
 - **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
 - **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,
   declinazione o coniugazione, significati, caso retto ed esempio. Le voci sono state **confrontate con il dizionario

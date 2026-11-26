@@ -146,3 +146,85 @@ export const DOMANDA = {
   inf: { q: 'Questo verbo regge un infinito: tocca l\'infinito che lo completa.', no: 'Non c\'è', caso: 'infinito', nome: 'infinito retto dal verbo' },
   pred: { q: 'Il verbo principale è "essere" (sum). C\'è un nome del predicato? Tocca la parola al nominativo che dice com\'è o che cos\'è il soggetto.', no: 'Non c\'è (significa "c\'è / esiste")', caso: 'nominativo', nome: 'nome del predicato' },
 };
+
+// ======================= ANALISI LOGICA: complementi =======================
+// Elenco COMPLETO (Micol sceglie fra tutti); per ognuno, le forme latine con cui può comparire:
+// caso senza preposizione, oppure preposizione + caso. passivo: serve un verbo passivo.
+const P = (preps, caso) => ({ preps, caso });
+const C = (caso) => ({ preps: null, caso });
+export const COMPLEMENTI = [
+  { id: 'attributo', nome: 'attributo', rif: true },
+  { id: 'apposizione', nome: 'apposizione', rif: true },
+  { id: 'predicativo', nome: 'complemento predicativo', forme: [C('nom'), C('acc')] },
+  { id: 'specificazione', nome: 'complemento di specificazione', forme: [C('gen')] },
+  { id: 'termine', nome: 'complemento di termine', forme: [C('dat')] },
+  { id: 'oggetto', nome: 'complemento oggetto', forme: [C('acc')] },
+  { id: 'vocazione', nome: 'complemento di vocazione', forme: [C('voc')] },
+  { id: 'agente', nome: 'complemento d\'agente', forme: [P(['a', 'ab', 'abs'], 'abl')], passivo: true },
+  { id: 'causa-efficiente', nome: 'complemento di causa efficiente', forme: [C('abl')], passivo: true },
+  { id: 'causa', nome: 'complemento di causa', forme: [C('abl'), P(['ob', 'propter'], 'acc'), P(['de', 'e', 'ex', 'prae'], 'abl')] },
+  { id: 'fine', nome: 'complemento di fine', forme: [C('dat'), P(['ad', 'in'], 'acc')] },
+  { id: 'mezzo', nome: 'complemento di mezzo', forme: [C('abl'), P(['per'], 'acc')] },
+  { id: 'modo', nome: 'complemento di modo', forme: [C('abl'), P(['cum'], 'abl')] },
+  { id: 'compagnia', nome: 'complemento di compagnia', forme: [P(['cum'], 'abl')] },
+  { id: 'unione', nome: 'complemento di unione', forme: [P(['cum'], 'abl')] },
+  { id: 'stato-luogo', nome: 'complemento di stato in luogo', forme: [P(['in', 'sub'], 'abl'), C('abl'), P(['apud', 'ante', 'post', 'inter', 'prope', 'iuxta', 'circum', 'super', 'supra', 'infra', 'intra', 'extra'], 'acc')] },
+  { id: 'moto-a-luogo', nome: 'complemento di moto a luogo', forme: [P(['ad', 'in', 'sub'], 'acc'), C('acc')] },
+  { id: 'moto-da-luogo', nome: 'complemento di moto da luogo', forme: [P(['a', 'ab', 'abs', 'e', 'ex', 'de'], 'abl'), C('abl')] },
+  { id: 'moto-per-luogo', nome: 'complemento di moto per luogo', forme: [P(['per', 'trans'], 'acc'), C('abl')] },
+  { id: 'tempo-det', nome: 'complemento di tempo determinato', forme: [C('abl'), P(['in'], 'abl')] },
+  { id: 'tempo-cont', nome: 'complemento di tempo continuato', forme: [C('acc'), P(['per'], 'acc')] },
+  { id: 'argomento', nome: 'complemento di argomento', forme: [P(['de'], 'abl')] },
+  { id: 'materia', nome: 'complemento di materia', forme: [P(['e', 'ex', 'de'], 'abl'), C('gen')] },
+  { id: 'qualita', nome: 'complemento di qualità', forme: [C('gen'), C('abl')] },
+  { id: 'limitazione', nome: 'complemento di limitazione', forme: [C('abl')] },
+  { id: 'allontanamento', nome: 'complemento di allontanamento o separazione', forme: [C('abl'), P(['a', 'ab', 'abs', 'e', 'ex', 'de'], 'abl')] },
+  { id: 'origine', nome: 'complemento di origine o provenienza', forme: [C('abl'), P(['a', 'ab', 'e', 'ex', 'de'], 'abl')] },
+  { id: 'vantaggio', nome: 'complemento di vantaggio o svantaggio', forme: [C('dat'), P(['pro'], 'abl'), P(['contra', 'adversus'], 'acc')] },
+  { id: 'partitivo', nome: 'complemento partitivo', forme: [C('gen'), P(['e', 'ex', 'de', 'inter'], 'abl'), P(['inter'], 'acc')] },
+  { id: 'abbondanza', nome: 'complemento di abbondanza o privazione', forme: [C('abl'), C('gen'), P(['sine'], 'abl')] },
+  { id: 'paragone', nome: 'complemento di paragone', forme: [C('abl')] },
+  { id: 'denominazione', nome: 'complemento di denominazione', forme: [C('nom'), C('acc'), C('gen'), C('dat'), C('abl')] },
+  { id: 'esclusione', nome: 'complemento di esclusione', forme: [P(['sine', 'praeter'], 'abl'), P(['praeter'], 'acc')] },
+];
+const CASO_IT = { nom: 'nominativo', gen: 'genitivo', dat: 'dativo', acc: 'accusativo', abl: 'ablativo', voc: 'vocativo' };
+
+/** Il verbo principale è passivo (non deponente)? */
+export function verbPassive(S, v, lemmaId = null) {
+  return finiteForms(S.words[v]).some((a) => (!lemmaId || a.entry.id === lemmaId) && a.voce === 'pass' && !a.dep) ||
+    S.words.some((w) => w.an.some((a) => a.t === 'part' && a.tempo === 'perf')) && isSum(S.words[v]);
+}
+
+/**
+ * Controlla se la parola k (eventualmente retta dalla preposizione p) può essere il complemento scelto.
+ * Restituisce { ok, msg }.
+ */
+export function checkComplement(S, k, p, id, { passive = false } = {}) {
+  const c = COMPLEMENTI.find((x) => x.id === id);
+  if (!c?.forme) return { ok: true, msg: '' };
+  const w = S.words[k];
+  if (w.unknown) return { ok: true, unsure: true, msg: 'Non conosco questa parola, quindi non posso controllare il caso: verifica nell\'Olivetti.' };
+  const prep = p == null ? null : low(S.words[p].t);
+  let cases = new Set(w.an.filter((a) => a.caso).map((a) => a.caso));
+  if (p != null) { // con la preposizione contano solo i casi che regge
+    const r = (S.words[p].res.find((x) => x.entry.cat === 'prep')?.entry.regge || '').toLowerCase();
+    const pc = ['acc', 'abl'].filter((c) => r.includes(c === 'acc' ? 'accusativo' : 'ablativo'));
+    if (pc.length) cases = new Set([...cases].filter((c) => pc.includes(c)));
+  }
+  const fits = c.forme.some((f) => (f.preps ? f.preps.includes(prep) : prep == null) && cases.has(f.caso));
+  if (c.passivo && !passive) return { ok: false, msg: `Il ${c.nome} si usa con un verbo <b>passivo</b>, e il verbo principale qui non lo è.` };
+  if (fits) return { ok: true, msg: '' };
+  const vuole = c.forme.map((f) => (f.preps ? `${f.preps.join('/')} + ${CASO_IT[f.caso]}` : `${CASO_IT[f.caso]} senza preposizione`)).join(', oppure ');
+  const qui = prep ? `${prep} + ${[...cases].map((x) => CASO_IT[x]).join(' o ')}` : [...cases].map((x) => CASO_IT[x]).join(' o ') || 'una parola senza caso';
+  return { ok: false, msg: `Il ${c.nome} in latino si esprime con ${vuole}. Qui c'è ${qui}.` };
+}
+
+/** Attributo/apposizione: le due parole concordano? (stesso caso e numero; l'attributo anche nel genere) */
+export function agree(S, a, b, gender = true) {
+  const A = S.words[a].an.filter((x) => x.caso), B = S.words[b].an.filter((x) => x.caso);
+  if (S.words[a].unknown || S.words[b].unknown) return true;
+  return A.some((x) => B.some((y) => x.caso === y.caso && x.num === y.num && (!gender || !x.gen || !y.gen || x.gen === y.gen)));
+}
+
+/** "Che cosa regge" il verbo, come etichetta di analisi logica. */
+export const ETICHETTA_RETTO = { acc: 'complemento oggetto', dat: 'complemento di termine', abl: 'complemento in ablativo retto dal verbo', inf: 'infinito retto dal verbo (proposizione infinitiva o servile)', pred: 'nome del predicato' };

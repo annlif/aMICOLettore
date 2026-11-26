@@ -22,6 +22,11 @@ export function initVersioni(opts) {
   $('ver-back').addEventListener('click', () => go('versioni'));
   $('ver-title-input').addEventListener('change', onTitleChanged);
   $('ver-sentences').addEventListener('click', onSentencesClick);
+  // passando sopra una parola (mouse, trackpad, Apple Pencil) compare il significato del lemma
+  $('ver-sentences').addEventListener('pointerover', onHover);
+  $('ver-sentences').addEventListener('pointerout', (e) => { if (e.target.closest?.('.w')) hideTip(); });
+  $('ver-sentences').addEventListener('pointerdown', hideTip);
+  window.addEventListener('scroll', hideTip, { passive: true });
   $('ver-sentences').addEventListener('input', onTranslationInput);
   $('ver-sentences').addEventListener('focusin', onFocusIn);
   $('ver-sentences').addEventListener('focusout', () => saveSoon.flush());
@@ -38,6 +43,7 @@ export function initVersioni(opts) {
   $('ver-conn').addEventListener('click', () => { setConnOn(!connOn()); markConnectives(); });
   $('ver-export').addEventListener('click', () => openMenu($('ver-export'), 'Esporta la versione', [
     { label: 'Salva o condividi come PDF', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/>', action: exportPdf },
+    { label: 'PDF con l\'analisi logica', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>', action: () => exportPdf({ analisi: true }) },
     { label: 'Condividi come testo', icon: '<path d="M4 6h16M4 12h16M4 18h10"/>', action: () => { saveSoon.flush(); shareText(cur).catch((e) => toast(e.message)); } },
   ]));
   document.addEventListener('visibilitychange', () => { if (document.hidden) saveSoon.flush(); });
@@ -165,6 +171,7 @@ function renderSentences() {
       <div class="sent-it">
         <textarea rows="2" lang="it" aria-label="La tua traduzione della frase ${i + 1}" placeholder="La tua traduzione…">${esc(s.it)}</textarea>
         <button class="help-btn" type="button" data-guide>🧭 Sono bloccata: aiutami</button>
+        <div class="an-logica">${analisiHtml(s)}</div>
       </div>
       <button class="sent-more" type="button" data-more aria-label="Altre azioni per la frase ${i + 1}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
@@ -172,6 +179,32 @@ function renderSentences() {
     </li>`).join('');
   for (const ta of $('ver-sentences').querySelectorAll('textarea')) autosize(ta);
   markConnectives();
+}
+
+// ---------- significato al passaggio ----------
+let tipTimer = null;
+function hideTip() { clearTimeout(tipTimer); const t = $('hover-tip'); if (t) t.hidden = true; }
+function onHover(e) {
+  if (e.pointerType === 'touch') return;
+  const w = e.target.closest?.('.w');
+  if (!w) return;
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(async () => {
+    const L = await lexicon();
+    const res = L.analyze(w.dataset.w);
+    const seen = new Set();
+    const lines = res.filter((r) => !seen.has(r.entry.id) && seen.add(r.entry.id))
+      .map((r) => `<b lang="la">${esc(r.entry.lemma)}</b>: ${esc(r.entry.significati.slice(0, 2).join(', '))}`);
+    const t = $('hover-tip');
+    t.innerHTML = lines.length ? lines.join('<br>') : '<i>non è ancora nel vocabolario</i>';
+    t.hidden = false;
+    const r = w.getBoundingClientRect();
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - t.offsetWidth / 2), window.innerWidth - t.offsetWidth - 8);
+    let top = r.top - t.offsetHeight - 8;
+    if (top < 8) top = r.bottom + 8;
+    t.style.left = `${left}px`;
+    t.style.top = `${top}px`;
+  }, 250);
 }
 
 // ---------- guida ----------
@@ -187,6 +220,7 @@ function refreshSentence(s) {
   const li = document.querySelector(`.sent[data-id="${s.id}"]`);
   if (!li) return;
   li.querySelector('.sent-la').innerHTML = wordsHtml(s);
+  li.querySelector('.an-logica').innerHTML = analisiHtml(s);
   li.classList.toggle('guided', guideActive() && guideSentenceId() === s.id);
   markConnectives();
 }
@@ -218,14 +252,20 @@ async function markConnectives() {
 }
 
 // ---------- esportazione ----------
-async function exportPdf() {
+async function exportPdf(opts = {}) {
   saveSoon.flush();
   try {
     toast('Preparo il PDF…', 1500);
-    const file = await versionPdf(cur);
+    const file = await versionPdf(cur, opts);
     const how = await shareFile(file, cur.title);
     if (how === 'download') toast('PDF salvato.');
   } catch (e) { toast(e.message || String(e), 5000); }
+}
+
+function analisiHtml(s) {
+  const rows = s.guida?.rows;
+  if (!rows?.length) return '';
+  return `<details><summary>Analisi logica</summary><ul>${rows.map((r) => `<li><b lang="la">${esc(r.testo)}</b> → ${esc(r.ruolo)}${r.nota ? ` <span class="muted">(${esc(r.nota)})</span>` : ''}</li>`).join('')}</ul></details>`;
 }
 
 function wordsHtml(s) {
@@ -236,6 +276,8 @@ function wordsHtml(s) {
     if (g.subj === i) return ' g-subj';
     if (g.pred === i) return ' g-pred';
     if (g.obj === i) return ' g-obj';
+    const it = g.items?.find((x) => x.ks.includes(i));
+    if (it) return /attributo|apposizione/.test(it.id) ? ' g-attr' : ' g-prep';
     if (g.preps?.some(([a, b]) => a === i || b === i)) return ' g-prep';
     return '';
   };
