@@ -38,6 +38,14 @@ test('struttura: verbo principale, soggetto, complementi', () => {
   assert.equal(complementType(S, S.main[0]), 'abl');
   assert.deepEqual(T(S, complementCandidates(S, S.main[0], 'abl', [])), ['armis']);
 
+  // la preposizione regge il suo gruppo e si ferma al nome: il soggetto dopo non è "retto"
+  S = analyzeSentence(L, 'In parva insula puella habitat.');
+  assert.deepEqual(T(S, [...S.governed.keys()]), ['parva', 'insula']);
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['puella']);
+  S = analyzeSentence(L, 'Ad urbem magnam milites veniunt.');
+  assert.deepEqual(T(S, [...S.governed.keys()]), ['urbem', 'magnam']);
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['milites']);
+
   S = analyzeSentence(L, 'Cum amicis ambulo.');
   assert.deepEqual(T(S, S.main), ['ambulo']);
   assert.equal(S.spans.length, 0, 'cum + ablativo è una preposizione');
