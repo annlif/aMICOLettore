@@ -82,7 +82,10 @@ export function azureBase(endpoint) {
 }
 
 async function chiamaAzure(v, la, numerata, signal) {
+  if (!String(v.endpoint || '').trim()) throw new Error('Azure OpenAI: manca l\'indirizzo della risorsa (Endpoint), quello che finisce con .openai.azure.com.');
+  if (!String(v.deployment || '').trim()) throw new Error('Azure OpenAI: manca il nome della distribuzione del modello (Deployment).');
   const base = azureBase(v.endpoint);
+  if (!/^https:\/\/[^/]+\.[a-z]{2,}$/i.test(base) || base === location.origin) throw new Error('Azure OpenAI: l\'indirizzo della risorsa (Endpoint) non è valido: deve essere come https://nome-risorsa.openai.azure.com');
   const dep = v.deployment.trim();
   const messages = [{ role: 'system', content: ISTRUZIONI }, { role: 'user', content: `Frase: ${la}\nParole numerate: ${numerata}` }];
   const response_format = { type: 'json_schema', json_schema: { name: 'analisi_logica', strict: true, schema: jsonSchema(SCHEMA) } };
