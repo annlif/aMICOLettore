@@ -1,3 +1,9 @@
+<p align="center"><img src="docs/logo-amicol.png" alt="aMICOL™" width="560"></p>
+
+<p align="center"><i>aMICOL™ – app per studiare: aMICOLettore e aMICOLatino</i></p>
+
+---
+
 <p align="center"><img src="docs/logo.png" alt="aMICOLettore" width="520"></p>
 
 **aMICOLettore** (sull'iPad: **aMICOL**) è una web app che legge ad alta voce i PDF con le voci neurali di
