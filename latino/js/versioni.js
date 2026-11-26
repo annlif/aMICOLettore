@@ -2,6 +2,8 @@
 import { db } from './store.js';
 import { $, esc, toast, fmtDate, debounce, autosize, openMenu, closeMenu } from './ui.js';
 import { readPdf, cleanVersion, letterCount, makeSentences, tokenize, newId } from './testo.js';
+import { lexicon } from './vocab.js';
+import { shareText, versionPdf, shareFile } from './esporta.js';
 
 let go = () => {};          // navigazione, fornita da app.js
 let wordActions = () => []; // azioni del menu di una parola, fornite da app.js
@@ -24,6 +26,11 @@ export function initVersioni(opts) {
   $('ver-sentences').addEventListener('focusout', () => saveSoon.flush());
   $('ver-split-cancel').addEventListener('click', () => setSplitMode(null));
   $('edit-dialog').addEventListener('close', onEditClosed);
+  $('ver-conn').addEventListener('click', () => { setConnOn(!connOn()); markConnectives(); });
+  $('ver-export').addEventListener('click', () => openMenu($('ver-export'), 'Esporta la versione', [
+    { label: 'Salva o condividi come PDF', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/>', action: exportPdf },
+    { label: 'Condividi come testo', icon: '<path d="M4 6h16M4 12h16M4 18h10"/>', action: () => { saveSoon.flush(); shareText(cur).catch((e) => toast(e.message)); } },
+  ]));
   document.addEventListener('visibilitychange', () => { if (document.hidden) saveSoon.flush(); });
   window.addEventListener('pagehide', () => saveSoon.flush());
 }
@@ -154,6 +161,42 @@ function renderSentences() {
       </button>
     </li>`).join('');
   for (const ta of $('ver-sentences').querySelectorAll('textarea')) autosize(ta);
+  markConnectives();
+}
+
+// ---------- connettivi ----------
+const CONN_KEY = 'amicolatino.connettivi';
+const connOn = () => { try { return localStorage.getItem(CONN_KEY) === '1'; } catch { return false; } };
+const setConnOn = (on) => { try { localStorage.setItem(CONN_KEY, on ? '1' : '0'); } catch { /* ignora */ } };
+// connettivi che possono avere valori diversi a seconda della frase
+const MULTI = new Set(['cum', 'ut', 'ne', 'quod', 'ubi', 'dum', 'quam', 'si', 'an', 'num', 'quoque', 'vel']);
+async function markConnectives() {
+  const on = connOn();
+  $('ver-conn').setAttribute('aria-pressed', String(on));
+  $('conn-legend').hidden = !on;
+  const words = $('ver-sentences').querySelectorAll('.w');
+  if (!on) { for (const w of words) w.classList.remove('conn', 'amb'); return; }
+  const L = await lexicon();
+  for (const w of words) {
+    const res = L.analyze(w.dataset.w).filter((r) => !r.enclitica);
+    const conn = res.filter((r) => r.entry.connettivo);
+    w.classList.toggle('conn', conn.length > 0);
+    const amb = conn.length > 0 && (res.length > conn.length || conn.length > 1 || conn.some((r) => MULTI.has(r.entry.lemma)));
+    w.classList.toggle('amb', amb);
+    if (conn.length) w.title = amb ? 'Connettivo con più valori possibili: ragionaci!' : `Connettivo: ${conn[0].entry.connettivo}`;
+    else w.removeAttribute('title');
+  }
+}
+
+// ---------- esportazione ----------
+async function exportPdf() {
+  saveSoon.flush();
+  try {
+    toast('Preparo il PDF…', 1500);
+    const file = await versionPdf(cur);
+    const how = await shareFile(file, cur.title);
+    if (how === 'download') toast('PDF salvato.');
+  } catch (e) { toast(e.message || String(e), 5000); }
 }
 
 function updateProgress() {

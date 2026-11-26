@@ -79,6 +79,15 @@
       <input class="ver-title" id="ver-title-input" type="text" aria-label="Titolo della versione" autocomplete="off">
       <span class="ver-saved" id="ver-saved" aria-live="polite"></span>
     </div>
+    <div class="ver-tools">
+      <button class="tool" id="ver-conn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13 7 4 4M3 22h18"/></svg>Evidenzia i connettivi
+      </button>
+      <button class="tool" id="ver-export" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>Esporta per la professoressa
+      </button>
+    </div>
+    <p class="conn-legend" id="conn-legend" hidden><span class="w conn">connettivo</span> <span class="w conn amb">può avere più valori: ragionaci!</span></p>
     <p class="ver-meta" id="ver-meta"></p>
     <div class="lib-bar ver-bar" aria-hidden="true"><span id="ver-progress"></span></div>
     <details class="ver-notes" id="ver-notes" hidden>
@@ -158,7 +167,13 @@
       </fieldset>
       <fieldset>
         <legend>Backup</legend>
-        <p class="help">Presto potrai salvare in un file tutte le versioni, le traduzioni e le parole, e ripristinarle.</p>
+        <p class="help">Salva in un file tutte le versioni, le traduzioni e le parole (la chiave di Azure non viene salvata). Conservalo in File o iCloud: serve se cambi iPad o se i dati vengono cancellati.</p>
+        <div class="btn-row">
+          <button type="button" class="secondary" id="btn-backup">Salva un backup</button>
+          <button type="button" class="ghost" id="btn-restore">Ripristina da un backup</button>
+        </div>
+        <input type="file" id="restore-input" accept="application/json,.json" hidden>
+        <p class="help" id="backup-msg" role="status"></p>
       </fieldset>
       <fieldset>
         <legend>Informazioni</legend>
@@ -167,6 +182,20 @@
       </fieldset>
       <div class="sheet-actions">
         <button class="primary" value="close">Chiudi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- RIPRISTINO DEL BACKUP -->
+  <dialog class="sheet" id="restore-dialog" aria-labelledby="restore-h">
+    <form method="dialog">
+      <h2 id="restore-h">Ripristina il backup</h2>
+      <p id="restore-info"></p>
+      <p class="help"><b>Unisci</b>: aggiunge le versioni e le parole del backup a quelle che hai già.<br><b>Sostituisci</b>: cancella tutto quello che c'è ora e rimette solo il backup.</p>
+      <div class="sheet-actions">
+        <button class="ghost" value="cancel">Annulla</button>
+        <button class="danger" value="sostituisci">Sostituisci</button>
+        <button class="primary" value="unisci">Unisci</button>
       </div>
     </form>
   </dialog>

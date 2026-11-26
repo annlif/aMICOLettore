@@ -3,6 +3,7 @@ import { loadSettings, saveSettings, askPersistence } from './store.js';
 import { $, toast, closeMenu } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
 import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI } from './voce.js';
+import { makeBackup, readBackup, restoreBackup, shareFile } from './esporta.js';
 import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
 
@@ -99,6 +100,38 @@ $('btn-prova-voce').addEventListener('click', async () => {
   if (!v.key || !v.region) { $('voce-msg').textContent = 'Prima collega la voce di Azure.'; return; }
   $('voce-msg').textContent = 'Provo…';
   try { await provaVoce(v); $('voce-msg').textContent = 'Funziona! ✓'; } catch (e) { $('voce-msg').textContent = e.message || String(e); }
+});
+
+// ---------- backup ----------
+$('btn-backup').addEventListener('click', async () => {
+  try {
+    const file = await makeBackup();
+    const how = await shareFile(file, 'Backup di aMICOLatino');
+    if (how !== 'abort') $('backup-msg').textContent = `Backup pronto: ${file.name}. Conservalo in File o su iCloud.`;
+  } catch (e) { $('backup-msg').textContent = e.message || String(e); }
+});
+let pendingBackup = null;
+$('btn-restore').addEventListener('click', () => $('restore-input').click());
+$('restore-input').addEventListener('change', async (e) => {
+  const f = e.target.files?.[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    pendingBackup = readBackup(await f.text());
+    const d = pendingBackup.creato ? new Date(pendingBackup.creato).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    $('restore-info').textContent = `Backup${d ? ` del ${d}` : ''}: ${pendingBackup.versioni.length} versioni e ${(pendingBackup.parole || []).length} parole.`;
+    $('restore-dialog').showModal();
+  } catch (err) { $('backup-msg').textContent = err.message; }
+});
+$('restore-dialog').addEventListener('close', async () => {
+  const mode = $('restore-dialog').returnValue;
+  if (!pendingBackup || (mode !== 'unisci' && mode !== 'sostituisci')) { pendingBackup = null; return; }
+  if (mode === 'sostituisci' && !confirm('Sicura? Tutte le versioni e le parole attuali verranno sostituite da quelle del backup.')) { pendingBackup = null; return; }
+  const r = await restoreBackup(pendingBackup, mode);
+  pendingBackup = null;
+  $('backup-msg').textContent = `Ripristino fatto: ${r.versioni} versioni e ${r.parole} parole.`;
+  toast('Backup ripristinato.');
+  route_();
 });
 
 // ---------- navigazione ----------
