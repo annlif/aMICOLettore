@@ -156,12 +156,45 @@ export function complementCandidates(S, v, type, exclude = []) {
 }
 
 export const DOMANDA = {
-  acc: { q: 'C\'è un complemento oggetto? Tocca la parola all\'accusativo che "subisce" l\'azione (chi? che cosa?).', no: 'Non c\'è', caso: 'accusativo', nome: 'complemento oggetto' },
-  dat: { q: 'Questo verbo regge il dativo: a chi? a che cosa? Tocca la parola al dativo.', no: 'Non c\'è', caso: 'dativo', nome: 'complemento di termine' },
-  abl: { q: 'Questo verbo regge l\'ablativo: tocca la parola all\'ablativo che lo completa.', no: 'Non c\'è', caso: 'ablativo', nome: 'complemento in ablativo' },
-  inf: { q: 'Questo verbo regge un infinito: tocca l\'infinito che lo completa.', no: 'Non c\'è', caso: 'infinito', nome: 'infinito retto dal verbo' },
-  pred: { q: 'Il verbo principale è "essere" (sum). C\'è un nome del predicato? Tocca la parola al nominativo che dice com\'è o che cos\'è il soggetto.', no: 'Non c\'è (significa "c\'è / esiste")', caso: 'nominativo', nome: 'nome del predicato' },
+  acc: { q: 'C\'è un <b>complemento oggetto</b>? Toccalo.', no: 'Non c\'è', caso: 'accusativo', nome: 'complemento oggetto' },
+  dat: { q: 'Il verbo regge il <b>dativo</b>: toccalo.', no: 'Non c\'è', caso: 'dativo', nome: 'complemento di termine' },
+  abl: { q: 'Il verbo regge l\'<b>ablativo</b>: toccalo.', no: 'Non c\'è', caso: 'ablativo', nome: 'complemento in ablativo' },
+  inf: { q: 'Il verbo regge un <b>infinito</b>: toccalo.', no: 'Non c\'è', caso: 'infinito', nome: 'infinito retto dal verbo' },
+  pred: { q: 'Tocca il <b>nome del predicato</b>.', no: 'Non c\'è', caso: 'nominativo', nome: 'nome del predicato' },
 };
+
+/** Le domande che si fanno al complemento (tutte): ognuna porta a uno o più complementi. */
+export const DOMANDE = [
+  ['Chi? Che cosa?', ['oggetto']],
+  ['Di chi? Di che cosa?', ['specificazione', 'partitivo']],
+  ['A chi? A che cosa?', ['termine']],
+  ['Da chi? Da che cosa? (verbo passivo)', ['agente', 'causa-efficiente']],
+  ['Dove? (stato)', ['stato-luogo']],
+  ['Verso dove?', ['moto-a-luogo']],
+  ['Da dove?', ['moto-da-luogo', 'origine', 'allontanamento']],
+  ['Attraverso dove?', ['moto-per-luogo']],
+  ['Quando?', ['tempo-det']],
+  ['Per quanto tempo?', ['tempo-cont']],
+  ['Con chi?', ['compagnia']],
+  ['Insieme a che cosa?', ['unione']],
+  ['Per mezzo di che cosa?', ['mezzo']],
+  ['In che modo?', ['modo']],
+  ['Perché? Per quale causa?', ['causa']],
+  ['A quale scopo?', ['fine']],
+  ['A favore o contro chi?', ['vantaggio']],
+  ['Di che cosa si parla?', ['argomento']],
+  ['Fatto di che cosa?', ['materia']],
+  ['Con quali qualità?', ['qualita']],
+  ['Rispetto a che cosa?', ['limitazione']],
+  ['Pieno o privo di che cosa?', ['abbondanza']],
+  ['Più o meno di chi?', ['paragone']],
+  ['Senza chi? Tranne chi?', ['esclusione']],
+  ['Con quale nome?', ['denominazione']],
+  ['Chiamo qualcuno (o …!)', ['vocazione']],
+  ['In quale veste? (es. «eletto console»)', ['predicativo']],
+  ['Accompagna un nome', ['attributo', 'apposizione']],
+];
+export { low };
 
 // ======================= ANALISI LOGICA: complementi =======================
 // Elenco COMPLETO (Micol sceglie fra tutti); per ognuno, le forme latine con cui può comparire:
