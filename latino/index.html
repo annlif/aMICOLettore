@@ -57,14 +57,40 @@
       <p class="hero-text">Carica la versione e ragioniamoci insieme, frase per frase.</p>
       <button class="big-btn" id="btn-load-pdf" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>
-        Carica una versione
+        Carica il PDF della versione
       </button>
+      <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
+      <p class="hint">Non hai il PDF? <button type="button" class="link" id="btn-paste">Incolla il testo</button></p>
+      <p class="busy" id="ver-busy" hidden><span class="spinner-dark" aria-hidden="true"></span> Sto leggendo il PDF…</p>
     </section>
     <section class="library" aria-labelledby="ver-title">
       <h2 id="ver-title">Le tue versioni</h2>
       <p class="empty" id="ver-empty">Ancora nessuna versione. Quelle che carichi compariranno qui, con la data e il punto in cui eri arrivata.</p>
       <ul class="lib-list" id="ver-list"></ul>
     </section>
+  </main>
+
+  <!-- UNA VERSIONE -->
+  <main id="view-versione" class="view view-wide" data-view="versione" hidden>
+    <div class="ver-head">
+      <button class="back-btn" id="ver-back" type="button" aria-label="Torna alle versioni">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Versioni</span>
+      </button>
+      <input class="ver-title" id="ver-title-input" type="text" aria-label="Titolo della versione" autocomplete="off">
+      <span class="ver-saved" id="ver-saved" aria-live="polite"></span>
+    </div>
+    <p class="ver-meta" id="ver-meta"></p>
+    <div class="lib-bar ver-bar" aria-hidden="true"><span id="ver-progress"></span></div>
+    <details class="ver-notes" id="ver-notes" hidden>
+      <summary>Titolo e indicazioni</summary>
+      <div id="ver-notes-text"></div>
+    </details>
+    <p class="ver-tip">Tocca una parola latina per cercarla o analizzarla. Scrivi la tua traduzione accanto a ogni frase: si salva da sola.</p>
+    <ol class="sentences" id="ver-sentences"></ol>
+    <div class="split-bar" id="ver-split-bar" hidden>
+      <span>Tocca la parola da cui deve cominciare la nuova frase.</span>
+      <button class="ghost" id="ver-split-cancel" type="button">Annulla</button>
+    </div>
   </main>
 
   <!-- VOCABOLARIO -->
@@ -116,6 +142,46 @@
       </fieldset>
       <div class="sheet-actions">
         <button class="primary" value="close">Chiudi</button>
+      </div>
+    </form>
+  </dialog>
+
+ <!-- INCOLLA IL TESTO -->
+  <dialog class="sheet" id="paste-dialog" aria-labelledby="paste-h">
+    <form method="dialog">
+      <h2 id="paste-h">Incolla il testo della versione</h2>
+      <label>Titolo<input id="paste-title" type="text" placeholder="Es. La volpe e l'uva" autocomplete="off"></label>
+      <label>Testo latino<textarea id="paste-text" rows="9" lang="la" placeholder="Incolla qui il testo latino…" spellcheck="false"></textarea></label>
+      <div class="sheet-actions">
+        <button class="ghost" value="cancel" formnovalidate>Annulla</button>
+        <button class="primary" value="ok">Dividi in frasi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- PDF SCANSIONATO -->
+  <dialog class="sheet" id="scan-dialog" aria-labelledby="scan-h">
+    <form method="dialog">
+      <h2 id="scan-h">Questo PDF è una scansione</h2>
+      <p><strong id="scan-name"></strong> contiene solo immagini delle pagine (come una foto), senza testo che io possa leggere.</p>
+      <p class="help">Il riconoscimento del testo dalle foto arriverà in un prossimo aggiornamento. Per ora puoi chiedere alla professoressa il PDF "con il testo", oppure incollare il testo della versione.</p>
+      <div class="sheet-actions">
+        <button class="ghost" value="close">Ho capito</button>
+        <button class="primary" value="paste">Incolla il testo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- CORREGGI UNA FRASE -->
+  <dialog class="sheet" id="edit-dialog" aria-labelledby="edit-h">
+    <form method="dialog">
+      <h2 id="edit-h">Correggi il testo latino</h2>
+      <p class="help">Usalo se il PDF è stato letto male (lettere sbagliate, parole attaccate…).</p>
+      <label class="visually-hidden" for="edit-text">Testo della frase</label>
+      <textarea id="edit-text" rows="5" lang="la" spellcheck="false"></textarea>
+      <div class="sheet-actions">
+        <button class="ghost" value="cancel">Annulla</button>
+        <button class="primary" value="ok">Salva</button>
       </div>
     </form>
   </dialog>
