@@ -1,4 +1,7 @@
 // aMICOLatino – navigazione tra le sezioni, impostazioni di base, installazione offline.
+import { loadSettings, saveSettings, askPersistence } from './store.js';
+import { $, toast, closeMenu } from './ui.js';
+import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
 
 // Sezioni dell'app. Quelle con ready:false sono previste per le fasi successive:
 // esistono già qui, ma non compaiono nella barra finché non sono pronte.
@@ -17,30 +20,31 @@ export const SECTIONS = [
     icon: '<path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6Z"/><path d="M6 3v18M9 8h7M9 12h7"/>' },
 ];
 const DEFAULT_VIEW = 'versioni';
+// viste che non sono sezioni della barra, e la sezione a cui appartengono
+const SUBVIEWS = { versione: 'versioni', cerca: null };
 
-// ---------- impostazioni (solo su questo dispositivo) ----------
-const SETTINGS_KEY = 'amicolatino.settings';
-const DEFAULTS = { latinSize: 24, lastView: DEFAULT_VIEW };
-function loadSettings() {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; } catch { return { ...DEFAULTS }; }
-}
-function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* spazio non disponibile */ } }
 const settings = loadSettings();
 
-const $ = (id) => document.getElementById(id);
-
-// ---------- messaggi brevi ----------
-let toastTimer;
-export function toast(msg, ms = 3000) {
-  const t = $('toast');
-  t.textContent = msg; t.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+// ---------- azioni sulle parole (menu che compare toccando una parola) ----------
+const ICONS = {
+  cerca: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  analizza: '<path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/><path d="m20.2 18.2 1.8 1.8"/>',
+  ascolta: '<path d="M4 9v6h4l5 4V5L8 9Z"/><path d="M16 9a3.5 3.5 0 0 1 0 6M18.5 6.5a7 7 0 0 1 0 11"/>',
+  aggiungi: '<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/><path d="M12 9v6M9 12h6"/>',
+};
+const soon = () => toast('Questa funzione arriva nel prossimo aggiornamento. Ci siamo quasi!');
+function wordActions(/* { word, sentence, versionId, versionTitle } */) {
+  return [
+    { label: 'Cerca nel vocabolario', icon: ICONS.cerca, action: soon },
+    { label: 'Analizza la forma', icon: ICONS.analizza, action: soon },
+    { label: 'Ascolta', icon: ICONS.ascolta, action: soon },
+    { label: 'Aggiungi alle mie parole', icon: ICONS.aggiungi, action: soon },
+  ];
 }
 
 // ---------- navigazione ----------
 const readySections = SECTIONS.filter((s) => s.ready);
-const views = new Set([...readySections.map((s) => s.id), 'cerca']);
+const views = new Set([...readySections.map((s) => s.id), ...Object.keys(SUBVIEWS)]);
 
 function buildTabbar() {
   const nav = $('tabbar');
@@ -54,46 +58,54 @@ function buildTabbar() {
   }
 }
 
-function currentView() {
-  const v = decodeURIComponent(location.hash.slice(1)).split('/')[0];
-  return views.has(v) ? v : null;
+function parseHash() {
+  const [view, ...rest] = decodeURIComponent(location.hash.slice(1)).split('/');
+  return views.has(view) ? { view, arg: rest.join('/') } : null;
 }
 
-export function go(view) {
-  if (location.hash.slice(1) !== view) location.hash = view; else show(view);
+export function go(route) {
+  if (decodeURIComponent(location.hash.slice(1)) !== route) location.hash = route; else route_();
 }
 
-function show(view) {
-  for (const el of document.querySelectorAll('[data-view]')) {
-    if (el.classList.contains('view')) el.hidden = el.dataset.view !== view;
-  }
+let currentView = null;
+async function route_() {
+  const r = parseHash() || { view: views.has(settings.lastView) ? settings.lastView : DEFAULT_VIEW, arg: '' };
+  closeMenu();
+  if (currentView === 'versione' && r.view !== 'versione') leaveVersion();
+
+  if (r.view === 'versione' && !(await showVersion(r.arg))) return;
+  if (r.view === 'versioni') await showList();
+
+  for (const el of document.querySelectorAll('main.view')) el.hidden = el.dataset.view !== r.view;
+  const tab = SUBVIEWS[r.view] === undefined ? r.view : SUBVIEWS[r.view];
   for (const b of document.querySelectorAll('.tab')) {
-    if (b.dataset.view === view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    if (b.dataset.view === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
-  if (view !== 'cerca') { settings.lastView = view; saveSettings(); }
-  window.scrollTo(0, 0);
+  if (r.view !== 'cerca') { settings.lastView = r.view === 'versione' ? 'versioni' : r.view; saveSettings(settings); }
+  if (r.view !== 'versione' || currentView !== 'versione') window.scrollTo(0, 0);
+  currentView = r.view;
 }
-
-window.addEventListener('hashchange', () => show(currentView() || DEFAULT_VIEW));
+window.addEventListener('hashchange', route_);
 
 // ---------- dimensione del testo latino ----------
 function applyFont() { document.documentElement.style.setProperty('--latin-size', `${settings.latinSize}px`); }
 function changeFont(d) {
   settings.latinSize = Math.min(40, Math.max(18, settings.latinSize + d));
-  applyFont(); saveSettings();
-  toast(`Testo: ${settings.latinSize} pt`, 1200);
+  applyFont(); saveSettings(settings);
+  toast(`Testo latino: ${settings.latinSize} pt`, 1200);
 }
 
 // ---------- avvio ----------
 buildTabbar();
 applyFont();
-show(currentView() || (views.has(settings.lastView) ? settings.lastView : DEFAULT_VIEW));
+initVersioni({ go, wordActions });
+route_();
+askPersistence();
 
 $('btn-home').addEventListener('click', () => go('versioni'));
 $('btn-font-down').addEventListener('click', () => changeFont(-2));
 $('btn-font-up').addEventListener('click', () => changeFont(2));
 $('btn-settings').addEventListener('click', () => $('settings').showModal());
-$('btn-load-pdf').addEventListener('click', () => toast('Il caricamento delle versioni arriva nel prossimo aggiornamento. Ci siamo quasi!'));
 $('search-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const q = $('search-input').value.trim();
