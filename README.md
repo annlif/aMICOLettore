@@ -95,6 +95,10 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
 - **Ogni parola si tocca**: *Cerca nel vocabolario*, *Analizza la forma*, *Ascolta*, *Aggiungi alle mie parole*.
 - **Analisi delle forme** – riconosce le forme flesse (es. *rosarum* → *rosa, rosae*, genitivo plurale) e mostra **tutte**
   le analisi possibili quando una forma è ambigua, invitando a scegliere guardando la frase.
+- **Guida all'analisi** ("🧭 Sono bloccata: aiutami") – solo quando serve: una domanda alla volta (verbo principale →
+  da quale verbo viene, se la forma è ambigua → soggetto → complemento retto dal verbo, o nome del predicato con *sum* →
+  preposizioni), Micol risponde toccando le parole e riceve un riscontro, un indizio o, dopo due tentativi, "Mostrami".
+  Alla fine compare la struttura della frase e le parole restano sottolineate a colori. Non traduce mai.
 - **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
 - **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,
   declinazione o coniugazione, significati, caso retto ed esempio. Le voci sono state **confrontate con il dizionario

@@ -828,10 +828,11 @@ export class Lexicon {
     for (const h of hits) {
       const e = this.entries.get(h.id);
       if (!e) continue;
-      if (!byEntry.has(h.id)) byEntry.set(h.id, { entry: e, analisi: [] });
+      if (!byEntry.has(h.id)) byEntry.set(h.id, { entry: e, analisi: [], an: [] });
       const d = describe(h.an);
       const g = byEntry.get(h.id);
       if (!g.analisi.includes(d)) g.analisi.push(d);
+      g.an.push(h.an); // analisi "grezze" (caso, numero, modo…), per la guida
     }
     return [...byEntry.values()];
   }
