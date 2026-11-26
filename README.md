@@ -108,7 +108,7 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   o senza internet la guida usa le regole dell'app.
 - **Significato al passaggio** – passando sopra una parola con trackpad, mouse o Apple Pencil compare il significato del lemma.
 - **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
-- **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,
+- **Vocabolario offline** – lessico del biennio (circa 2.570 voci: le parole più frequenti nelle versioni, con tutti i connettivi principali), con paradigma,
   declinazione o coniugazione, significati, caso retto ed esempio. Le voci sono state **confrontate con il dizionario
   Olivetti** (paradigma, categoria, genere, declinazione o coniugazione, significati principali) e restano da verificare
   con la professoressa: dal Vocabolario si scarica l'**elenco in PDF** da rivedere.
