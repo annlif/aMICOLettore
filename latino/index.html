@@ -96,11 +96,19 @@
   <!-- VOCABOLARIO -->
   <main id="view-vocabolario" class="view" data-view="vocabolario" hidden>
     <h1 class="view-title">Vocabolario</h1>
-    <div class="coming">
-      <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
-      <p>Qui troverai il vocabolario del primo anno, che riconosce anche le forme flesse e funziona senza internet.</p>
-      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+    <p class="muted" id="vocab-count"></p>
+    <div class="search inline-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="vocab-search" type="search" placeholder="Cerca un lemma, una forma flessa o un significato…" aria-label="Cerca nel vocabolario" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
+    <div class="chips" id="vocab-chips" role="group" aria-label="Filtra per categoria"></div>
+    <details class="dacompl" id="dc-box" hidden>
+      <summary>Parole da completare <span class="dc-n" id="dc-n"></span></summary>
+      <p class="muted small">Sono le parole che hai aggiunto e che non erano nel vocabolario: le loro schede verranno compilate seguendo l'Olivetti.</p>
+      <ul class="dc-list" id="dc-list"></ul>
+      <button class="ghost" type="button" id="dc-export">Condividi la lista</button>
+    </details>
+    <ul class="vocab-list" id="vocab-list"></ul>
   </main>
 
   <!-- PAROLE -->
@@ -115,10 +123,8 @@
 
   <!-- RICERCA -->
   <main id="view-cerca" class="view" data-view="cerca" hidden>
-    <h1 class="view-title">Ricerca: <span id="search-query"></span></h1>
-    <div class="coming">
-      <p>La ricerca funzionerà quando il vocabolario sarà pronto.</p>
-    </div>
+    <h1 class="view-title">Ricerca: <span id="search-query" lang="la"></span></h1>
+    <div id="search-results"></div>
   </main>
 
   <!-- barra delle sezioni: i pulsanti sono creati da js/app.js (solo le sezioni pronte) -->
@@ -147,7 +153,16 @@
     </form>
   </dialog>
 
- <!-- INCOLLA IL TESTO -->
+  <!-- PAROLA: vocabolario e analisi -->
+  <dialog class="sheet word-sheet" id="word-sheet" aria-labelledby="word-title">
+    <div class="word-head">
+      <div><p class="word-mode" id="word-mode"></p><h2 id="word-title" lang="la"></h2></div>
+      <form method="dialog"><button class="close-x" aria-label="Chiudi">×</button></form>
+    </div>
+    <div class="word-body" id="word-body"></div>
+  </dialog>
+
+  <!-- INCOLLA IL TESTO -->
   <dialog class="sheet" id="paste-dialog" aria-labelledby="paste-h">
     <form method="dialog">
       <h2 id="paste-h">Incolla il testo della versione</h2>

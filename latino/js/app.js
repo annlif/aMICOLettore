@@ -2,6 +2,7 @@
 import { loadSettings, saveSettings, askPersistence } from './store.js';
 import { $, toast, closeMenu } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
+import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
 
 // Sezioni dell'app. Quelle con ready:false sono previste per le fasi successive:
 // esistono già qui, ma non compaiono nella barra finché non sono pronte.
@@ -33,10 +34,10 @@ const ICONS = {
   aggiungi: '<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/><path d="M12 9v6M9 12h6"/>',
 };
 const soon = () => toast('Questa funzione arriva nel prossimo aggiornamento. Ci siamo quasi!');
-function wordActions(/* { word, sentence, versionId, versionTitle } */) {
+function wordActions(ctx) {
   return [
-    { label: 'Cerca nel vocabolario', icon: ICONS.cerca, action: soon },
-    { label: 'Analizza la forma', icon: ICONS.analizza, action: soon },
+    { label: 'Cerca nel vocabolario', icon: ICONS.cerca, action: () => showWord(ctx, 'cerca') },
+    { label: 'Analizza la forma', icon: ICONS.analizza, action: () => showWord(ctx, 'analizza') },
     { label: 'Ascolta', icon: ICONS.ascolta, action: soon },
     { label: 'Aggiungi alle mie parole', icon: ICONS.aggiungi, action: soon },
   ];
@@ -75,6 +76,12 @@ async function route_() {
 
   if (r.view === 'versione' && !(await showVersion(r.arg))) return;
   if (r.view === 'versioni') await showList();
+  if (r.view === 'vocabolario') { await showVocab(); renderDaCompletare(); }
+  if (r.view === 'cerca') {
+    if (!r.arg) { go('versioni'); return; }
+    $('search-input').value = r.arg;
+    await showSearch(r.arg);
+  }
 
   for (const el of document.querySelectorAll('main.view')) el.hidden = el.dataset.view !== r.view;
   const tab = SUBVIEWS[r.view] === undefined ? r.view : SUBVIEWS[r.view];
@@ -99,6 +106,18 @@ function changeFont(d) {
 buildTabbar();
 applyFont();
 initVersioni({ go, wordActions });
+initVocab();
+initDaCompletare();
+lexicon().catch(() => {}); // prepara il vocabolario in anticipo
+
+// pulsanti dentro le schede del vocabolario (ovunque compaiano)
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  if (b.dataset.act === 'dacompletare') {
+    addToComplete(b.dataset.word, wordContext() || {}).then(() => { if (currentView === 'vocabolario') renderDaCompletare(); });
+  } else soon();
+});
 route_();
 askPersistence();
 
@@ -110,9 +129,8 @@ $('search-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const q = $('search-input').value.trim();
   if (!q) return;
-  $('search-query').textContent = q;
-  go('cerca');
   $('search-input').blur();
+  go(`cerca/${q}`);
 });
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
