@@ -1,7 +1,7 @@
 // aMICOLettore – logica principale dell'interfaccia e della lettura.
 import { db, loadSettings, saveSettings, sha256Hex, getUsage, requestPersistentStorage, FREE_CHARS_PER_MONTH } from './store.js';
 import { sysVoice } from './sysvoice.js';
-import { extractPdfText, letterCount, pageModel, findWords, TEXT_VERSION } from './text.js';
+import { extractPdfText, letterCount, pageModel, findWords, TEXT_VERSION, fixSpacing } from './text.js';
 import { Speaker, ITALIAN_VOICES, TTSError } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -556,6 +556,14 @@ async function openDoc(id) {
   loaded = null;
   models.clear();
   view.page = -1;
+  // documenti elaborati con la versione 2: corregge gli spazi mancanti dopo la punteggiatura ("scurità.A")
+  // direttamente sul testo salvato, senza bisogno di riaprire il PDF
+  if (doc.textVersion === 2) {
+    text.pages = text.pages.map((pg) => (pg || '').split('\n').map(fixSpacing).join('\n'));
+    doc.textVersion = TEXT_VERSION;
+    doc.offlineVoice = null; // alcune frasi cambiano: l'audio va ricontrollato
+    db.putText(text).catch(() => {});
+  }
   state.doc = doc;
   state.pages = text.pages;
   doc.lastOpenedAt = Date.now();
