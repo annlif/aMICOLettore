@@ -46,6 +46,18 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
     await page.reload();
     await page.click('#btn-settings');
     assert.match(await page.textContent('#voce-stato'), /regione italynorth\), presa da aMICOLettore/);
+    await page.keyboard.press('Escape');
+
+    // senza voce collegata e senza voce dell'iPad: un messaggio chiaro
+    await page.evaluate(() => { localStorage.clear(); });
+    await page.reload();
+    await page.click('#btn-paste');
+    await page.fill('#paste-text', 'Nauta rosas dat.');
+    await page.click('#paste-dialog button[value="ok"]');
+    await page.waitForSelector('#view-versione', { state: 'visible' });
+    await page.locator('.sent-la .w', { hasText: 'rosas' }).click();
+    await page.click('.popmenu button:has-text("Ascolta")');
+    await page.waitForSelector('#toast:has-text("impostazioni")');
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();
