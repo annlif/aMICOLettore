@@ -288,6 +288,15 @@ $('search-form').addEventListener('submit', (e) => {
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Service worker non registrato', e));
+  // Versione nuova installata subito dopo l'apertura: ricarica una volta, così non serve chiudere e riaprire due volte.
+  const avvio = Date.now();
+  const cera = /\/latino\/sw\.js$/.test(navigator.serviceWorker.controller?.scriptURL || ''); // non quello di aMICOLettore
+  let ricaricata = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!cera || ricaricata) return;
+    if (Date.now() - avvio < 20000) { ricaricata = true; location.reload(); }
+    else toast('C\'è una versione nuova di aMICOLat: chiudila e riaprila per usarla.');
+  });
 }
 
 // per i test automatici
