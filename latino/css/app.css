@@ -423,3 +423,9 @@ button.big-btn { border: 0; }
 /* ---------- marchio della famiglia aMICOL™ (Informazioni) ---------- */
 .amicol-mark { margin: 6px 0 10px; }
 .amicol-mark img { display: block; width: 100%; max-width: 280px; height: auto; background: #fff; border-radius: 12px; padding: 8px 12px; box-sizing: border-box; }
+.tab-brand {
+  position: absolute; right: max(16px, env(safe-area-inset-right)); top: 50%; transform: translateY(-50%);
+  height: 50px; width: auto; background: #fff; border-radius: 10px; padding: 3px 8px; box-sizing: border-box;
+  pointer-events: none;
+}
+@media (max-width: 1000px) { .tab-brand { display: none; } }
