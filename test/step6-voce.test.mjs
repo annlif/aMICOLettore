@@ -73,10 +73,10 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
       v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 16000, true);
       v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
       for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.round(8000 * Math.sin(2 * Math.PI * 440 * i / 8000)), true);
-      const voice = JSON.parse(localStorage.getItem('amicolatino.voce') || '{}').voice || 'it-IT-IsabellaNeural';
+      const voice = 'it-IT-IsabellaNeural'; // per il latino la voce è sempre Isabella
       const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${voice}\u0001rosas`));
       const key = [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
-      await db.audio.put({ key, voice, text: 'rosas', audio: buf, createdAt: Date.now() });
+      await db.audio.put({ key, voice, text: 'rosas', regole: localStorage.getItem('amicolatino.regole'), audio: buf, createdAt: Date.now() });
     });
     await page.goto(BASE + 'latino/#versioni');
     await page.waitForSelector('#btn-paste', { state: 'visible' });
@@ -87,7 +87,7 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
     await page.waitForSelector('#view-versione', { state: 'visible' });
     await page.locator('.sent-la .w', { hasText: 'rosas' }).click();
     await page.click('.popmenu button:has-text("Ascolta")');
-    await page.waitForFunction(() => { const a = window.__amicolatino.audioState(); return a && !a.paused && a.time > 0.1; }, null, { timeout: 5000 });
+    await page.waitForFunction(() => { const a = window.__amicolatino.audioState(); return a && a.time > 0.1; }, null, { timeout: 5000 }); // partito (o già finito)
     const st = await page.evaluate(() => window.__amicolatino.audioState());
     assert.equal(st.volume, 1);
     assert.ok(Math.abs(st.duration - 1) < 0.05, `durata ${st.duration}`);
@@ -101,7 +101,7 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
     await page.fill('#paste-text', 'Nauta rosas dat.');
     await page.click('#paste-dialog button[value="ok"]');
     await page.waitForSelector('#view-versione', { state: 'visible' });
-    await page.locator('.sent-la .w', { hasText: 'rosas' }).click();
+    await page.locator('.sent-la .w', { hasText: 'Nauta' }).click(); // parola mai ascoltata (non salvata)
     await page.click('.popmenu button:has-text("Ascolta")');
     await page.waitForSelector('#toast:has-text("impostazioni")');
     assert.deepEqual(errors, []);

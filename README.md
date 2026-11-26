@@ -118,6 +118,17 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
 - **Backup** di tutti i dati in un file, e ripristino.
 - **Ricerca unica** nella barra in alto: vocabolario (anche forme flesse), significati, versioni.
 
+### Pronuncia del latino in "Ascolta"
+
+La voce è sempre **Isabella** (it-IT-IsabellaNeural, non la Multilingual) con il testo dichiarato in italiano, e prima di
+inviarlo ad Azure l'app applica la **pronuncia scolastica italiana**: *ae* → e, *oe* → e, *ti* + vocale → zi (tranne
+dopo s, t, x), *ph* → f, *th* → t, *y* → i, *h* iniziale muta (es. *puellae* → "puelle", *gratia* → "grazia").
+La trasformazione vale solo per l'audio: il testo mostrato resta quello originale e il numero delle parole non cambia.
+
+Le regole sono tutte in [`latino/js/pronuncia.js`](latino/js/pronuncia.js): per correggere una parola letta male basta
+aggiungerla in `PAROLE` (es. `'mihi': 'miki'`), per una regola nuova si copia una riga di `REGOLE`. Quando le regole
+cambiano, l'audio salvato con quelle vecchie viene rifatto da solo.
+
 ### Collegare la voce di aMICOLettore (una volta sola)
 
 Sull'iPad ogni app della schermata Home ha un archivio separato, quindi aMICOLatino non può leggere da sola la chiave
