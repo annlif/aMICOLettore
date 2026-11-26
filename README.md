@@ -97,9 +97,11 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   le analisi possibili quando una forma è ambigua, invitando a scegliere guardando la frase.
 - **Guida all'analisi** ("🧭 Sono bloccata: aiutami") – solo quando serve: una domanda alla volta (verbo principale →
   da quale verbo viene, se la forma è ambigua → soggetto → complemento retto dal verbo, o nome del predicato con *sum* →
-  preposizioni), Micol risponde toccando le parole e riceve un riscontro, un indizio o, dopo due tentativi, "Mostrami".
-  Con *sum* chiede se il predicato è verbale o nominale; per gli altri elementi Micol sceglie dall'**elenco completo dei
-  complementi** (più attributo e apposizione) e l'app controlla che la scelta sia compatibile con caso e preposizione.
+  altri pezzi), Micol risponde toccando le parole e riceve un riscontro breve, un indizio o, dopo due tentativi, "Mostrami".
+  Testi corti; dopo ogni risposta giusta si passa alla domanda seguente solo toccando **Avanti**.
+  Con *sum* chiede se il predicato è verbale o nominale. Gli altri complementi si **ragionano in tre passi**: *in che caso
+  è?* → *a quale domanda risponde?* (elenco completo: dove?, quando?, con chi?…) → nome del complemento; l'app controlla
+  che ogni passo sia compatibile con caso, preposizione e (con l'IA) con il senso della frase.
   Alla fine compare l'**analisi logica scritta**, che resta sotto la frase e può andare nel PDF. Non traduce mai.
 - **Intelligenza artificiale per la guida (facoltativa)** – con una chiave di **Gemini** (Google AI Studio, quota
   gratuita) o di **Azure OpenAI** (anche Azure for Students), la guida usa l'analisi dell'IA per verbo principale, soggetto,
