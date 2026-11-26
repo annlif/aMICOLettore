@@ -106,18 +106,30 @@ function formVoce() {
 for (const id of ['set-key', 'set-region', 'set-voce', 'set-rate', 'set-ipad']) {
   $(id).addEventListener('change', () => { const v = formVoce(); delete v.from; saveVoce(v); $('voce-stato').textContent = voceStato(v); });
 }
-$('btn-incolla-voce').addEventListener('click', async () => {
-  let text = '';
-  try { text = await navigator.clipboard.readText(); } catch { /* permesso negato */ }
-  if (!text) text = prompt('Incolla qui il codice copiato da aMICOLettore:') || '';
+function useVoceCode(text) {
   const c = parseVoceCode(text);
-  if (!c) { $('voce-msg').textContent = 'Non trovo il codice di aMICOLettore negli appunti. In aMICOLettore tocca prima "Copia la voce per aMICOLatino".'; return; }
+  if (!c) return false;
   const v = { ...loadVoce(), ...c };
   delete v.from;
   saveVoce(v);
   fillSettings();
-  $('voce-msg').textContent = 'Fatto! La voce di aMICOLettore è collegata. Tocca "Prova la voce".';
-  try { await navigator.clipboard.writeText(''); } catch { /* ignora */ }
+  $('voce-code').value = '';
+  $('voce-msg').textContent = '✓ Fatto! La voce di aMICOLettore è collegata. Tocca "Prova la voce".';
+  return true;
+}
+$('voce-code').addEventListener('input', () => {
+  const t = $('voce-code').value.trim();
+  if (!t) return;
+  if (!useVoceCode(t)) $('voce-msg').textContent = 'Questo non sembra il codice di aMICOLettore: deve cominciare con "aMICOL-voce:".';
+});
+$('btn-incolla-voce').addEventListener('click', async () => {
+  let text = '';
+  try { text = await navigator.clipboard.readText(); } catch { /* permesso negato o non disponibile */ }
+  if (text && useVoceCode(text)) { try { await navigator.clipboard.writeText(''); } catch { /* ignora */ } return; }
+  $('voce-msg').textContent = text
+    ? 'Negli appunti non c\'è il codice di aMICOLettore. In aMICOLettore tocca prima "Copia la voce per aMICOLatino".'
+    : 'Non riesco a leggere gli appunti da qui: tieni premuto nella casella "Codice di aMICOLettore" e scegli Incolla.';
+  $('voce-code').focus();
 });
 $('btn-prova-voce').addEventListener('click', async () => {
   const v = formVoce();

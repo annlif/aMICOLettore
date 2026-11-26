@@ -436,3 +436,5 @@ button.big-btn { border: 0; }
 .audio-name { font-family: var(--font-read); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .audio-meta { grid-column: 1; color: var(--muted); font-size: 14px; }
 .audio-list button { grid-column: 2; grid-row: 1 / span 2; }
+#copy-code, #voce-code { width: 100%; font: 14px ui-monospace, Menlo, monospace; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 10px; word-break: break-all; resize: none; }
+.copy-msg:not(:empty), #voce-msg:not(:empty) { font-weight: 700; color: var(--text); }

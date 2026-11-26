@@ -805,14 +805,20 @@ $('settings-form').addEventListener('submit', (ev) => {
 // quindi la chiave passa attraverso gli appunti (resta comunque solo su questo dispositivo).
 $('btn-copy-latino').addEventListener('click', async () => {
   const s = formSettings();
-  if (!s.key || !s.region) { $('voice-msg').textContent = 'Inserisci prima chiave e regione.'; return; }
+  const msg = $('copy-msg');
+  if (!s.key || !s.region) { msg.textContent = 'Inserisci prima chiave e regione qui sopra.'; return; }
   const code = 'aMICOL-voce:' + btoa(JSON.stringify({ key: s.key, region: s.region, voice: s.voice }));
-  try {
-    await navigator.clipboard.writeText(code);
-    toast('Voce copiata! Ora apri aMICOLatino → Impostazioni → Incolla da aMICOLettore.', 6000);
-  } catch {
-    toast('Non riesco a copiare negli appunti da qui.');
-  }
+  // il codice compare anche scritto, già selezionato: se gli appunti non funzionano si copia a mano
+  const ta = $('copy-code');
+  ta.value = code;
+  $('copy-box').hidden = false;
+  ta.focus(); ta.select(); ta.setSelectionRange(0, code.length);
+  let ok = false;
+  try { await navigator.clipboard.writeText(code); ok = true; } catch { /* provo l'altro modo */ }
+  if (!ok) { try { ok = document.execCommand('copy'); } catch { ok = false; } }
+  msg.textContent = ok
+    ? '✓ Copiato! Ora apri aMICOLatino → ⚙︎ → tieni premuto nella casella "Codice di aMICOLettore" e scegli Incolla.'
+    : 'Tieni premuto sul codice qui sotto, scegli "Seleziona tutto" e poi "Copia". Poi incollalo in aMICOLatino.';
 });
 
 $('btn-toggle-key').addEventListener('click', () => {
