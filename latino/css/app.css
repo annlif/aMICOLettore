@@ -419,3 +419,10 @@ button.big-btn { border: 0; }
   .sent-la { padding: 4px 6px; }
   .sent-more { width: 36px; }
 }
+
+/* ---------- logo della famiglia aMICOL™ (Informazioni) ---------- */
+.amicol-logo { display: inline-flex; align-items: baseline; font-family: var(--font-ui); font-weight: 800; font-size: 60px; letter-spacing: .02em; line-height: 1.2; margin: 6px 0 2px; }
+.amicol-logo .g { color: var(--grey-blue); font-weight: 600; }
+.amicol-logo .c { color: var(--coral); }
+.amicol-logo img { height: .915em; width: auto; margin: 0 .01em; position: relative; top: .144em; }
+.amicol-logo sup { font-size: .26em; color: var(--grey-blue); font-weight: 700; align-self: flex-start; margin: .25em 0 0 .15em; }
