@@ -5,11 +5,12 @@ import { tokenize } from './testo.js';
 import { COMPLEMENTI } from './struttura.js';
 
 const KEY = 'amicolatino.ia';
+const IA_DEFAULTS = { provider: 'gemini', key: '', model: 'gemini-flash-latest', on: true, endpoint: '', deployment: '' };
 export function loadIA() {
-  try { return { key: '', model: 'gemini-flash-latest', on: true, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { key: '', model: 'gemini-flash-latest', on: true }; }
+  try { return { ...IA_DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...IA_DEFAULTS }; }
 }
 export function saveIA(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { /* ignora */ } }
-export const iaAttiva = () => { const v = loadIA(); return !!(v.on && v.key); };
+export const iaAttiva = () => { const v = loadIA(); return !!(v.on && v.key && (v.provider !== 'azure' || (v.endpoint && v.deployment))); };
 
 const TIPI = COMPLEMENTI.filter((c) => !c.rif).map((c) => c.id);
 
@@ -63,12 +64,55 @@ export function validaAnalisi(a, n) {
  * Chiede l'analisi della frase. Restituisce l'analisi (validata) oppure lancia un errore comprensibile.
  * La frase viene inviata a Google solo se la chiave è stata inserita nelle impostazioni.
  */
+/** Lo schema nel formato standard JSON Schema (per Azure OpenAI): tipi in minuscolo, nessuna proprietà in più. */
+function jsonSchema(x) {
+  if (Array.isArray(x)) return x.map(jsonSchema);
+  if (!x || typeof x !== 'object') return x;
+  const o = {};
+  for (const [k, v] of Object.entries(x)) o[k] = k === 'type' ? v.toLowerCase() : jsonSchema(v);
+  if (o.type === 'object') { o.additionalProperties = false; o.required = Object.keys(o.properties || {}); }
+  return o;
+}
+
+async function chiamaAzure(v, la, numerata, signal) {
+  const ep = v.endpoint.trim().replace(/\/+$/, '');
+  const url = `${ep}/openai/deployments/${encodeURIComponent(v.deployment.trim())}/chat/completions?api-version=2024-10-21`;
+  const res = await fetch(url, {
+    method: 'POST', signal,
+    headers: { 'Content-Type': 'application/json', 'api-key': v.key.trim() },
+    body: JSON.stringify({
+      messages: [{ role: 'system', content: ISTRUZIONI }, { role: 'user', content: `Frase: ${la}\nParole numerate: ${numerata}` }],
+      temperature: 0,
+      response_format: { type: 'json_schema', json_schema: { name: 'analisi_logica', strict: true, schema: jsonSchema(SCHEMA) } },
+    }),
+  });
+  if (res.status === 401 || res.status === 403) throw new Error('Azure OpenAI non accetta la chiave: controllala nelle impostazioni.');
+  if (res.status === 404) throw new Error('Azure OpenAI: indirizzo (endpoint) o nome del modello (deployment) non trovati.');
+  if (res.status === 429) throw new Error('Troppe richieste ad Azure OpenAI o credito finito: uso le regole dell\'app.');
+  if (!res.ok) throw new Error(`Azure OpenAI non risponde (errore ${res.status}): uso le regole dell'app.`);
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content || '';
+}
+
 export async function analizzaConIA(la) {
   const v = loadIA();
-  if (!v.key) throw new Error('Chiave di Gemini mancante.');
+  if (!v.key) throw new Error('Chiave dell\'intelligenza artificiale mancante.');
   if (!navigator.onLine) throw new Error('Senza internet uso le regole dell\'app.');
   const parole = tokenize(la).filter((p) => p.w).map((p) => p.t);
   const numerata = parole.map((w, i) => `[${i}] ${w}`).join('  ');
+  if (v.provider === 'azure') {
+    const ctrlA = new AbortController();
+    const tA = setTimeout(() => ctrlA.abort(), 25000);
+    let text;
+    try { text = await chiamaAzure(v, la, numerata, ctrlA.signal); } catch (e) {
+      throw e instanceof Error && /Azure/.test(e.message) ? e : new Error('Non riesco a contattare Azure OpenAI: uso le regole dell\'app.');
+    } finally { clearTimeout(tA); }
+    let jsonA;
+    try { jsonA = JSON.parse(text); } catch { throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.'); }
+    const aA = validaAnalisi(jsonA, parole.length);
+    if (!aA) throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.');
+    return { ...aA, parole: parole.length, modello: `azure:${v.deployment}`, quando: Date.now() };
+  }
   const body = {
     systemInstruction: { parts: [{ text: ISTRUZIONI }] },
     contents: [{ role: 'user', parts: [{ text: `Frase: ${la}\nParole numerate: ${numerata}` }] }],
