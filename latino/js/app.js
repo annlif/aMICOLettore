@@ -148,6 +148,11 @@ function buildTabbar() {
     b.addEventListener('click', () => go(s.id));
     nav.append(b);
   }
+  // marchio aMICOL™ in basso a destra (solo dove c'è spazio)
+  const brand = document.createElement('img');
+  brand.className = 'tab-brand'; brand.src = 'icons/amicol-marchio.webp'; brand.alt = 'aMICOL™';
+  brand.width = 720; brand.height = 233;
+  nav.append(brand);
 }
 
 function parseHash() {
