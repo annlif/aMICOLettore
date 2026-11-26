@@ -413,3 +413,9 @@ button.big-btn { border: 0; }
 .w.conn.amb { background: transparent; box-shadow: none; outline: 2px dashed var(--coral); outline-offset: 1px; }
 .conn-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; color: var(--muted); font-size: 16px; margin: 6px 0 10px; }
 .conn-legend .w { cursor: default; padding: 2px 8px; }
+@media (max-width: 520px) {
+  .sent { grid-template-columns: 1.8em minmax(0, 1fr) 36px; gap: 6px 8px; padding: 12px 8px; }
+  .sent-num { font-size: 14px; }
+  .sent-la { padding: 4px 6px; }
+  .sent-more { width: 36px; }
+}
