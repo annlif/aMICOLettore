@@ -38,7 +38,7 @@ test('le mie parole: aggiungere, filtrare, appunti, eliminare', async () => {
     // parola sconosciuta: da completare
     await page.locator('.sent-la .w', { hasText: 'Quiritibus' }).click();
     await page.click('.popmenu button:has-text("Aggiungi alle mie parole")');
-    await page.waitForSelector('#word-sheet[open] .notfound');
+    await page.waitForSelector('#word-sheet[open] .card-wait');
     await page.click('#word-body [data-act="dacompletare"]');
     await page.click('#word-sheet .close-x');
 

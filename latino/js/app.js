@@ -2,7 +2,7 @@
 import { loadSettings, saveSettings, askPersistence, db } from './store.js';
 import { $, toast, closeMenu, esc } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
-import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI, audioState } from './voce.js';
+import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, audioState, pulisciAudioVecchio } from './voce.js';
 import { makeBackup, readBackup, restoreBackup, shareFile } from './esporta.js';
 import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
@@ -91,9 +91,6 @@ function fillSettings() {
   const v = loadVoce();
   $('voce-stato').textContent = voceStato(v);
   $('set-key').value = v.key; $('set-region').value = v.region;
-  const sel = $('set-voce');
-  sel.innerHTML = VOCI.map(([id, l]) => `<option value="${id}">${l}</option>`).join('');
-  sel.value = v.voice;
   $('set-rate').value = String(v.rate);
   $('set-ipad').checked = v.iPad !== false;
   $('voce-msg').textContent = '';
@@ -101,9 +98,9 @@ function fillSettings() {
 }
 function formVoce() {
   return { ...loadVoce(), key: $('set-key').value.trim(), region: $('set-region').value.trim().toLowerCase().replace(/\s+/g, ''),
-    voice: $('set-voce').value, rate: Number($('set-rate').value), iPad: $('set-ipad').checked };
+    rate: Number($('set-rate').value), iPad: $('set-ipad').checked };
 }
-for (const id of ['set-key', 'set-region', 'set-voce', 'set-rate', 'set-ipad']) {
+for (const id of ['set-key', 'set-region', 'set-rate', 'set-ipad']) {
   $(id).addEventListener('change', () => { const v = formVoce(); delete v.from; saveVoce(v); $('voce-stato').textContent = voceStato(v); });
 }
 function useVoceCode(text) {
@@ -258,6 +255,7 @@ document.addEventListener('click', (e) => {
 });
 route_();
 askPersistence();
+pulisciAudioVecchio(); // se le regole di pronuncia sono cambiate, l'audio vecchio va rifatto
 
 $('btn-home').addEventListener('click', () => go('versioni'));
 $('btn-font-down').addEventListener('click', () => changeFont(-2));

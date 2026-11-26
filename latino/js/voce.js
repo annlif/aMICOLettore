@@ -3,16 +3,12 @@
 // e funziona anche senza internet. Se Azure non è disponibile, usa la voce dell'iPad.
 import { db } from './store.js';
 import { sysVoice } from './sysvoice.js';
+import { pronuncia, VERSIONE_REGOLE } from './pronuncia.js';
 
-export const VOCI = [
-  ['it-IT-IsabellaNeural', 'Isabella (femminile) – predefinita'],
-  ['it-IT-ElsaNeural', 'Elsa (femminile)'],
-  ['it-IT-FiammaNeural', 'Fiamma (femminile)'],
-  ['it-IT-IsabellaMultilingualNeural', 'Isabella Multilingual (femminile)'],
-  ['it-IT-DiegoNeural', 'Diego (maschile)'],
-  ['it-IT-GiuseppeMultilingualNeural', 'Giuseppe Multilingual (maschile)'],
-  ['it-IT-BenignoNeural', 'Benigno (maschile)'],
-];
+// Per il latino si usa SEMPRE questa voce italiana (non le "Multilingual", che provano a indovinare la lingua
+// e leggono alcune parole all'inglese: "sunt" → "sant").
+export const VOCE_LATINO = 'it-IT-IsabellaNeural';
+
 
 // ---------- impostazioni della voce ----------
 const KEY = 'amicolatino.voce';
@@ -79,15 +75,19 @@ function azureError(details = '') {
   return `Errore di Azure: ${d || 'sconosciuto'}`;
 }
 
+/** SSML per il latino: lingua italiana dichiarata e voce Isabella; il testo è già "pronunciato" (vedi pronuncia.js). */
+export function buildSsml(text) {
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="it-IT"><voice name="${VOCE_LATINO}"><lang xml:lang="it-IT">${escXml(text)}</lang></voice></speak>`;
+}
+
 async function synthesize(text, v) {
   const S = await loadSdk();
   const cfg = S.SpeechConfig.fromSubscription(v.key.trim(), v.region.trim());
   cfg.speechSynthesisLanguage = 'it-IT';
-  cfg.speechSynthesisVoiceName = v.voice;
+  cfg.speechSynthesisVoiceName = VOCE_LATINO;
   cfg.speechSynthesisOutputFormat = S.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
   const synth = new S.SpeechSynthesizer(cfg, null); // null: l'audio lo riproduciamo noi
-  const inner = /Multilingual/i.test(v.voice) ? `<lang xml:lang="it-IT">${escXml(text)}</lang>` : escXml(text);
-  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="it-IT"><voice name="${v.voice}">${inner}</voice></speak>`;
+  const ssml = buildSsml(text);
   try {
     return await new Promise((resolve, reject) => {
       synth.speakSsmlAsync(ssml, (r) => {
@@ -162,16 +162,18 @@ export async function ascolta(text) {
   unlock(); // subito, prima di qualsiasi attesa
   const v = loadVoce();
   if (!v.key || !navigator.onLine) sysVoice.unlock();
-  const key = await sha256(`${v.voice}\u0001${t}`);
+  pulisciAudioVecchio();
+  const parlato = pronuncia(t); // solo per l'audio: il testo mostrato resta quello originale
+  const key = await sha256(`${VOCE_LATINO}\u0001${parlato}`);
   let audio = (await db.audio.get(key).catch(() => null))?.audio;
   let how = audio ? 'cache' : null;
   let err = null;
   if (!audio && v.key && v.region && navigator.onLine) {
     try {
-      audio = await synthesize(t, v);
+      audio = await synthesize(parlato, v);
       addUsage(t.length);
       how = 'azure';
-      db.audio.put({ key, voice: v.voice, text: t, audio, createdAt: Date.now() }).catch(() => {});
+      db.audio.put({ key, voice: VOCE_LATINO, text: t, parlato, regole: VERSIONE_REGOLE, audio, createdAt: Date.now() }).catch(() => {});
     } catch (e) { err = e; }
   }
   if (audio) {
@@ -179,7 +181,7 @@ export async function ascolta(text) {
     return how;
   }
   if (v.iPad !== false && sysVoice.available()) {
-    sysVoice.speak(t, { rate: v.rate || 1 });
+    sysVoice.speak(parlato, { rate: v.rate || 1 });
     return 'ipad';
   }
   if (err) throw err;
@@ -190,11 +192,23 @@ export async function ascolta(text) {
 export async function provaVoce(v) {
   stop();
   unlock();
-  const audio = await synthesize('Rosa, rosae. Nauta rosas puellae dat.', { ...DEFAULTS, ...v });
+  const audio = await synthesize(pronuncia('Rosas tuas amo, agricola, nam pulchrae sunt.'), { ...DEFAULTS, ...v });
   await play(audio, 1);
 }
 
 export { stop as stopAscolto };
+
+/** Se le regole di pronuncia sono cambiate, cancella l'audio salvato con quelle vecchie (una volta sola). */
+let puliziaFatta = false;
+export function pulisciAudioVecchio() {
+  if (puliziaFatta) return;
+  puliziaFatta = true;
+  let prima = null;
+  try { prima = localStorage.getItem('amicolatino.regole'); localStorage.setItem('amicolatino.regole', VERSIONE_REGOLE); } catch { return; }
+  if (prima !== VERSIONE_REGOLE) {
+    db.audio.all().then((list) => Promise.all(list.filter((a) => a.regole !== VERSIONE_REGOLE).map((a) => db.audio.del(a.key)))).catch(() => {});
+  }
+}
 
 /** Per i test automatici: lo stato del lettore audio. */
 export function audioState() { return el ? { paused: el.paused, time: el.currentTime, duration: el.duration, volume: el.volume } : null; }
