@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>aMICOLatino</title>
+  <meta name="description" content="Ti aiuta a fare le versioni di latino ragionando: vocabolario, analisi delle forme e le tue parole.">
+  <meta name="theme-color" content="#12355B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="aMICOLat">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- Colonna ionica usata come "O" nel nome -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="column-o" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="10"/>
+      <g fill="currentColor">
+        <rect x="29" y="23" width="42" height="5" rx="1.5"/>
+        <path d="M33 28 H67 Q66 34 60 35 H40 Q34 34 33 28Z"/>
+        <circle cx="32.5" cy="32" r="5"/><circle cx="67.5" cy="32" r="5"/>
+        <path d="M38.5 36 H61.5 L60 67 H40 Z"/>
+        <rect x="35" y="67" width="30" height="4.5" rx="1.5"/>
+        <rect x="30.5" y="71.5" width="39" height="5.5" rx="1.5"/>
+      </g>
+      <g fill="#fff" opacity=".9"><circle cx="32.5" cy="32" r="1.8"/><circle cx="67.5" cy="32" r="1.8"/></g>
+      <g stroke="#fff" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round"><path d="M44.5 39 V64"/><path d="M50 39 V64"/><path d="M55.5 39 V64"/></g>
+    </symbol>
+  </svg>
+
+  <header class="topbar">
+    <button class="brand" id="btn-home" type="button" aria-label="aMICOLatino – torna alle versioni">
+      <span class="wordmark" aria-hidden="true"><span class="wm-grey">a</span><span class="wm-coral">MIC<svg class="wm-o"><use href="#column-o"/></svg>L</span><span class="wm-grey">atino</span></span>
+    </button>
+    <form class="search" id="search-form" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="search-input" type="search" placeholder="Cerca una parola, anche flessa…" aria-label="Cerca nel vocabolario, nelle tue parole e nelle versioni" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+    </form>
+    <div class="topbar-actions">
+      <button class="tbtn" id="btn-font-down" type="button" aria-label="Testo più piccolo">A<small>−</small></button>
+      <button class="tbtn" id="btn-font-up" type="button" aria-label="Testo più grande">A<small>+</small></button>
+      <button class="tbtn" id="btn-settings" type="button" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- VERSIONI -->
+  <main id="view-versioni" class="view" data-view="versioni" hidden>
+    <section class="hero">
+      <h1 class="visually-hidden">Le tue versioni</h1>
+      <p class="hero-text">Carica la versione e ragioniamoci insieme, frase per frase.</p>
+      <button class="big-btn" id="btn-load-pdf" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>
+        Carica una versione
+      </button>
+    </section>
+    <section class="library" aria-labelledby="ver-title">
+      <h2 id="ver-title">Le tue versioni</h2>
+      <p class="empty" id="ver-empty">Ancora nessuna versione. Quelle che carichi compariranno qui, con la data e il punto in cui eri arrivata.</p>
+      <ul class="lib-list" id="ver-list"></ul>
+    </section>
+  </main>
+
+  <!-- VOCABOLARIO -->
+  <main id="view-vocabolario" class="view" data-view="vocabolario" hidden>
+    <h1 class="view-title">Vocabolario</h1>
+    <div class="coming">
+      <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
+      <p>Qui troverai il vocabolario del primo anno, che riconosce anche le forme flesse e funziona senza internet.</p>
+      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+    </div>
+  </main>
+
+  <!-- PAROLE -->
+  <main id="view-parole" class="view" data-view="parole" hidden>
+    <h1 class="view-title">Le mie parole</h1>
+    <div class="coming">
+      <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
+      <p>Qui ci saranno le parole che scegli di imparare, con la frase della versione in cui le hai incontrate.</p>
+      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+    </div>
+  </main>
+
+  <!-- RICERCA -->
+  <main id="view-cerca" class="view" data-view="cerca" hidden>
+    <h1 class="view-title">Ricerca: <span id="search-query"></span></h1>
+    <div class="coming">
+      <p>La ricerca funzionerà quando il vocabolario sarà pronto.</p>
+    </div>
+  </main>
+
+  <!-- barra delle sezioni: i pulsanti sono creati da js/app.js (solo le sezioni pronte) -->
+  <nav class="tabbar" id="tabbar" aria-label="Sezioni"></nav>
+
+  <!-- IMPOSTAZIONI -->
+  <dialog class="sheet" id="settings" aria-labelledby="settings-title">
+    <form method="dialog">
+      <h2 id="settings-title">Impostazioni</h2>
+      <fieldset>
+        <legend>Voce</legend>
+        <p class="help">Per "Ascolta" userò la stessa voce di Azure di aMICOLettore. Presto potrai copiarla da lì con un tocco.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Backup</legend>
+        <p class="help">Presto potrai salvare in un file tutte le versioni, le traduzioni e le parole, e ripristinarle.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Informazioni</legend>
+        <p class="help">aMICOLatino · versione <span id="app-version">di prova</span></p>
+      </fieldset>
+      <div class="sheet-actions">
+        <button class="primary" value="close">Chiudi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

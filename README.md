@@ -68,6 +68,22 @@ La pubblicazione è automatica: a ogni modifica del ramo `main` la GitHub Action
 prepara la cartella `dist/` e la pubblica su GitHub Pages. Va attivata una sola volta in
 **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
+---
+
+<p align="center"><img src="docs/logo-latino.png" alt="aMICOLatino" width="520"></p>
+
+## aMICOLatino (sull'iPad: **aMICOLat**)
+
+Una seconda app, nello stesso repository, per fare le **versioni di latino ragionando**: divide la versione in frasi,
+aiuta con il vocabolario e l'analisi delle forme, ma **non traduce al posto tuo**.
+
+👉 Indirizzo: **https://annlif.github.io/aMICOLettore/latino/**
+
+Si installa come app **separata** (Safari → Condividi → Aggiungi alla schermata Home): ha la sua icona, il suo archivio
+e funziona anche senza internet. I sorgenti sono nella cartella [`latino/`](latino/); `npm run build` la prepara in `dist/latino/`.
+
+Stato: **fase 1 in costruzione** – struttura e installazione pronte; versioni, vocabolario e parole arrivano nei prossimi aggiornamenti.
+
 ## Per chi sviluppa
 
 ```bash
@@ -76,6 +92,7 @@ npm start        # prepara dist/ e la apre su http://localhost:8080
 ```
 
 - `src/` contiene l'app (HTML, CSS, JavaScript senza framework); `scripts/build.mjs` copia le librerie in `dist/vendor/`.
-- `npm run icons` rigenera le icone PNG e `docs/logo.png` dagli SVG (richiede Playwright).
+- `npm run icons` rigenera le icone PNG di entrambe le app, `docs/logo.png` e `docs/logo-latino.png` dagli SVG (richiede Playwright).
+- `npm test` prepara `dist/` e prova le due app nel browser (anche offline), imitando l'indirizzo di GitHub Pages.
 - Il testo del PDF e l'audio sono salvati in IndexedDB; le impostazioni in `localStorage`.
 - Il testo da leggere viene inviato soltanto ad Azure Speech; non c'è nessun altro server.

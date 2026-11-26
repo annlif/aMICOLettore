@@ -3,6 +3,7 @@
 const VERSION = '__VERSION__';
 const CACHE = `amicolettore-${VERSION}`;
 const ASSETS = __ASSETS__;
+const LATINO = new URL('latino/', self.registration.scope).href;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -19,6 +20,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return; // Azure: sempre in rete
+  if (url.href.startsWith(LATINO)) return; // aMICOLatino è un'altra app, con il suo service worker
 
   if (req.mode === 'navigate') {
     event.respondWith(fetch(req).catch(async () => (await caches.match('./index.html', { ignoreSearch: true })) || Response.error()));
