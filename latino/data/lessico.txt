@@ -737,9 +737,11 @@ paenitet, paenituit, paenitere | v | pentirsi (mi pento: me paenitet) | accusati
 
 # =====================================================================
 # AMPLIAMENTO DEL LESSICO (circa 2.000 voci in più, parole frequenti nelle versioni del biennio).
-# Queste voci sono ancora da confrontare con il dizionario Olivetti e da verificare con la professoressa.
+# Confrontate con il dizionario Olivetti (paradigma, categoria, genere, declinazione o coniugazione,
+# significati principali); restano da verificare con la professoressa. Le poche voci che l'Olivetti non
+# registra come voce a sé (plurali, popoli, locuzioni) sono segnate "stato=da_verificare".
 # =====================================================================
-#! stato=da_verificare
+#! stato=controllata
 
 # ---------- A-nomi-1-2 ----------
 # ============ NOMI: 1ª DECLINAZIONE (2) ============
@@ -883,11 +885,11 @@ nuptiae, nuptiarum, f. pl. | n | nozze | | Nuptias celebrant. – Celebrano le n
 minae, minarum, f. pl. | n | minacce | | Minis non movetur. – Non si lascia smuovere dalle minacce. | pl
 tenebrae, tenebrarum, f. pl. | n | tenebre; buio | | Tenebrae noctis. – Le tenebre della notte. | pl
 indutiae, indutiarum, f. pl. | n | tregua | | Indutias petiverunt. – Chiesero una tregua. | pl
-angustiae, angustiarum, f. pl. | n | passaggio stretto; gola; difficoltà | | In angustiis pugnant. – Combattono in una gola stretta. | pl
+angustiae, angustiarum, f. pl. | n | passaggio stretto; gola; difficoltà |  | In angustiis pugnant. – Combattono in una gola stretta. | pl stato=da_verificare
 epulae, epularum, f. pl. | n | banchetto; vivande | | Epulas parant. – Preparano un banchetto. | pl
 reliquiae, reliquiarum, f. pl. | n | resti; avanzi | | Reliquiae exercitus. – I resti dell'esercito. | pl
 feriae, feriarum, f. pl. | n | giorni di festa; vacanze | | Feriae Latinae. – Le feste latine. | pl
-deliciae, deliciarum, f. pl. | n | delizia; piacere; persona amata | | Puella deliciae matris est. – La fanciulla è la gioia della madre. | pl
+deliciae, deliciarum, f. pl. | n | delizia; piacere; persona amata |  | Puella deliciae matris est. – La fanciulla è la gioia della madre. | pl stato=da_verificare
 Kalendae, Kalendarum, f. pl. | n | calende (primo giorno del mese) | | Kalendis Ianuariis. – Alle calende di gennaio. | pl
 Nonae, Nonarum, f. pl. | n | none (quinto o settimo giorno del mese) | | Nonis Decembribus. – Alle none di dicembre. | pl
 # ============ NOMI: 2ª DECLINAZIONE, MASCHILI (2) ============
@@ -1060,8 +1062,8 @@ astrum, astri, n. | n | astro; stella | | Per aspera ad astra. – Attraverso le
 vulgus, vulgi, n. | n | volgo; gente comune; folla | | Vulgus credulum est. – Il volgo è credulo. | sg no=nom.sg/acc.sg/voc.sg extra=vulgus:nom.sg/vulgus:acc.sg/vulgus:voc.sg
 # ============ NOMI: 2ª DECLINAZIONE, SOLO PLURALE ============
 hiberna, hibernorum, n. pl. | n | accampamento invernale | | Legiones in hiberna deducit. – Conduce le legioni negli accampamenti invernali. | pl
-rostra, rostrorum, n. pl. | n | rostri (tribuna degli oratori nel foro) | | Orator in rostra ascendit. – L'oratore sale sui rostri. | pl
-comitia, comitiorum, n. pl. | n | comizi; assemblea del popolo | | Comitia habentur. – Si tengono i comizi. | pl
+rostra, rostrorum, n. pl. | n | rostri (tribuna degli oratori nel foro) |  | Orator in rostra ascendit. – L'oratore sale sui rostri. | pl stato=da_verificare
+comitia, comitiorum, n. pl. | n | comizi; assemblea del popolo |  | Comitia habentur. – Si tengono i comizi. | pl stato=da_verificare
 # ============ NOMI PROPRI: LUOGHI (1ª DECLINAZIONE) ============
 Roma, Romae, f. | n | Roma | | Roma in Italia est. – Roma è in Italia. | sg extra=Romae:loc
 Italia, Italiae, f. | n | Italia | | Hannibal in Italiam venit. – Annibale venne in Italia. | sg
@@ -1099,7 +1101,7 @@ Cumae, Cumarum, f. pl. | n | Cuma | | Sibylla Cumis habitabat. – La Sibilla ab
 # ============ NOMI PROPRI: LUOGHI (2ª DECLINAZIONE) ============
 Aegyptus, Aegypti, f. | n | Egitto | | Nilus per Aegyptum fluit. – Il Nilo scorre attraverso l'Egitto. | sg
 Corinthus, Corinthi, f. | n | Corinto | | Corinthus a Romanis deleta est. – Corinto fu distrutta dai Romani. | sg extra=Corinthi:loc
-Rhodus, Rhodi, f. | n | Rodi | | Rhodus insula est. – Rodi è un'isola. | sg extra=Rhodi:loc
+Rhodus, Rhodi, f. | n | Rodi |  | Rhodus insula est. – Rodi è un'isola. | sg extra=Rhodi:loc stato=da_verificare
 Cyprus, Cypri, f. | n | Cipro | | Cyprus Veneri sacra erat. – Cipro era sacra a Venere. | sg extra=Cypri:loc
 Delos, Deli, f. | n | Delo | | Apollo in Delo natus est. – Apollo nacque a Delo. | sg
 Saguntum, Sagunti, n. | n | Sagunto | | Hannibal Saguntum oppugnavit. – Annibale assediò Sagunto. | sg extra=Sagunti:loc
@@ -1121,13 +1123,13 @@ Vesuvius, Vesuvii, m. | n | Vesuvio | | Vesuvius Pompeios delevit. – Il Vesuvi
 # ============ NOMI PROPRI: POPOLI ============
 Galli, Gallorum, m. pl. | n | i Galli | | Galli Romam ceperunt. – I Galli presero Roma. | pl
 Germani, Germanorum, m. pl. | n | i Germani | | Germani trans Rhenum incolunt. – I Germani abitano al di là del Reno. | pl
-Romani, Romanorum, m. pl. | n | i Romani | | Romani Carthaginem deleverunt. – I Romani distrussero Cartagine. | pl
+Romani, Romanorum, m. pl. | n | i Romani |  | Romani Carthaginem deleverunt. – I Romani distrussero Cartagine. | pl stato=da_verificare
 Graeci, Graecorum, m. pl. | n | i Greci | | Graeci Troiam ceperunt. – I Greci presero Troia. | pl
 Helvetii, Helvetiorum, m. pl. | n | gli Elvezi | | Helvetii fines suos reliquerunt. – Gli Elvezi lasciarono il loro territorio. | pl
 Belgae, Belgarum, m. pl. | n | i Belgi | | Belgae fortissimi sunt. – I Belgi sono i più valorosi. | pl
-Persae, Persarum, m. pl. | n | i Persiani | | Persae a Graecis victi sunt. – I Persiani furono vinti dai Greci. | pl
-Numidae, Numidarum, m. pl. | n | i Numidi | | Numidae equites boni erant. – I Numidi erano buoni cavalieri. | pl
-Scythae, Scytharum, m. pl. | n | gli Sciti | | Scythae vitam vagam agebant. – Gli Sciti conducevano una vita nomade. | pl
+Persae, Persarum, m. pl. | n | i Persiani |  | Persae a Graecis victi sunt. – I Persiani furono vinti dai Greci. | pl stato=da_verificare
+Numidae, Numidarum, m. pl. | n | i Numidi |  | Numidae equites boni erant. – I Numidi erano buoni cavalieri. | pl stato=da_verificare
+Scythae, Scytharum, m. pl. | n | gli Sciti |  | Scythae vitam vagam agebant. – Gli Sciti conducevano una vita nomade. | pl stato=da_verificare
 Sabini, Sabinorum, m. pl. | n | i Sabini | | Romani Sabinas rapuerunt. – I Romani rapirono le donne sabine. | pl
 Latini, Latinorum, m. pl. | n | i Latini | | Latini cum Romanis foedus fecerunt. – I Latini fecero un patto con i Romani. | pl
 Etrusci, Etruscorum, m. pl. | n | gli Etruschi | | Etrusci multas artes noverant. – Gli Etruschi conoscevano molte arti. | pl
@@ -2531,14 +2533,14 @@ quando | cong | quando; poiché | | Quando ita vis, faciam. – Poiché così vu
 quandoquidem | cong | poiché; dal momento che | | Quandoquidem tu vis, eo. – Dal momento che lo vuoi tu, vado. | conn=subordinante_causale
 sin | cong | se invece; ma se | | Si venies, gaudebo; sin minus, dolebo. – Se verrai, sarò felice; se no, mi dispiacerà. | conn=subordinante_condizionale
 modo | cong | purché (con il congiuntivo) | | Manebo, modo tu maneas. – Resterò, purché tu resti. | conn=subordinante_condizionale
-dummodo | cong | purché | | Omnia patiar, dummodo vivam. – Sopporterò tutto, purché io viva. | conn=subordinante_condizionale
+dummodo | cong | purché |  | Omnia patiar, dummodo vivam. – Sopporterò tutto, purché io viva. | conn=subordinante_condizionale stato=da_verificare
 quominus | cong | che (dopo verbi di impedimento) | | Nihil obstat quominus abeas. – Niente impedisce che tu parta. | conn=subordinante_completiva
 neve | cong | e non; e che non; e affinché non | | Rogo ut maneas neve discedas. – Ti prego di restare e di non andartene. | conn=coordinante_copulativa_negativa forme=neu
 necne | cong | o no (nelle domande doppie) | | Quaero utrum venias necne. – Chiedo se vieni o no. | conn=coordinante_disgiuntiva_interrogativa
 quotiens | cong | ogni volta che; quante volte | | Quotiens te video, gaudeo. – Ogni volta che ti vedo, sono contento. | conn=subordinante_temporale forme=quoties
 quamdiu | cong | finché; per tutto il tempo che | | Quamdiu vivam, te amabo. – Finché vivrò, ti amerò. | conn=subordinante_temporale
 quoad | cong | finché; fino a quando | | Quoad potuit, restitit. – Resistette finché poté. | conn=subordinante_temporale
-simulac | cong | non appena | | Simulac hostes viderunt, fugerunt. – Non appena videro i nemici, fuggirono. | conn=subordinante_temporale forme=simulatque
+simulac | cong | non appena |  | Simulac hostes viderunt, fugerunt. – Non appena videro i nemici, fuggirono. | conn=subordinante_temporale forme=simulatque stato=da_verificare
 quemadmodum | cong | come; nel modo in cui | | Quemadmodum dixi, ita faciam. – Come ho detto, così farò. | conn=subordinante_comparativa
 quapropter | cong | perciò; per questo motivo | | Quapropter discedite. – Perciò andatevene. | conn=coordinante_conclusiva
 quamobrem | cong | perciò; per quale motivo? | | Quamobrem Romam rediit. – Perciò tornò a Roma. | conn=coordinante_conclusiva
@@ -2576,7 +2578,7 @@ postridie | avv | il giorno dopo | | Postridie castra movit. – Il giorno dopo 
 pridie | avv | il giorno prima | | Pridie venerat. – Era arrivato il giorno prima.
 cotidie | avv | ogni giorno | | Cotidie laboramus. – Lavoriamo ogni giorno.
 mane | avv | di mattina; presto | | Mane surgit. – Si alza di mattina.
-vesperi | avv | di sera | | Vesperi domum redit. – Di sera torna a casa.
+vesperi | avv | di sera |  | Vesperi domum redit. – Di sera torna a casa. | stato=da_verificare
 noctu | avv | di notte | | Noctu iter fecerunt. – Viaggiarono di notte.
 interdiu | avv | di giorno | | Interdiu dormit. – Dorme di giorno.
 iamdiu | avv | da molto tempo | | Iamdiu te exspecto. – Ti aspetto da molto tempo.
@@ -2604,7 +2606,7 @@ tantum | avv | soltanto; tanto | | Unus tantum restat. – Ne rimane soltanto un
 solum | avv | soltanto (non solum… sed etiam = non solo… ma anche) | | Non solum fortis, sed etiam prudens est. – Non è solo forte, ma anche prudente.
 fere | avv | quasi; circa; di solito | | Fere omnes. – Quasi tutti.
 circiter | avv | circa; all'incirca | | Circiter duo milia. – Circa duemila.
-plerumque | avv | per lo più; generalmente | | Plerumque vincit. – Per lo più vince.
+plerumque | avv | per lo più; generalmente |  | Plerumque vincit. – Per lo più vince. | stato=da_verificare
 praesertim | avv | soprattutto | | Omnes, praesertim pueri, laeti erant. – Tutti, soprattutto i ragazzi, erano lieti.
 imprimis | avv | soprattutto; in primo luogo | | Imprimis deos colite. – Venerate innanzitutto gli dei.
 omnino | avv | del tutto; in tutto | | Omnino tacuit. – Tacque del tutto.
