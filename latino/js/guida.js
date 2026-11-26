@@ -8,6 +8,7 @@ import {
   analyzeSentence, verbLemmas, subjectCandidates, implicitSubject, complementType, complementCandidates, DOMANDA, isSum,
   COMPLEMENTI, checkComplement, agree, verbPassive, ETICHETTA_RETTO,
 } from './struttura.js';
+import { iaAttiva, analizzaConIA } from './ai.js';
 
 let G = null; // stato della guida in corso
 let cb = {};  // callback da versioni.js: { refresh(sentence), save(), focusTranslation(sentence) }
@@ -42,7 +43,65 @@ export async function startGuide(s) {
   document.body.classList.add('guiding');
   $('guide-bar').hidden = false;
   cb.refresh(s);
+  // analisi con l'intelligenza artificiale (se attivata): una volta per frase, poi resta salvata
+  let nota = '';
+  if (iaAttiva()) {
+    if (!(s.ia && s.iaLa === s.la)) {
+      $('guide-q').innerHTML = 'Un momento: preparo la guida per questa frase…';
+      $('guide-fb').innerHTML = ''; $('guide-btns').innerHTML = '';
+      try { s.ia = await analizzaConIA(s.la); s.iaLa = s.la; cb.save(); } catch (e) { s.ia = null; nota = e.message; }
+    }
+    if (!G || G.s !== s) return;
+  }
+  if (s.ia && s.iaLa === s.la) applyIA(S, s.ia);
+  $('guide-mode').textContent = S.ia ? '🧠 con l\'intelligenza artificiale' : 'con le regole dell\'app';
   setStep(S.verbs.length ? 'verb' : 'noverb');
+  if (nota) feedback(esc(nota), true);
+  else if (S.ia?.dubbi) feedback(`Nota: ${esc(S.ia.dubbi)}`, true);
+}
+
+/** Sostituisce le "ipotesi" delle regole con l'analisi dell'IA (verbo principale, subordinate). */
+function applyIA(S, ia) {
+  S.ia = ia;
+  const v = ia.principale.verbo;
+  S.main = v >= 0 ? [v] : [];
+  S.sub = new Map();
+  S.spans = [];
+  for (const sb of ia.subordinate) {
+    const a = Math.min(...sb.parole), b = Math.max(...sb.parole);
+    S.spans.push([sb.introduttore >= 0 ? sb.introduttore : a, b]);
+    S.sub.set(sb.verbo, sb.introduttore >= 0 ? sb.introduttore : a);
+  }
+  S.verbs = [...new Set([...S.main, ...S.sub.keys()])].sort((x, y) => x - y);
+  S.uncertain = false;
+  S.inSub = (i) => S.spans.some(([a, b]) => i >= a && i <= b);
+}
+const IA = () => G.S.ia;
+/** Soggetti possibili: dall'IA se c'è, altrimenti dalle regole. */
+function subjC() {
+  if (IA()) { const k = IA().soggetto; return k >= 0 ? { nouns: [k], adjs: [], all: [k] } : { nouns: [], adjs: [], all: [] }; }
+  return subjectCandidates(G.S, G.v, G.lemmaId);
+}
+/** Parole del complemento retto dal verbo: dall'IA se c'è. */
+function complC() {
+  if (IA()) {
+    if (G.type === 'pred') { const k = IA().principale.nomePredicato; return k >= 0 ? [k] : []; }
+    const tipo = { acc: 'oggetto', dat: 'termine' }[G.type];
+    if (tipo) return IA().complementi.filter((c) => c.tipo === tipo).flatMap((c) => c.parole).filter((k) => !G.S.isPrep(G.S.words[k]));
+  }
+  return complementCandidates(G.S, G.v, G.type, [G.s.guida.subj]);
+}
+/** Che cosa dice l'IA della parola k (complemento, attributo, apposizione), se lo sa. */
+function iaInfo(k) {
+  const a = IA();
+  if (!a) return null;
+  const c = a.complementi.find((x) => x.parole.includes(k));
+  if (c) return { id: c.tipo, parole: c.parole };
+  const at = a.attributi.find((x) => x.parola === k);
+  if (at) return { id: 'attributo', rif: at.riferito };
+  const ap = a.apposizioni.find((x) => x.parola === k);
+  if (ap) return { id: 'apposizione', rif: ap.riferito };
+  return null;
 }
 
 export function stopGuide() {
@@ -151,7 +210,7 @@ function renderButtons(btns, chips = false) {
   const cls = (g) => (g === 'esci' || g === 'annulla-item' ? 'ghost' : g === 'traduci' || g === 'lemma' ? 'primary' : g === 'comp' ? 'chip-btn' : 'secondary');
   const html = btns.map(([g, label, id]) => `<button type="button" class="${cls(g)}" data-g="${g}"${id ? ` data-id="${esc(id)}"` : ''}>${esc(label)}</button>`).join('');
   $('guide-btns').className = `guide-btns${chips ? ' chips-list' : ''}`;
-  $('guide-btns').innerHTML = html + (G.errors >= 2 && ['verb', 'subj', 'compl', 'altri-reg'].includes(G.step) ? '<button type="button" class="secondary" data-g="mostra">Mostrami</button>' : '');
+  $('guide-btns').innerHTML = html + (G.errors >= 2 && ['verb', 'subj', 'compl', 'altri-reg', 'scegli'].includes(G.step) ? '<button type="button" class="secondary" data-g="mostra">Mostrami</button>' : '');
 }
 
 function feedback(html, ok) {
@@ -193,7 +252,7 @@ export function tapWord(k) {
       return wrong(`${tw(k)} non è un verbo: è ${['preposizione', 'congiunzione', 'interiezione'].includes(cat) ? 'una' : 'un'} ${esc(cat)}. Cerca una parola con la desinenza di un verbo (-t, -nt, -mus, -tur…).`);
     }
     case 'subj': {
-      const c = subjectCandidates(S, G.v, G.lemmaId);
+      const c = subjC();
       if (c.nouns.includes(k) || (!c.nouns.length && c.adjs.includes(k))) {
         mark('subj', k);
         feedback(`Sì! ${tw(k)} può essere il soggetto: è al <b>nominativo</b> e concorda con il verbo.`, true);
@@ -208,7 +267,7 @@ export function tapWord(k) {
     }
     case 'compl': {
       const d = DOMANDA[G.type];
-      const c = complementCandidates(S, G.v, G.type, [G.s.guida.subj]);
+      const c = complC();
       const field = G.type === 'pred' ? 'pred' : 'obj';
       if (c.includes(k)) {
         mark(field, k);
@@ -235,6 +294,8 @@ export function tapWord(k) {
     case 'rif': {
       const c = COMPLEMENTI.find((y) => y.id === G.compId);
       if (k === G.target) return wrong('Tocca il nome a cui si riferisce, non la stessa parola.');
+      const inf = iaInfo(G.target);
+      if (inf?.rif != null && inf.rif !== k && agree(S, G.target, k, c.id === 'attributo')) return wrong(`${tw(G.target)} e ${tw(k)} concordano, ma nel senso della frase ${tw(G.target)} si riferisce a un altro nome.`);
       if (agree(S, G.target, k, c.id === 'attributo')) {
         const t0 = G.target;
         addItem([t0], c, k);
@@ -260,16 +321,16 @@ function answerNo() {
   switch (G.step) {
     case 'noverb': return setStep('altri');
     case 'subj': {
-      const c = subjectCandidates(S, G.v, G.lemmaId);
+      const c = subjC();
       if (c.all.length) return wrong(`Guarda meglio: nella frase c'è una parola al <b>nominativo</b> che concorda con ${tw(G.v)}.`);
-      const imp = implicitSubject(S, G.v, G.lemmaId);
+      const imp = IA()?.soggettoSottinteso || implicitSubject(S, G.v, G.lemmaId);
       G.s.guida.subj = null;
       G.s.guida.subjImp = imp || 'egli/ella/essi';
       feedback(`Giusto: il soggetto è sottinteso${imp ? ` (<b>${imp}</b>)` : ' (egli, ella o essi: lo capisci dal contesto)'}.`, true);
       return next(G.predType === 'verbale' ? 'altri' : 'compl', 1500);
     }
     case 'compl': {
-      const c = complementCandidates(S, G.v, G.type, [G.s.guida.subj]);
+      const c = complC();
       if (c.length && G.type !== 'acc') return wrong(`Guarda meglio: c'è una parola al <b>${DOMANDA[G.type].caso}</b> che completa il verbo.`);
       if (c.length && G.type === 'acc') { feedback('Va bene. Però c\'è una parola all\'accusativo: controlla se è proprio un oggetto o fa altro.', true); return next('altri', 2200); }
       feedback('Giusto, non c\'è.', true);
@@ -290,7 +351,7 @@ function choosePredType(t) {
   const S = G.S;
   const noms = complementCandidates(S, G.v, 'pred', []);
   const adj = noms.some((k) => w(k).an.some((a) => a.caso === 'nom' && (a.t === 'agg' || a.t === 'part')));
-  const nominale = adj || noms.length >= 2 || (noms.length >= 1 && implicitSubject(S, G.v, G.lemmaId));
+  const nominale = IA() ? IA().principale.tipo === 'nominale' : (adj || noms.length >= 2 || (noms.length >= 1 && implicitSubject(S, G.v, G.lemmaId)));
   if ((t === 'nominale') === !!nominale) {
     G.predType = t;
     G.s.guida.predType = t;
@@ -306,6 +367,12 @@ function choosePredType(t) {
 
 function chooseComplement(id) {
   const c = COMPLEMENTI.find((x) => x.id === id);
+  const inf = iaInfo(G.target);
+  if (inf && inf.id !== id) {
+    const r0 = c.forme ? checkComplement(G.S, G.target, G.prep, id, { passive: verbPassive(G.S, G.v ?? 0, G.lemmaId) }) : { ok: true };
+    G.iaGiusto = inf.id;
+    return wrong(r0.ok ? `La grammatica lo permetterebbe, ma <b>nel senso di questa frase</b> non è un ${esc(c.nome)}. Chiediti: che cosa risponde? (dove? quando? con chi? come?…)` : r0.msg);
+  }
   if (c.rif) { G.compId = id; return setStep('rif'); }
   const r = checkComplement(G.S, G.target, G.prep, id, { passive: verbPassive(G.S, G.v ?? 0, G.lemmaId) });
   if (!r.ok) return wrong(r.msg);
@@ -355,9 +422,13 @@ function show() {
   const S = G.S;
   let k = null;
   if (G.step === 'verb') k = S.main[0] ?? S.verbs[0];
-  if (G.step === 'subj') k = subjectCandidates(S, G.v, G.lemmaId).all[0];
-  if (G.step === 'compl') k = complementCandidates(S, G.v, G.type, [G.s.guida.subj])[0];
+  if (G.step === 'subj') k = subjC().all[0];
+  if (G.step === 'compl') k = complC()[0];
   if (G.step === 'altri-reg') k = S.words.findIndex((x, i) => S.governed.get(i) === G.prep);
+  if (G.step === 'scegli') {
+    const inf = iaInfo(G.target);
+    if (inf) { const c = COMPLEMENTI.find((x) => x.id === inf.id); feedback(`È un <b>${esc(c.nome)}</b>. Toccalo nell'elenco per andare avanti.`, true); return; }
+  }
   if (k == null || k < 0) { feedback('Qui non riesco a mostrartelo con sicurezza: ragiona sul senso della frase.', true); return; }
   const el = document.querySelector(`.sent[data-id="${G.s.id}"] .w[data-k="${k}"]`);
   el?.classList.add('g-hint');
@@ -381,7 +452,8 @@ function analysisRows() {
   for (const it of g.items || []) {
     rows.push({ testo: it.ks.map(t).join(' '), ruolo: it.rif != null ? `${it.nome} di ${t(it.rif)}` : it.nome, nota: '' });
   }
-  if (S.spans.length) rows.push({ testo: S.spans.map(([a, b]) => `${t(a)} … ${t(b)}`).join('; '), ruolo: 'proposizione subordinata', nota: 'non analizzata dalla guida' });
+  if (S.ia) for (const sb of S.ia.subordinate) rows.push({ testo: `${t(Math.min(...sb.parole))} … ${t(Math.max(...sb.parole))}`, ruolo: `proposizione subordinata ${sb.tipo}`.trim(), nota: '' });
+  else if (S.spans.length) rows.push({ testo: S.spans.map(([a, b]) => `${t(a)} … ${t(b)}`).join('; '), ruolo: 'proposizione subordinata', nota: 'non analizzata dalla guida' });
   return rows;
 }
 
