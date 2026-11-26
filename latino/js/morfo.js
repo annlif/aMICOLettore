@@ -94,8 +94,8 @@ export function parseNoun(paradigm, tags = {}) {
   if (tags.pl) { // plurale tantum: "castra, castrorum, n. pl."
     if (/arum$/.test(gen)) return { decl: 1, gen: genders, stem: gen.slice(0, -4), nom, pl: true, errors };
     if (/orum$/.test(gen)) return { decl: 2, gen: genders, stem: gen.slice(0, -4), nom, pl: true, neut: genders.includes('n'), errors };
+    if (/uum$/.test(gen)) return { decl: 4, gen: genders, stem: gen.slice(0, -3), nom, pl: true, errors }; // Idus, Iduum (prima della 3ª!)
     if (/(i)?um$/.test(gen)) return { decl: 3, gen: genders, stem: gen.replace(/i?um$/, ''), nom, pl: true, gpl: /ium$/.test(gen) ? 'ium' : 'um', neut: genders.includes('n'), errors };
-    if (/uum$/.test(gen)) return { decl: 4, gen: genders, stem: gen.slice(0, -3), nom, pl: true, errors };
     if (/erum$/.test(gen)) return { decl: 5, gen: genders, stem: gen.slice(0, -4), nom, pl: true, errors };
   }
   if (gen.startsWith('-')) gen = gen.slice(1);
