@@ -89,8 +89,9 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   le analisi possibili quando una forma è ambigua, invitando a scegliere guardando la frase.
 - **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
 - **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,
-  declinazione o coniugazione, significati, caso retto ed esempio. Tutte le voci sono segnate **"da verificare"** finché
-  la professoressa non le controlla: dal Vocabolario si scarica l'**elenco in PDF** da rivedere.
+  declinazione o coniugazione, significati, caso retto ed esempio. Le voci sono state **confrontate con il dizionario
+  Olivetti** (paradigma, categoria, genere, declinazione o coniugazione, significati principali) e restano da verificare
+  con la professoressa: dal Vocabolario si scarica l'**elenco in PDF** da rivedere.
   Per ogni voce c'è il pulsante **Apri nell'Olivetti** (dizionario-latino.com).
 - **Parole che non ci sono** – si aggiungono con un tocco alla lista **"da completare"**: le schede vengono poi compilate
   seguendo l'Olivetti e aggiunte al lessico in un aggiornamento dell'app.

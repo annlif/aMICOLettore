@@ -106,13 +106,13 @@ let vocabQuery = '';
 export async function showVocab() {
   const L = await lexicon();
   const counts = {};
-  let conn = 0, check = 0;
+  let conn = 0, prof = 0;
   for (const e of L.entries.values()) {
     counts[e.cat] = (counts[e.cat] || 0) + 1;
     if (e.connettivo) conn++;
-    if (e.stato === 'da verificare') check++;
+    if (e.stato === 'verificata') prof++;
   }
-  $('vocab-count').textContent = `${L.size} voci del primo anno · ${check ? `${check} da verificare con la professoressa` : 'tutte verificate'}`;
+  $('vocab-count').textContent = `${L.size} voci del primo anno · controllate sull'Olivetti · ${prof === L.size ? 'tutte verificate dalla professoressa' : `verificate dalla professoressa: ${prof}`}`;
   const chips = [['tutti', 'Tutte', L.size], ['connettivi', 'Connettivi', conn],
     ...Object.entries(PLURALE_CAT).filter(([k]) => counts[k]).map(([k, v]) => [k, v, counts[k]])];
   $('vocab-chips').innerHTML = chips.map(([k, label, n]) => `<button type="button" class="chip${filter === k ? ' on' : ''}" data-f="${k}">${label} <span>${n}</span></button>`).join('');

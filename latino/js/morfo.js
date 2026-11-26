@@ -422,7 +422,7 @@ function verbForms(p, tags = {}) {
     add(s + 'isse', { t: 'inf', tempo: 'perf', voce: 'att' });
     // forme sincopate: amavisti → amasti, amaverunt → amarunt, audivisse → audisse
     // (i temi sono normalizzati: la v è scritta u)
-    if ((p.conj === 1 && /au$/.test(s)) || (p.conj === 4 && /iu$/.test(s)) || /[^aeiou]eu$/.test(s)) {
+    if ((p.conj === 1 && /au$/.test(s)) || /iu$/.test(s) || /[^aeiou]eu$/.test(s)) {
       const k = s.slice(0, -1);
       add(k + 'sti', { t: 'verbo', modo: 'ind', tempo: 'perf', voce: 'att', pers: 2, num: 'sg' });
       add(k + 'stis', { t: 'verbo', modo: 'ind', tempo: 'perf', voce: 'att', pers: 2, num: 'pl' });
@@ -517,7 +517,7 @@ const FIO = {
 const IRREG = {
   sum: { base: SUM, perf: 'fu', fut: 'fut', inf: 'esse', imp: ['es', 'este'] },
   possum: { base: POSSUM, perf: 'potu', inf: 'posse', part: 'potent' },
-  absum: { base: SUM, pre: 'ab', perf: 'afu', fut: 'afut', inf: 'abesse' },
+  absum: { base: SUM, pre: 'ab', perf: 'afu', fut: 'afut', inf: 'abesse', alt: [['afu', 'abfu']] },
   adsum: { base: SUM, pre: 'ad', perf: 'adfu', inf: 'adesse', alt: [['adfu', 'affu']] },
   desum: { base: SUM, pre: 'de', perf: 'defu', inf: 'deesse' },
   intersum: { base: SUM, pre: 'inter', perf: 'interfu', inf: 'interesse' },
@@ -541,6 +541,7 @@ const FERO_COMP = {
 };
 for (const [k, pre] of Object.entries(EO_COMP)) IRREG[k] = { ...IRREG.eo, pre };
 for (const [k, [pre, perf, sup]] of Object.entries(FERO_COMP)) IRREG[k] = { ...IRREG.fero, pre, perfFull: perf, supFull: sup };
+IRREG.refero.alt = [['rettul', 'retul']];
 
 /** Definizione dell'irregolare per un lemma (le chiavi sono confrontate in forma normalizzata: volo → uolo). */
 const IRREG_N = new Map();
@@ -589,10 +590,10 @@ function irregForms(lemma, def) {
   }
   // perfetto
   const perfStems = [];
-  if (def.perfFull) perfStems.push(def.perfFull);
+  if (def.perfFull) perfStems.push(strip(def.perfFull));
   else if (def.perf) perfStems.push(pre && def.base !== SUM ? pre + def.perf : def.perf);
   if (def.perfAlt) perfStems.push(pre ? pre + def.perfAlt : def.perfAlt);
-  for (const [a, b] of def.alt || []) if (perfStems.includes(a)) perfStems.push(b);
+  for (const [a, b] of def.alt || []) if (perfStems.includes(strip(a))) perfStems.push(strip(b));
   for (const s of perfStems) {
     const p = { perf: s };
     for (const f of verbForms(p)) if (f.an.tempo !== 'pres' || f.an.t === 'inf') add(f.form, f.an);
@@ -692,11 +693,14 @@ export function parseLexiconLine(line, n = 0) {
 
 export function parseLexicon(text) {
   const out = [];
+  let stato = 'da verificare';
   text.split(/\r?\n/).forEach((l, i) => {
     const s = l.trim();
+    const d = s.match(/^#!\s*stato=(\S+)/);
+    if (d) { stato = d[1].replace(/_/g, ' '); return; }
     if (!s || s.startsWith('#')) return;
     const e = parseLexiconLine(s, i + 1);
-    if (e) out.push(e);
+    if (e) { if (!e.tags.stato) e.stato = stato; out.push(e); }
   });
   return out;
 }

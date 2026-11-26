@@ -39,7 +39,7 @@ test('vocabolario e analisi nell\'app', async () => {
     await page.waitForSelector('#word-sheet[open] .card');
     assert.match(await page.textContent('#word-body'), /do, das, dedi, datum, dare/);
     assert.match(await page.textContent('#word-body'), /indicativo presente attivo, 3ª persona singolare/);
-    assert.match(await page.textContent('#word-body .badge'), /da verificare/);
+    assert.match(await page.textContent('#word-body .badge'), /controllata sull'Olivetti/);
     await page.click('#word-sheet .close-x');
 
     // parola sconosciuta → da completare

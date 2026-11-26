@@ -7,7 +7,14 @@
 #            prep = preposizione, cong = congiunzione, inter = interiezione, num = numerale.
 # Etichette principali: conn=tipo (connettivo), forme=a/ab (varianti), gpl=um / abl=i (3ª declinazione),
 #   pl (solo plurale), comp= / sup= / avv= (gradi irregolari), nocomp, pronominale, pron=… (tabella del pronome),
-#   extra=forma:caso.numero (forme particolari), id=… (per distinguere due voci uguali).
+#   extra=forma:caso.numero (forme particolari), id=… (per distinguere due voci uguali),
+#   stato=da_verificare / controllata / verificata (stato della singola voce).
+#
+# Le voci sotto la riga "#! stato=controllata" sono state confrontate con il dizionario Olivetti
+# (paradigma, categoria, genere, declinazione o coniugazione, significati principali).
+# Restano comunque da verificare con la professoressa.
+
+#! stato=controllata
 
 # ============ CONNETTIVI: CONGIUNZIONI COORDINANTI ============
 et | cong | e; anche | | Puer et puella in horto ludunt. – Il fanciullo e la fanciulla giocano nell'orto. | conn=coordinante_copulativa
@@ -491,7 +498,7 @@ alacer, alacris, alacre | agg | pronto; vivace | | Alacres milites. – Soldati 
 felix, felicis | agg | felice; fortunato | | Felix dies. – Un giorno felice.
 audax, audacis | agg | audace | | Audax consilium. – Un progetto audace. | avv=audacter
 ferox, ferocis | agg | feroce; fiero | | Ferox gens. – Un popolo fiero.
-liberi, liberorum, m. pl. | n | figli (di genitori liberi) | | Parentes liberos amant. – I genitori amano i figli. | pl
+liberi, liberorum, m. pl. | n | figli (di genitori liberi) | | Parentes liberos amant. – I genitori amano i figli. | pl stato=da_verificare
 prudens, prudentis | agg | prudente; saggio | | Prudens consilium. – Una decisione prudente.
 sapiens, sapientis | agg | saggio; sapiente | | Sapiens vir. – Un uomo saggio.
 ingens, ingentis | agg | enorme; immenso | | Ingens multitudo. – Un'immensa moltitudine. | nocomp
@@ -644,7 +651,7 @@ recipio, recipis, recepi, receptum, recipere | v | ricevere; riprendere; (se rec
 interficio, interficis, interfeci, interfectum, interficere | v | uccidere | accusativo | Tyrannum interfecerunt. – Uccisero il tiranno.
 conficio, conficis, confeci, confectum, conficere | v | portare a termine; sfinire | accusativo | Bellum confecit. – Portò a termine la guerra.
 efficio, efficis, effeci, effectum, efficere | v | compiere; ottenere | accusativo | Effecit ut… – Ottenne che…
-incipio, incipis, coepi, inceptum, incipere | v | cominciare | infinito | Pugnare incipiunt. – Cominciano a combattere.
+incipio, incipis, coepi, inceptum, incipere | v | cominciare (perfetto: coepi, più raro incepi) | infinito | Pugnare incipiunt. – Cominciano a combattere.
 conspicio, conspicis, conspexi, conspectum, conspicere | v | scorgere; vedere | accusativo | Hostes conspexit. – Scorse i nemici.
 rapio, rapis, rapui, raptum, rapere | v | rapire; afferrare | accusativo | Praedam rapiunt. – Afferrano il bottino.
 
