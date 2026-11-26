@@ -2,6 +2,7 @@
 import { loadSettings, saveSettings, askPersistence } from './store.js';
 import { $, toast, closeMenu } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
+import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI } from './voce.js';
 import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
 
@@ -39,10 +40,66 @@ function wordActions(ctx) {
   return [
     { label: 'Cerca nel vocabolario', icon: ICONS.cerca, action: () => showWord(ctx, 'cerca') },
     { label: 'Analizza la forma', icon: ICONS.analizza, action: () => showWord(ctx, 'analizza') },
-    { label: 'Ascolta', icon: ICONS.ascolta, action: soon },
+    { label: 'Ascolta', icon: ICONS.ascolta, action: () => speak(ctx.word) },
     { label: 'Aggiungi alle mie parole', icon: ICONS.aggiungi, action: () => addFromWord(ctx) },
   ];
 }
+
+// ---------- Ascolta ----------
+let warnedIpad = false;
+function speak(text) {
+  ascolta(text).then((how) => {
+    if (how === 'ipad' && !warnedIpad && !loadVoce().key) {
+      warnedIpad = true;
+      toast('Sto usando la voce dell\'iPad. Per la voce di Azure, collegala nelle impostazioni.', 5000);
+    }
+  }).catch((e) => toast(e.message || String(e), 5000));
+}
+
+// ---------- impostazioni della voce ----------
+function voceStato(v) {
+  if (v.key && v.region) return `Voce di Azure collegata (regione ${v.region})${v.from === 'amicolettore' ? ', presa da aMICOLettore' : ''}. ✓`;
+  return 'La voce di Azure non è ancora collegata: per ora "Ascolta" usa la voce dell\'iPad.';
+}
+function openSettings() { fillSettings(); $('settings').showModal(); }
+function fillSettings() {
+  const v = loadVoce();
+  $('voce-stato').textContent = voceStato(v);
+  $('set-key').value = v.key; $('set-region').value = v.region;
+  const sel = $('set-voce');
+  sel.innerHTML = VOCI.map(([id, l]) => `<option value="${id}">${l}</option>`).join('');
+  sel.value = v.voice;
+  $('set-rate').value = String(v.rate);
+  $('set-ipad').checked = v.iPad !== false;
+  $('voce-msg').textContent = '';
+  $('voce-usage').textContent = `Caratteri inviati ad Azure da aMICOLatino questo mese: ${usage().toLocaleString('it-IT')} (la quota gratuita è condivisa con aMICOLettore).`;
+}
+function formVoce() {
+  return { ...loadVoce(), key: $('set-key').value.trim(), region: $('set-region').value.trim().toLowerCase().replace(/\s+/g, ''),
+    voice: $('set-voce').value, rate: Number($('set-rate').value), iPad: $('set-ipad').checked };
+}
+for (const id of ['set-key', 'set-region', 'set-voce', 'set-rate', 'set-ipad']) {
+  $(id).addEventListener('change', () => { const v = formVoce(); delete v.from; saveVoce(v); $('voce-stato').textContent = voceStato(v); });
+}
+$('btn-incolla-voce').addEventListener('click', async () => {
+  let text = '';
+  try { text = await navigator.clipboard.readText(); } catch { /* permesso negato */ }
+  if (!text) text = prompt('Incolla qui il codice copiato da aMICOLettore:') || '';
+  const c = parseVoceCode(text);
+  if (!c) { $('voce-msg').textContent = 'Non trovo il codice di aMICOLettore negli appunti. In aMICOLettore tocca prima "Copia la voce per aMICOLatino".'; return; }
+  const v = { ...loadVoce(), ...c };
+  delete v.from;
+  saveVoce(v);
+  fillSettings();
+  $('voce-msg').textContent = 'Fatto! La voce di aMICOLettore è collegata. Tocca "Prova la voce".';
+  try { await navigator.clipboard.writeText(''); } catch { /* ignora */ }
+});
+$('btn-prova-voce').addEventListener('click', async () => {
+  const v = formVoce();
+  if (!v.key || !v.region) { $('voce-msg').textContent = 'Prima collega la voce di Azure.'; return; }
+  $('voce-msg').textContent = 'Provo…';
+  try { await provaVoce(v); $('voce-msg').textContent = 'Funziona! ✓'; } catch (e) { $('voce-msg').textContent = e.message || String(e); }
+});
 
 // ---------- navigazione ----------
 const readySections = SECTIONS.filter((s) => s.ready);
@@ -107,7 +164,7 @@ function changeFont(d) {
 // ---------- avvio ----------
 buildTabbar();
 applyFont();
-initVersioni({ go, wordActions });
+initVersioni({ go, wordActions, speak });
 initVocab();
 initDaCompletare();
 initParole();
@@ -119,6 +176,8 @@ document.addEventListener('click', (e) => {
   if (!b) return;
   if (b.dataset.act === 'dacompletare') {
     addToComplete(b.dataset.word, wordContext() || {}).then(() => { if (currentView === 'vocabolario') renderDaCompletare(); });
+  } else if (b.dataset.act === 'ascolta') {
+    speak(b.dataset.text);
   } else if (b.dataset.act === 'aggiungi') {
     addWord(b.dataset.entry, wordContext() || {}).then(() => { if (currentView === 'parole') showParole(); });
   } else soon();
@@ -129,7 +188,7 @@ askPersistence();
 $('btn-home').addEventListener('click', () => go('versioni'));
 $('btn-font-down').addEventListener('click', () => changeFont(-2));
 $('btn-font-up').addEventListener('click', () => changeFont(2));
-$('btn-settings').addEventListener('click', () => $('settings').showModal());
+$('btn-settings').addEventListener('click', openSettings);
 $('search-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const q = $('search-input').value.trim();

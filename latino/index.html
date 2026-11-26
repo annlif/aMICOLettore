@@ -138,8 +138,23 @@
     <form method="dialog">
       <h2 id="settings-title">Impostazioni</h2>
       <fieldset>
-        <legend>Voce</legend>
-        <p class="help">Per "Ascolta" userò la stessa voce di Azure di aMICOLettore. Presto potrai copiarla da lì con un tocco.</p>
+        <legend>Voce per "Ascolta"</legend>
+        <p class="help" id="voce-stato"></p>
+        <div class="btn-row">
+          <button type="button" class="secondary" id="btn-incolla-voce">Incolla da aMICOLettore</button>
+          <button type="button" class="ghost" id="btn-prova-voce">Prova la voce</button>
+        </div>
+        <p class="help">In aMICOLettore apri le Impostazioni e tocca <em>Copia la voce per aMICOLatino</em>, poi torna qui e tocca <em>Incolla da aMICOLettore</em>.</p>
+        <details class="manual">
+          <summary>Inserisci la chiave a mano</summary>
+          <label>Chiave di Azure Speech<input id="set-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="incolla qui la chiave"></label>
+          <label>Regione<input id="set-region" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="es. westeurope"></label>
+        </details>
+        <label>Voce<select id="set-voce"></select></label>
+        <label>Velocità<select id="set-rate"><option value="0.8">Lenta</option><option value="0.9">Un po' lenta</option><option value="1">Normale</option></select></label>
+        <label class="check"><input type="checkbox" id="set-ipad"> Se manca internet, usa la voce dell'iPad</label>
+        <p class="help" id="voce-msg" role="status"></p>
+        <p class="help" id="voce-usage"></p>
       </fieldset>
       <fieldset>
         <legend>Backup</legend>

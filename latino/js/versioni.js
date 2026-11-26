@@ -5,9 +5,11 @@ import { readPdf, cleanVersion, letterCount, makeSentences, tokenize, newId } fr
 
 let go = () => {};          // navigazione, fornita da app.js
 let wordActions = () => []; // azioni del menu di una parola, fornite da app.js
+let speak = () => {};
 export function initVersioni(opts) {
   go = opts.go;
   wordActions = opts.wordActions;
+  speak = opts.speak || speak;
   $('btn-load-pdf').addEventListener('click', () => $('pdf-input').click());
   $('pdf-input').addEventListener('change', onPdfChosen);
   $('btn-paste').addEventListener('click', () => { $('paste-title').value = ''; $('paste-text').value = ''; $('paste-dialog').showModal(); });
@@ -228,6 +230,8 @@ function onSentencesClick(e) {
     const s = sentenceOf(more);
     const i = cur.sentences.indexOf(s);
     openMenu(more, `Frase ${i + 1}`, [
+      { label: 'Ascolta la frase', action: () => speak(s.la),
+        icon: '<path d="M4 9v6h4l5 4V5L8 9Z"/><path d="M16 9a3.5 3.5 0 0 1 0 6M18.5 6.5a7 7 0 0 1 0 11"/>' },
       { label: 'Unisci con la frase successiva', action: () => merge(i), disabled: i >= cur.sentences.length - 1,
         icon: '<path d="M8 4v6a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4V4M12 14v6"/>' },
       { label: 'Dividi in due frasi', action: () => setSplitMode(s.id), disabled: tokenize(s.la).filter((p) => p.w).length < 2,

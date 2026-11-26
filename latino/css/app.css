@@ -396,3 +396,7 @@ button.big-btn { border: 0; }
 .notes-l textarea { width: 100%; resize: none; overflow: hidden; border: 1px dashed var(--line); border-radius: 12px; background: #FFFDF2; padding: 10px 12px; font: inherit; font-weight: 400; font-size: 18px; color: inherit; }
 @media (prefers-color-scheme: dark) { .notes-l textarea { background: #24211A; } }
 .card.wait { border-style: dashed; }
+.sheet details.manual { margin: 10px 0; }
+.sheet details.manual summary { font-weight: 700; cursor: pointer; color: var(--blue); }
+.sheet .check input { width: 24px; height: 24px; accent-color: var(--coral); }
+.sheet label.check { display: flex; align-items: center; gap: 10px; }

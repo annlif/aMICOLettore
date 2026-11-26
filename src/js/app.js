@@ -715,6 +715,20 @@ $('settings-form').addEventListener('submit', (ev) => {
   toast('Impostazioni salvate.');
 });
 
+// Copia la voce di Azure per aMICOLatino: sull'iPad le app della schermata Home hanno archivi separati,
+// quindi la chiave passa attraverso gli appunti (resta comunque solo su questo dispositivo).
+$('btn-copy-latino').addEventListener('click', async () => {
+  const s = formSettings();
+  if (!s.key || !s.region) { $('voice-msg').textContent = 'Inserisci prima chiave e regione.'; return; }
+  const code = 'aMICOL-voce:' + btoa(JSON.stringify({ key: s.key, region: s.region, voice: s.voice }));
+  try {
+    await navigator.clipboard.writeText(code);
+    toast('Voce copiata! Ora apri aMICOLatino → Impostazioni → Incolla da aMICOLettore.', 6000);
+  } catch {
+    toast('Non riesco a copiare negli appunti da qui.');
+  }
+});
+
 $('btn-toggle-key').addEventListener('click', () => {
   const k = $('set-key');
   k.type = k.type === 'password' ? 'text' : 'password';
