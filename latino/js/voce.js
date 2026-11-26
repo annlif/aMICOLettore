@@ -101,38 +101,54 @@ async function synthesize(text, v) {
 }
 
 // ---------- riproduzione ----------
-// Un solo elemento audio, "sbloccato" nel momento del tocco: su iPad Safari permette di riprodurre
-// l'audio solo se l'avvio nasce da un gesto, e l'attesa di Azure lo farebbe perdere.
+// Stesso metodo di aMICOLettore: un solo elemento audio, "sbloccato" con un istante di silenzio
+// nel momento del tocco (su iPad l'audio può partire solo da un gesto), poi caricato e avviato
+// quando il file è pronto. La voce dell'iPad viene preparata solo quando serve davvero,
+// perché sull'iPad può occupare l'audio e rendere muta la voce di Azure.
 const el = typeof Audio !== 'undefined' ? new Audio() : null;
+if (el) { el.preload = 'auto'; el.setAttribute('playsinline', ''); el.preservesPitch = true; el.webkitPreservesPitch = true; }
 let blobUrl = null;
 let silentUrl = null;
+let unlocked = false;
 function silence() {
   if (silentUrl) return silentUrl;
-  const n = 400, b = new DataView(new ArrayBuffer(44 + n));
-  const w = (o, s) => [...s].forEach((c, i) => b.setUint8(o + i, c.charCodeAt(0)));
-  w(0, 'RIFF'); b.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); b.setUint32(16, 16, true);
-  b.setUint16(20, 1, true); b.setUint16(22, 1, true); b.setUint32(24, 8000, true); b.setUint32(28, 8000, true);
-  b.setUint16(32, 1, true); b.setUint16(34, 8, true); w(36, 'data'); b.setUint32(40, n, true);
-  for (let i = 0; i < n; i++) b.setUint8(44 + i, 128);
-  silentUrl = URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+  const n = 800, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 16000, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  silentUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
   return silentUrl;
 }
 function unlock() {
-  if (!el) return;
+  if (!el || unlocked) return;
+  unlocked = true;
   try { el.src = silence(); el.play().catch(() => {}); } catch { /* ignora */ }
-  sysVoice.unlock();
 }
 function stop() {
   if (el) el.pause();
-  if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
   sysVoice.cancel();
 }
-async function play(audio, rate) {
-  if (blobUrl) URL.revokeObjectURL(blobUrl);
-  blobUrl = URL.createObjectURL(new Blob([audio], { type: 'audio/mpeg' }));
-  el.src = blobUrl;
-  el.playbackRate = rate || 1;
-  await el.play();
+function play(audio, rate) {
+  return new Promise((resolve, reject) => {
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    blobUrl = URL.createObjectURL(new Blob([audio], { type: 'audio/mpeg' }));
+    const done = (ok) => { el.removeEventListener('loadedmetadata', onOk); el.removeEventListener('error', onErr); clearTimeout(t); ok ? go() : reject(new Error('L\'audio ricevuto non è valido.')); };
+    const onOk = () => done(true);
+    const onErr = () => done(false);
+    const t = setTimeout(() => done(el.readyState >= 1), 8000);
+    const go = () => {
+      sysVoice.cancel();
+      el.volume = 1;
+      el.defaultPlaybackRate = rate || 1;
+      el.playbackRate = rate || 1;
+      el.play().then(resolve, reject);
+    };
+    el.addEventListener('loadedmetadata', onOk);
+    el.addEventListener('error', onErr);
+    el.src = blobUrl;
+    el.load();
+  });
 }
 
 /**
@@ -145,6 +161,7 @@ export async function ascolta(text) {
   stop();
   unlock(); // subito, prima di qualsiasi attesa
   const v = loadVoce();
+  if (!v.key || !navigator.onLine) sysVoice.unlock();
   const key = await sha256(`${v.voice}\u0001${t}`);
   let audio = (await db.audio.get(key).catch(() => null))?.audio;
   let how = audio ? 'cache' : null;
@@ -178,3 +195,6 @@ export async function provaVoce(v) {
 }
 
 export { stop as stopAscolto };
+
+/** Per i test automatici: lo stato del lettore audio. */
+export function audioState() { return el ? { paused: el.paused, time: el.currentTime, duration: el.duration, volume: el.volume } : null; }
