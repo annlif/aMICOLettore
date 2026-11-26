@@ -612,7 +612,12 @@ async function renderLibrary() {
     del.setAttribute('aria-label', `Togli ${d.name} dalla libreria`);
     del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
     del.addEventListener('click', async () => {
-      if (!confirm(`Togliere "${d.name}" dalla libreria?\n(L'audio già salvato resta disponibile.)`)) return;
+      if (!confirm(`Togliere "${d.name}" dalla libreria?`)) return;
+      // l'audio salvato del documento: chiedi se cancellarlo (prima di togliere il testo, che serve a trovarlo)
+      try {
+        const r = (await audioByDoc()).rows.find((x) => x.doc.id === d.id);
+        if (r && confirm(`Cancellare anche l'audio salvato di questo documento (${mb(r.bytes)})?\n"Annulla" lo tiene sul dispositivo.`)) await deleteDocAudio(null, r.keys);
+      } catch { /* ignora */ }
       await db.deleteDoc(d.id);
       renderLibrary();
     });
@@ -683,6 +688,87 @@ async function refreshCacheInfo() {
   } catch { /* ignora */ }
   $('cache-info').textContent = `${nf.format(n)} ${n === 1 ? 'blocco' : 'blocchi'} di frasi salvati${size}`;
   renderUsage();
+  renderAudioList();
+}
+
+// ---------- audio salvato, documento per documento ----------
+const mb = (bytes) => `${nf.format(Math.max(0.1, Math.round(bytes / 104857.6) / 10))} MB`;
+/**
+ * Raggruppa l'audio salvato per documento: per ogni documento ricalcola i blocchi di testo
+ * e le loro chiavi (per tutte le voci usate). L'audio che non appartiene a nessun documento
+ * della libreria (documenti tolti) finisce in "altro".
+ */
+async function audioByDoc() {
+  const idx = await db.audioIndex();
+  const byKey = new Map(idx.map((a) => [a.key, a]));
+  const voices = [...new Set(idx.map((a) => a.voice).filter(Boolean))];
+  const used = new Set();
+  const rows = [];
+  for (const d of await db.listDocs()) {
+    const t = await db.getText(d.id).catch(() => null);
+    if (!t?.pages) continue;
+    const keys = [];
+    let bytes = 0;
+    for (const page of t.pages) {
+      for (const c of pageModel(page || '').chunks) {
+        for (const v of voices) {
+          const k = await speaker.cacheKey(c.text, v);
+          const a = byKey.get(k);
+          if (a && !used.has(k)) { used.add(k); keys.push(k); bytes += a.bytes; }
+        }
+      }
+    }
+    if (keys.length) rows.push({ doc: d, keys, bytes });
+  }
+  const rest = idx.filter((a) => !used.has(a.key));
+  return { rows, rest: { keys: rest.map((a) => a.key), bytes: rest.reduce((n, a) => n + a.bytes, 0) } };
+}
+
+async function deleteDocAudio(doc, keys) {
+  await db.deleteAudio(keys);
+  if (loaded?.url) URL.revokeObjectURL(loaded.url);
+  loaded = null;
+  stopPlayback();
+  if (doc?.offlineVoice) { doc.offlineVoice = null; await db.putDoc(doc).catch(() => {}); if (state.doc?.id === doc.id) state.doc.offlineVoice = null; updatePrepareButton(); }
+}
+
+async function renderAudioList() {
+  const ul = $('audio-list');
+  ul.innerHTML = '<li class="muted">Calcolo lo spazio occupato…</li>';
+  let res;
+  try { res = await audioByDoc(); } catch { ul.textContent = ''; return; }
+  ul.textContent = '';
+  const add = (label, info, onDelete) => {
+    const li = document.createElement('li');
+    const txt = document.createElement('span');
+    txt.className = 'audio-name';
+    txt.textContent = label;
+    const meta = document.createElement('span');
+    meta.className = 'audio-meta';
+    meta.textContent = info;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ghost small-btn'; b.textContent = 'Cancella';
+    b.addEventListener('click', onDelete);
+    li.append(txt, meta, b);
+    ul.append(li);
+  };
+  for (const r of res.rows.sort((a, b) => b.bytes - a.bytes)) {
+    const name = r.doc.title && r.doc.title.length < 120 ? r.doc.title : r.doc.name;
+    add(name, `${nf.format(r.keys.length)} ${r.keys.length === 1 ? 'blocco' : 'blocchi'} · ${mb(r.bytes)}`, async () => {
+      if (!confirm(`Cancellare l'audio salvato di "${name}" (${mb(r.bytes)})?\nIl documento resta nella libreria; rileggerlo consumerà di nuovo la quota di Azure.`)) return;
+      await deleteDocAudio(r.doc, r.keys);
+      toast('Audio del documento cancellato.');
+      refreshCacheInfo();
+    });
+  }
+  if (res.rest.keys.length) {
+    add('Documenti tolti dalla libreria e altro', `${nf.format(res.rest.keys.length)} ${res.rest.keys.length === 1 ? 'blocco' : 'blocchi'} · ${mb(res.rest.bytes)}`, async () => {
+      if (!confirm(`Cancellare l'audio che non appartiene a nessun documento della libreria (${mb(res.rest.bytes)})?`)) return;
+      await deleteDocAudio(null, res.rest.keys);
+      toast('Audio cancellato.');
+      refreshCacheInfo();
+    });
+  }
 }
 
 function openSettings() {

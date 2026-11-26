@@ -49,6 +49,23 @@ export const db = {
   putAudio: (rec) => run('audio', 'readwrite', (s) => s.put(rec)),
   countAudio: () => run('audio', 'readonly', (s) => s.count()),
   clearAudio: () => run('audio', 'readwrite', (s) => s.clear()),
+  /** Elenco leggero dell'audio salvato (senza caricare i suoni): chiave, voce, caratteri, byte, data. */
+  async audioIndex() {
+    const dbi = await openDb();
+    return new Promise((resolve, reject) => {
+      const out = [];
+      const req = dbi.transaction('audio', 'readonly').objectStore('audio').openCursor();
+      req.onsuccess = () => {
+        const c = req.result;
+        if (!c) { resolve(out); return; }
+        const v = c.value;
+        out.push({ key: v.key, voice: v.voice, chars: v.chars || 0, bytes: v.audio?.byteLength || v.audio?.size || 0, createdAt: v.createdAt || 0 });
+        c.continue();
+      };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  deleteAudio: (keys) => run('audio', 'readwrite', (s) => { for (const k of keys) s.delete(k); }),
 };
 
 // ---------- impostazioni ----------

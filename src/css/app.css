@@ -251,3 +251,11 @@ legend { font-weight: 800; padding: 0 6px; color: var(--blue); }
 /* ---------- marchio della famiglia aMICOL™ (Informazioni) ---------- */
 .amicol-mark { margin: 6px 0 10px; }
 .amicol-mark img { display: block; width: 100%; max-width: 280px; height: auto; background: #fff; border-radius: 12px; padding: 8px 12px; box-sizing: border-box; }
+
+/* ---------- audio salvato per documento ---------- */
+.audio-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.audio-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.audio-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audio-meta { grid-column: 1; color: var(--muted); font-size: 15px; }
+.audio-list button { grid-column: 2; grid-row: 1 / span 2; }
+.audio-list .muted { display: block; border: 0; color: var(--muted); }
