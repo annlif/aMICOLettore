@@ -46,6 +46,34 @@ test('Azure OpenAI: richiesta con schema JSON rigoroso e chiave nell\'intestazio
   }
 });
 
+test('Azure OpenAI: indirizzo con percorso in più ed errore 405 → prova l\'indirizzo v1', async () => {
+  const server = await startPagesServer(8076);
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  const urls = [];
+  try {
+    await page.route('https://prova.openai.azure.com/**', async (route) => {
+      const url = route.request().url();
+      urls.push({ url, body: route.request().postDataJSON() });
+      if (url.includes('/deployments/')) return route.fulfill({ status: 405, headers: { 'access-control-allow-origin': '*' }, body: '' });
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ...ANALISI, principale: { verbo: 2, tipo: 'verbale', nomePredicato: -1 }, soggetto: 0, complementi: [] }) } }] }) });
+    });
+    await page.goto('http://localhost:8076/aMICOLettore/latino/');
+    const ok = await page.evaluate(async () => {
+      localStorage.setItem('amicolatino.ia', JSON.stringify({ provider: 'azure', endpoint: 'prova.openai.azure.com/openai/v1/', deployment: 'latino', key: 'k', on: true }));
+      const { provaIA } = await import('./js/ai.js');
+      return provaIA();
+    });
+    assert.equal(ok, true);
+    assert.match(urls[0].url, /^https:\/\/prova\.openai\.azure\.com\/openai\/deployments\/latino\/chat/);
+    assert.equal(urls[1].url, 'https://prova.openai.azure.com/openai/v1/chat/completions');
+    assert.equal(urls[1].body.model, 'latino');
+  } finally {
+    await browser.close();
+    server.close();
+  }
+});
+
 test('guida con Gemini: il senso decide il complemento', async () => {
   const server = await startPagesServer(8075);
   const browser = await chromium.launch();

@@ -74,20 +74,36 @@ function jsonSchema(x) {
   return o;
 }
 
+/** Dall'indirizzo incollato tiene solo https://nome-risorsa.dominio (il portale a volte copia anche un percorso). */
+export function azureBase(endpoint) {
+  let s = String(endpoint || '').trim();
+  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+  try { return new URL(s).origin; } catch { return s.replace(/\/+$/, ''); }
+}
+
 async function chiamaAzure(v, la, numerata, signal) {
-  const ep = v.endpoint.trim().replace(/\/+$/, '');
-  const url = `${ep}/openai/deployments/${encodeURIComponent(v.deployment.trim())}/chat/completions?api-version=2024-10-21`;
-  const res = await fetch(url, {
-    method: 'POST', signal,
-    headers: { 'Content-Type': 'application/json', 'api-key': v.key.trim() },
-    body: JSON.stringify({
-      messages: [{ role: 'system', content: ISTRUZIONI }, { role: 'user', content: `Frase: ${la}\nParole numerate: ${numerata}` }],
-      temperature: 0,
-      response_format: { type: 'json_schema', json_schema: { name: 'analisi_logica', strict: true, schema: jsonSchema(SCHEMA) } },
-    }),
-  });
+  const base = azureBase(v.endpoint);
+  const dep = v.deployment.trim();
+  const messages = [{ role: 'system', content: ISTRUZIONI }, { role: 'user', content: `Frase: ${la}\nParole numerate: ${numerata}` }];
+  const response_format = { type: 'json_schema', json_schema: { name: 'analisi_logica', strict: true, schema: jsonSchema(SCHEMA) } };
+  // Prima l'indirizzo classico, poi quello nuovo "v1" (risorse Foundry); senza temperatura se il modello non la accetta.
+  const tentativi = [
+    { url: `${base}/openai/deployments/${encodeURIComponent(dep)}/chat/completions?api-version=2024-10-21`, body: { messages, temperature: 0, response_format } },
+    { url: `${base}/openai/v1/chat/completions`, body: { model: dep, messages, temperature: 0, response_format } },
+  ];
+  let res;
+  for (let i = 0; i < tentativi.length; i++) {
+    const t = tentativi[i];
+    const invia = (body) => fetch(t.url, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'api-key': v.key.trim() }, body: JSON.stringify(body) });
+    res = await invia(t.body);
+    if (res.status === 400) {
+      const err = await res.clone().text().catch(() => '');
+      if (/temperature/i.test(err)) { const { temperature, ...senza } = t.body; res = await invia(senza); }
+    }
+    if (!(res.status === 404 || res.status === 405) || i === tentativi.length - 1) break;
+  }
   if (res.status === 401 || res.status === 403) throw new Error('Azure OpenAI non accetta la chiave: controllala nelle impostazioni.');
-  if (res.status === 404) throw new Error('Azure OpenAI: indirizzo (endpoint) o nome del modello (deployment) non trovati.');
+  if (res.status === 404 || res.status === 405) throw new Error(`Azure OpenAI (errore ${res.status}): controlla l'indirizzo (deve finire con .openai.azure.com) e il nome della distribuzione (${dep}).`);
   if (res.status === 429) throw new Error('Troppe richieste ad Azure OpenAI o credito finito: uso le regole dell\'app.');
   if (!res.ok) throw new Error(`Azure OpenAI non risponde (errore ${res.status}): uso le regole dell'app.`);
   const data = await res.json();
