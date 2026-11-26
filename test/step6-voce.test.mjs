@@ -29,6 +29,9 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
     await page.click('#btn-copy-latino');
     const clip = await page.evaluate(() => navigator.clipboard.readText());
     assert.match(clip, /^aMICOL-voce:/);
+    // il messaggio si vede dentro le impostazioni, e il codice è scritto anche sullo schermo
+    assert.match(await page.textContent('#copy-msg'), /Copiato/);
+    assert.equal(await page.inputValue('#copy-code'), clip);
 
     // in aMICOLatino (archivio separato, come sull'iPad): incolla
     await page.goto(BASE + 'latino/');
@@ -40,6 +43,18 @@ test('copia da aMICOLettore e incolla in aMICOLatino', async () => {
     assert.match(await page.textContent('#voce-stato'), /collegata \(regione westeurope\)/);
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('amicolatino.voce')));
     assert.equal(saved.key, 'chiave-di-prova');
+
+    // incollare a mano nella casella
+    await page.evaluate(() => localStorage.removeItem('amicolatino.voce'));
+    await page.keyboard.press('Escape');
+    await page.click('#btn-settings');
+    assert.match(await page.textContent('#voce-stato'), /non è ancora collegata/);
+    await page.fill('#voce-code', 'ciao');
+    assert.match(await page.textContent('#voce-msg'), /non sembra il codice/);
+    await page.fill('#voce-code', clip);
+    assert.match(await page.textContent('#voce-msg'), /Fatto!/);
+    assert.match(await page.textContent('#voce-stato'), /collegata \(regione westeurope\)/);
+    await page.keyboard.press('Escape');
 
     // stessa memoria (Safari, computer): la chiave di aMICOLettore viene riusata da sola
     await page.evaluate(() => { localStorage.removeItem('amicolatino.voce'); localStorage.setItem('amicolettore.settings', JSON.stringify({ key: 'k2', region: 'italynorth', voice: 'it-IT-ElsaNeural' })); });

@@ -117,7 +117,9 @@ Sull'iPad ogni app della schermata Home ha un archivio separato, quindi aMICOLat
 salvata in aMICOLettore. Basta passarla con gli appunti:
 
 1. Apri **aMICOLettore** → ⚙︎ Impostazioni → **Copia la voce per aMICOLatino**.
-2. Apri **aMICOLatino** → ⚙︎ Impostazioni → **Incolla da aMICOLettore**, poi **Prova la voce**.
+2. Apri **aMICOLatino** → ⚙︎ Impostazioni → tieni premuto nella casella **Codice di aMICOLettore** e scegli **Incolla**
+   (oppure tocca **Incolla da aMICOLettore**), poi **Prova la voce**.
+   Se la copia non riesce, in aMICOLettore il codice compare anche scritto: tienilo premuto → *Seleziona tutto* → *Copia*.
 
 (In Safari o sul computer, dove l'archivio è lo stesso, aMICOLatino trova la chiave da solo.)
 

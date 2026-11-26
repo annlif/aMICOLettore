@@ -259,3 +259,5 @@ legend { font-weight: 800; padding: 0 6px; color: var(--blue); }
 .audio-meta { grid-column: 1; color: var(--muted); font-size: 15px; }
 .audio-list button { grid-column: 2; grid-row: 1 / span 2; }
 .audio-list .muted { display: block; border: 0; color: var(--muted); }
+#copy-code, #voce-code { width: 100%; font: 14px ui-monospace, Menlo, monospace; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 10px; word-break: break-all; resize: none; }
+.copy-msg:not(:empty), #voce-msg:not(:empty) { font-weight: 700; color: var(--text); }
