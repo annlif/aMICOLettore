@@ -60,11 +60,27 @@ export function analyzeSentence(L, la) {
   const inSub = (i) => spans.some(([a, b]) => i >= a && i <= b);
   // preposizioni e parole che reggono (fino a 3 parole dopo, prima di un verbo)
   const governed = new Map(); // indice parola → indice preposizione
+  // La preposizione regge gli aggettivi che seguono e si ferma al PRIMO NOME nel caso giusto:
+  // "in parva insula puella habitat" → in regge parva e insula, non puella.
   words.forEach((w, i) => {
     if (!isPrep(w)) return;
-    for (let j = i + 1; j <= i + 3 && j < words.length; j++) {
-      if (finite(words[j])) break;
-      if (hasCase(words[j], 'acc') || hasCase(words[j], 'abl')) governed.set(j, i);
+    const r = (w.res.find((x) => x.entry.cat === 'prep')?.entry.regge || '').toLowerCase();
+    const cases = ['acc', 'abl'].filter((c) => r.includes(c === 'acc' ? 'accusativo' : 'ablativo'));
+    const ok = (x) => (cases.length ? cases : ['acc', 'abl']).some((c) => hasCase(x, c));
+    for (let j = i + 1; j <= i + 4 && j < words.length; j++) {
+      const x = words[j];
+      if (finite(x) || isPrep(x) || !ok(x)) break;
+      governed.set(j, i);
+      const noun = x.unknown || x.an.some((a) => (a.t === 'nome' || a.t === 'pron') && (cases.length ? cases : ['acc', 'abl']).includes(a.caso));
+      if (noun) { // il nome chiude il gruppo, ma gli aggettivi subito dopo (ad urbem magnam) ne fanno parte
+        for (let k = j + 1; k < words.length; k++) {
+          const y = words[k];
+          const adjOnly = y.an.length && y.an.every((a) => a.t === 'agg' || a.t === 'part');
+          if (!adjOnly || !ok(y)) break;
+          governed.set(k, i);
+        }
+        break;
+      }
     }
   });
   return { la, words, verbs, main, sub, spans, inSub, governed, isPrep, hasCase, finite, uncertain: verbs.length > 0 && main.length === 0 };
