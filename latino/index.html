@@ -97,7 +97,7 @@
     <p class="ver-tip">Tocca una parola latina per cercarla o analizzarla. Scrivi la tua traduzione accanto a ogni frase: si salva da sola.</p>
     <ol class="sentences" id="ver-sentences"></ol>
     <div class="guide-bar" id="guide-bar" hidden role="region" aria-label="Guida all'analisi" aria-live="polite">
-      <div class="guide-head"><span class="guide-title">🧭 Guida</span>
+      <div class="guide-head"><span class="guide-title">🧭 Guida <small class="guide-mode" id="guide-mode"></small></span>
         <span class="guide-legend"><span class="g-chip g-verb">verbo</span><span class="g-chip g-subj">soggetto</span><span class="g-chip g-obj">compl. retto</span><span class="g-chip g-prep">altri compl.</span><span class="g-chip g-attr">attributo</span></span></div>
       <p class="guide-q" id="guide-q"></p>
       <p class="guide-fb" id="guide-fb"></p>
@@ -176,6 +176,15 @@
         <p class="help" id="voce-msg" role="status"></p>
         <p class="help" id="voce-usage"></p>
       </fieldset>
+      <fieldset>
+        <legend>Intelligenza artificiale per la guida (facoltativa)</legend>
+        <p class="help">Con una chiave gratuita di <b>Gemini</b> (Google AI Studio), la guida "Aiutami" capisce meglio le frasi. L'intelligenza artificiale <b>non traduce</b>: manda all'app solo la struttura della frase, e l'analisi di ogni frase resta salvata. Viene inviata a Google solo la frase latina su cui chiedi aiuto.</p>
+        <label>Chiave di Gemini<input id="ia-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="incolla qui la chiave di Google AI Studio"></label>
+        <label class="check"><input type="checkbox" id="ia-on"> Usa l'intelligenza artificiale nella guida</label>
+        <div class="btn-row"><button type="button" class="ghost" id="ia-prova">Prova la chiave</button></div>
+        <p class="help" id="ia-msg" role="status"></p>
+      </fieldset>
+
       <fieldset>
         <legend>Audio salvato</legend>
         <p class="help">Le parole e le frasi già ascoltate restano salvate: riascoltarle è gratis e funziona senza internet.</p>

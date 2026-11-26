@@ -490,3 +490,4 @@ button.big-btn { border: 0; }
 .hover-tip b { color: #FFC2BA; }
 .card.card-wait { border-style: dashed; }
 .card-wait-txt { margin: 10px 0 0; color: var(--muted); }
+.guide-mode { font-weight: 600; color: var(--muted); font-size: 13px; margin-left: 6px; }
