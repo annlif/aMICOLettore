@@ -82,7 +82,7 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce al posto tuo*
 Si installa come app **separata** (Safari → Condividi → Aggiungi alla schermata Home): ha la sua icona, il suo archivio
 e funziona anche senza internet. I sorgenti sono nella cartella [`latino/`](latino/); `npm run build` la prepara in `dist/latino/`.
 
-Stato: **fase 1 in costruzione** – struttura e installazione pronte; versioni, vocabolario e parole arrivano nei prossimi aggiornamenti.
+Stato: **fase 1 in costruzione** – pronte la struttura e le **versioni** (PDF o testo incollato → frasi → traduzione salvata sul dispositivo); vocabolario, analisi delle forme e parole arrivano nei prossimi aggiornamenti.
 
 ## Per chi sviluppa
 
@@ -96,3 +96,8 @@ npm start        # prepara dist/ e la apre su http://localhost:8080
 - `npm test` prepara `dist/` e prova le due app nel browser (anche offline), imitando l'indirizzo di GitHub Pages.
 - Il testo del PDF e l'audio sono salvati in IndexedDB; le impostazioni in `localStorage`.
 - Il testo da leggere viene inviato soltanto ad Azure Speech; non c'è nessun altro server.
+
+---
+
+© 2026 Anna Lisa Ferrara. Tutti i diritti riservati.
+aMICOL™, aMICOLettore™ e aMICOLatino™ sono marchi di Anna Lisa Ferrara.
