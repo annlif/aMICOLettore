@@ -114,11 +114,14 @@
   <!-- PAROLE -->
   <main id="view-parole" class="view" data-view="parole" hidden>
     <h1 class="view-title">Le mie parole</h1>
-    <div class="coming">
+    <p class="muted" id="parole-count"></p>
+    <div class="coming" id="parole-empty">
       <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
-      <p>Qui ci saranno le parole che scegli di imparare, con la frase della versione in cui le hai incontrate.</p>
-      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+      <p>Qui raccoglierai le parole che vuoi imparare.</p>
+      <p class="muted">Tocca una parola in una versione e scegli <b>Aggiungi alle mie parole</b>: la ritroverai qui con la sua scheda e la frase in cui l'hai incontrata.</p>
     </div>
+    <div class="chips" id="parole-chips" role="group" aria-label="Filtra per categoria"></div>
+    <div id="parole-list"></div>
   </main>
 
   <!-- RICERCA -->

@@ -2,6 +2,7 @@
 import { loadSettings, saveSettings, askPersistence } from './store.js';
 import { $, toast, closeMenu } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
+import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
 
 // Sezioni dell'app. Quelle con ready:false sono previste per le fasi successive:
@@ -39,7 +40,7 @@ function wordActions(ctx) {
     { label: 'Cerca nel vocabolario', icon: ICONS.cerca, action: () => showWord(ctx, 'cerca') },
     { label: 'Analizza la forma', icon: ICONS.analizza, action: () => showWord(ctx, 'analizza') },
     { label: 'Ascolta', icon: ICONS.ascolta, action: soon },
-    { label: 'Aggiungi alle mie parole', icon: ICONS.aggiungi, action: soon },
+    { label: 'Aggiungi alle mie parole', icon: ICONS.aggiungi, action: () => addFromWord(ctx) },
   ];
 }
 
@@ -77,6 +78,7 @@ async function route_() {
   if (r.view === 'versione' && !(await showVersion(r.arg))) return;
   if (r.view === 'versioni') await showList();
   if (r.view === 'vocabolario') { await showVocab(); renderDaCompletare(); }
+  if (r.view === 'parole') await showParole();
   if (r.view === 'cerca') {
     if (!r.arg) { go('versioni'); return; }
     $('search-input').value = r.arg;
@@ -108,6 +110,7 @@ applyFont();
 initVersioni({ go, wordActions });
 initVocab();
 initDaCompletare();
+initParole();
 lexicon().catch(() => {}); // prepara il vocabolario in anticipo
 
 // pulsanti dentro le schede del vocabolario (ovunque compaiano)
@@ -116,6 +119,8 @@ document.addEventListener('click', (e) => {
   if (!b) return;
   if (b.dataset.act === 'dacompletare') {
     addToComplete(b.dataset.word, wordContext() || {}).then(() => { if (currentView === 'vocabolario') renderDaCompletare(); });
+  } else if (b.dataset.act === 'aggiungi') {
+    addWord(b.dataset.entry, wordContext() || {}).then(() => { if (currentView === 'parole') showParole(); });
   } else soon();
 });
 route_();
