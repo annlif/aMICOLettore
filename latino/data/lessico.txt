@@ -1,0 +1,729 @@
+# aMICOLatino – lessico di base del primo anno.
+# Tutte le voci sono "da verificare" con la professoressa finché non vengono segnate come verificate.
+#
+# Formato di ogni riga:
+#   paradigma | categoria | significati (separati da ;) | caso retto | esempio | etichette
+# Categorie: n = nome, agg = aggettivo, v = verbo, pron = pronome, avv = avverbio,
+#            prep = preposizione, cong = congiunzione, inter = interiezione, num = numerale.
+# Etichette principali: conn=tipo (connettivo), forme=a/ab (varianti), gpl=um / abl=i (3ª declinazione),
+#   pl (solo plurale), comp= / sup= / avv= (gradi irregolari), nocomp, pronominale, pron=… (tabella del pronome),
+#   extra=forma:caso.numero (forme particolari), id=… (per distinguere due voci uguali).
+
+# ============ CONNETTIVI: CONGIUNZIONI COORDINANTI ============
+et | cong | e; anche | | Puer et puella in horto ludunt. – Il fanciullo e la fanciulla giocano nell'orto. | conn=coordinante_copulativa
+-que | cong | e (si attacca alla parola) | | Senatus populusque Romanus. – Il senato e il popolo romano. | conn=coordinante_copulativa forme=que
+atque | cong | e; e inoltre | | Pater atque mater laborant. – Il padre e la madre lavorano. | conn=coordinante_copulativa forme=ac
+etiam | cong | anche; perfino | | Etiam pueri pugnabant. – Anche i ragazzi combattevano. | conn=coordinante_copulativa
+quoque | cong | anche (dopo la parola a cui si riferisce) | | Ego quoque venio. – Anch'io vengo. | conn=coordinante_copulativa
+neque | cong | e non; né | | Neque laudat neque vituperat. – Né loda né biasima. | conn=coordinante_copulativa_negativa forme=nec
+aut | cong | o; oppure (alternativa che esclude) | | Aut vincere aut mori. – O vincere o morire. | conn=coordinante_disgiuntiva
+vel | cong | o; oppure (a scelta) | | Vel hodie vel cras veniam. – Verrò oggi o domani. | conn=coordinante_disgiuntiva
+-ve | cong | o (si attacca alla parola) | | Bis terve. – Due o tre volte. | conn=coordinante_disgiuntiva forme=ve
+sive | cong | o se; sia… sia | | Sive pace sive bello. – Sia in pace sia in guerra. | conn=coordinante_disgiuntiva forme=seu
+sed | cong | ma; però | | Non dormio, sed lego. – Non dormo, ma leggo. | conn=coordinante_avversativa
+autem | cong | invece; ma; poi (seconda parola della frase) | | Ego laboro, tu autem ludis. – Io lavoro, tu invece giochi. | conn=coordinante_avversativa
+at | cong | ma; eppure (forte contrapposizione) | | At hostes non cesserunt. – Ma i nemici non cedettero. | conn=coordinante_avversativa
+tamen | cong | tuttavia; però | | Fessi erant, tamen pugnabant. – Erano stanchi, tuttavia combattevano. | conn=coordinante_avversativa
+vero | cong | invece; ma; davvero | | Tu vero quid facis? – Tu invece che cosa fai? | conn=coordinante_avversativa
+verum | cong | ma; però | | Verum haec omittamus. – Ma tralasciamo queste cose. | conn=coordinante_avversativa id=c
+ergo | cong | dunque; quindi | | Cogito, ergo sum. – Penso, dunque sono. | conn=coordinante_conclusiva
+igitur | cong | dunque; perciò (di solito seconda parola) | | Quid igitur faciamus? – Che cosa dunque dobbiamo fare? | conn=coordinante_conclusiva
+itaque | cong | perciò; e così | | Itaque milites castra posuerunt. – Perciò i soldati posero l'accampamento. | conn=coordinante_conclusiva
+ideo | cong | perciò; per questo | | Aeger erat, ideo non venit. – Era malato, per questo non venne. | conn=coordinante_conclusiva
+nam | cong | infatti | | Nam hostes appropinquabant. – Infatti i nemici si avvicinavano. | conn=coordinante_dichiarativa
+enim | cong | infatti (seconda parola della frase) | | Erat enim vir bonus. – Era infatti un uomo buono. | conn=coordinante_dichiarativa
+namque | cong | infatti | | Namque omnes fugerant. – Infatti tutti erano fuggiti. | conn=coordinante_dichiarativa
+etenim | cong | e infatti | | Etenim nihil facilius est. – E infatti niente è più facile. | conn=coordinante_dichiarativa
+
+# ============ CONNETTIVI: CONGIUNZIONI SUBORDINANTI ============
+cum | cong | quando; mentre; poiché; sebbene (con il congiuntivo: spesso "cum narrativo") | | Cum Caesar venisset, hostes fugerunt. – Essendo giunto Cesare, i nemici fuggirono. | conn=subordinante_temporale_causale_concessiva id=c
+ut | cong | perché, affinché (finale); così che (consecutiva); come; quando | | Venio ut te videam. – Vengo per vederti. | conn=subordinante_finale_consecutiva_comparativa forme=uti
+ne | cong | affinché non; che non; (ne… quidem = neppure) | | Cave ne cadas. – Bada di non cadere. | conn=subordinante_finale_negativa id=c
+quod | cong | perché (causale); il fatto che | | Laetus sum quod venisti. – Sono contento perché sei venuto. | conn=subordinante_causale_dichiarativa id=c
+quia | cong | perché | | Puniris quia peccavisti. – Sei punito perché hai sbagliato. | conn=subordinante_causale
+quoniam | cong | poiché; dal momento che | | Quoniam nox erat, domum redierunt. – Poiché era notte, tornarono a casa. | conn=subordinante_causale
+quamquam | cong | sebbene; benché (con l'indicativo) | | Quamquam fessus erat, laborabat. – Sebbene fosse stanco, lavorava. | conn=subordinante_concessiva
+etsi | cong | anche se; sebbene | | Etsi pauper est, felix est. – Anche se è povero, è felice. | conn=subordinante_concessiva
+si | cong | se | | Si vales, bene est. – Se stai bene, va bene. | conn=subordinante_condizionale
+nisi | cong | se non; tranne che | | Nisi venies, tristis ero. – Se non verrai, sarò triste. | conn=subordinante_condizionale_negativa forme=ni
+dum | cong | mentre; finché | | Dum Romani consulunt, Saguntum oppugnatur. – Mentre i Romani discutono, Sagunto viene assediata. | conn=subordinante_temporale
+donec | cong | finché; fino a che | | Donec eris felix, multos numerabis amicos. – Finché sarai fortunato, avrai molti amici. | conn=subordinante_temporale
+postquam | cong | dopo che | | Postquam hostes vicit, Romam rediit. – Dopo che vinse i nemici, tornò a Roma. | conn=subordinante_temporale
+antequam | cong | prima che | | Antequam pugnam committit, milites hortatur. – Prima di attaccare battaglia, esorta i soldati. | conn=subordinante_temporale
+priusquam | cong | prima che | | Priusquam lucet, proficiscuntur. – Partono prima che faccia giorno. | conn=subordinante_temporale
+ubi | cong | quando; non appena; (avverbio) dove | | Ubi hostes viderunt, fugerunt. – Quando videro i nemici, fuggirono. | conn=subordinante_temporale_(anche_avverbio_di_luogo)
+simul | avv | insieme; (simul ac / simul atque) non appena | | Simul ac venit, omnia narravit. – Non appena giunse, raccontò ogni cosa. | conn=avverbio_temporale
+quasi | cong | come se; quasi | | Loquitur quasi rex sit. – Parla come se fosse re. | conn=subordinante_comparativa
+tamquam | cong | come; come se | | Tamquam amicus me accepit. – Mi accolse come un amico. | conn=subordinante_comparativa forme=tanquam
+sicut | cong | come; così come | | Sicut dixi, ita faciam. – Come ho detto, così farò. | conn=subordinante_comparativa forme=sicuti
+velut | cong | come; come ad esempio | | Velut umbra fugit. – Fugge come un'ombra. | conn=subordinante_comparativa forme=veluti
+quin | cong | che non; senza che; (quin etiam) anzi | | Non dubito quin verum dicas. – Non dubito che tu dica il vero. | conn=subordinante
+an | cong | o (nelle domande doppie); forse | | Utrum vigilas an dormis? – Sei sveglio o dormi? | conn=interrogativa_disgiuntiva
+utrum | cong | (utrum… an) se… o | | Utrum pax an bellum erit? – Ci sarà la pace o la guerra? | conn=interrogativa_disgiuntiva
+num | cong | forse? (domanda che attende "no"); se (interrogativa indiretta) | | Num tu hoc credis? – Forse che tu credi questo? | conn=interrogativa
+nonne | cong | forse non? (domanda che attende "sì") | | Nonne vides? – Non vedi forse? | conn=interrogativa
+-ne | cong | forse? (si attacca alla prima parola della domanda) | | Videsne? – Vedi? | conn=interrogativa forme=ne id=enc
+
+# ============ CONNETTIVI: AVVERBI FREQUENTI ============
+deinde | avv | poi; in seguito | | Primum legit, deinde scribit. – Prima legge, poi scrive. | conn=avverbio_temporale forme=dein
+tum | avv | allora; poi | | Tum consul milites hortatus est. – Allora il console esortò i soldati. | conn=avverbio_temporale
+tunc | avv | allora; in quel momento | | Tunc omnes tacuerunt. – Allora tutti tacquero. | conn=avverbio_temporale
+postea | avv | in seguito; dopo | | Postea Romam venit. – In seguito venne a Roma. | conn=avverbio_temporale
+denique | avv | infine; insomma | | Denique hostes cesserunt. – Infine i nemici si ritirarono. | conn=avverbio_temporale_conclusivo
+primum | avv | prima; per la prima volta | | Primum de bello dicam. – Prima parlerò della guerra. | conn=avverbio_temporale forme=primo
+tandem | avv | finalmente; infine | | Tandem ad urbem pervenerunt. – Finalmente giunsero alla città. | conn=avverbio_temporale
+statim | avv | subito | | Statim nuntium misit. – Subito mandò un messaggero. | conn=avverbio_temporale
+mox | avv | presto; poco dopo | | Mox veniam. – Verrò presto. | conn=avverbio_temporale
+interea | avv | intanto; nel frattempo | | Interea hostes castra muniebant. – Nel frattempo i nemici fortificavano l'accampamento. | conn=avverbio_temporale
+interim | avv | frattanto | | Interim puer dormiebat. – Frattanto il fanciullo dormiva. | conn=avverbio_temporale
+praeterea | avv | inoltre | | Praeterea multa dona misit. – Inoltre mandò molti doni. | conn=avverbio_aggiuntivo
+inde | avv | di lì; quindi; poi | | Inde in Graeciam navigavit. – Di lì navigò verso la Grecia. | conn=avverbio_di_luogo_e_tempo
+iam | avv | già; ormai; (non iam) non più | | Iam nox erat. – Era già notte. | conn=avverbio_temporale
+ita | avv | così; in questo modo | | Ita res se habet. – Così stanno le cose. | conn=avverbio_di_modo
+sic | avv | così | | Sic transit gloria mundi. – Così passa la gloria del mondo. | conn=avverbio_di_modo
+quidem | avv | certo; invero; (ne… quidem) neppure | | Ne pueri quidem tacebant. – Neppure i fanciulli tacevano. | conn=avverbio_rafforzativo
+nunc | avv | ora; adesso | | Nunc tempus est. – Ora è il momento. | conn=avverbio_temporale
+porro | avv | inoltre; poi; avanti | | Porro alia causa est. – Inoltre c'è un altro motivo. | conn=avverbio_aggiuntivo
+contra | avv | al contrario; (prep. + acc.) contro | | Contra ille tacuit. – Egli al contrario tacque. | conn=avverbio_avversativo id=a
+
+# ============ PREPOSIZIONI ============
+ab | prep | da (provenienza, agente); lontano da | ablativo | A Roma discessit. – Partì da Roma. | forme=a/abs
+ad | prep | verso; a; presso | accusativo | Ad urbem venit. – Venne verso la città.
+ante | prep | davanti a; prima di | accusativo | Ante portam stabat. – Stava davanti alla porta.
+apud | prep | presso; tra | accusativo | Apud amicum cenavi. – Ho cenato presso un amico.
+circum | prep | intorno a | accusativo | Circum urbem muri erant. – Intorno alla città c'erano le mura.
+contra | prep | contro; di fronte a | accusativo | Contra hostes pugnant. – Combattono contro i nemici.
+cum | prep | con; insieme a | ablativo | Cum amicis ambulo. – Passeggio con gli amici.
+de | prep | da (giù da); riguardo a; di | ablativo | De bello Gallico scripsit. – Scrisse riguardo alla guerra gallica.
+ex | prep | da; fuori da; tra | ablativo | Ex oppido exierunt. – Uscirono dalla città. | forme=e
+in | prep | in, dentro (stato: + abl.); verso, contro (moto: + acc.) | accusativo o ablativo | In horto sum. In hortum eo. – Sono nell'orto. Vado nell'orto.
+inter | prep | tra; fra; durante | accusativo | Inter amicos sedet. – Siede tra gli amici.
+ob | prep | a causa di; davanti a | accusativo | Ob eam causam venit. – Venne per quel motivo.
+per | prep | attraverso; per mezzo di; durante | accusativo | Per silvam ambulant. – Camminano attraverso il bosco.
+post | prep | dopo; dietro | accusativo | Post bellum pax fuit. – Dopo la guerra ci fu la pace.
+prae | prep | davanti a; a causa di | ablativo | Prae lacrimis loqui non potest. – Non riesce a parlare per le lacrime.
+pro | prep | davanti a; in difesa di; al posto di | ablativo | Pro patria pugnant. – Combattono per la patria.
+propter | prep | a causa di; vicino a | accusativo | Propter pluviam domi manemus. – A causa della pioggia restiamo a casa.
+sine | prep | senza | ablativo | Sine amicis vita tristis est. – Senza amici la vita è triste.
+sub | prep | sotto (stato: + abl.; moto: + acc.); verso | accusativo o ablativo | Sub arbore dormit. – Dorme sotto l'albero.
+super | prep | sopra; oltre | accusativo | Super murum ascendit. – Salì sopra il muro.
+trans | prep | al di là di | accusativo | Trans flumen castra posuit. – Pose l'accampamento al di là del fiume.
+praeter | prep | eccetto; oltre; lungo | accusativo | Praeter unum omnes fugerunt. – Tranne uno, fuggirono tutti.
+prope | prep | vicino a; (avverbio) vicino, quasi | accusativo | Prope mare habitant. – Abitano vicino al mare.
+adversus | prep | contro; verso | accusativo | Adversus hostes progreditur. – Avanza contro i nemici. | forme=adversum
+extra | prep | fuori di | accusativo | Extra urbem villa est. – Fuori città c'è una villa.
+intra | prep | dentro; entro | accusativo | Intra muros manent. – Restano dentro le mura.
+supra | prep | sopra; al di sopra di | accusativo | Supra caput. – Sopra la testa.
+infra | prep | sotto; al di sotto di | accusativo | Infra lunam. – Sotto la luna.
+ultra | prep | al di là di; oltre | accusativo | Ultra Rhenum. – Al di là del Reno.
+iuxta | prep | accanto a; vicino a | accusativo | Iuxta viam sepulcra erant. – Accanto alla strada c'erano i sepolcri.
+
+# ============ AVVERBI ============
+non | avv | non | | Non timeo. – Non ho paura.
+semper | avv | sempre | | Semper laetus est. – È sempre lieto.
+numquam | avv | mai | | Numquam mentitur. – Non mente mai. | forme=nunquam
+umquam | avv | mai (in frasi negative o domande); qualche volta | | Num umquam Romam vidisti? – Hai mai visto Roma? | forme=unquam
+saepe | avv | spesso | | Saepe ad mare imus. – Andiamo spesso al mare.
+diu | avv | a lungo | | Diu pugnatum est. – Si combatté a lungo.
+hodie | avv | oggi | | Hodie pluit. – Oggi piove.
+heri | avv | ieri | | Heri ad urbem veni. – Ieri sono venuto in città.
+cras | avv | domani | | Cras discedam. – Domani partirò.
+olim | avv | un tempo; una volta | | Olim rex in insula habitabat. – Un tempo un re abitava su un'isola.
+ibi | avv | lì; là | | Ibi castra posuerunt. – Lì posero l'accampamento.
+hic | avv | qui | | Hic manebo. – Resterò qui. | id=a
+illic | avv | là; laggiù | | Illic amici mei sunt. – Là ci sono i miei amici.
+unde | avv | da dove | | Unde venis? – Da dove vieni?
+quo | avv | dove (moto a luogo); per cui | | Quo vadis? – Dove vai? | id=a
+iterum | avv | di nuovo; una seconda volta | | Iterum vincimus. – Vinciamo di nuovo.
+vix | avv | a stento; appena | | Vix loqui potest. – A stento riesce a parlare.
+valde | avv | molto; assai | | Valde laetus sum. – Sono molto contento.
+magis | avv | più; di più | | Magis amo te. – Ti amo di più.
+maxime | avv | moltissimo; soprattutto | | Hoc maxime cupio. – Desidero soprattutto questo.
+minime | avv | per niente; pochissimo | | Minime vero! – Niente affatto!
+paene | avv | quasi | | Paene cecidi. – Per poco non sono caduto.
+tam | avv | così; tanto | | Tam fortis est! – È così forte!
+quam | avv | quanto; (dopo un comparativo) che, di | | Quam pulchra es! – Quanto sei bella! | id=a
+satis | avv | abbastanza | | Satis dixi. – Ho detto abbastanza. | forme=sat
+nimis | avv | troppo | | Nimis multa dicis. – Dici troppe cose.
+frustra | avv | invano | | Frustra laboravit. – Lavorò invano.
+procul | avv | lontano | | Procul ab urbe. – Lontano dalla città.
+nondum | avv | non ancora | | Nondum venit. – Non è ancora venuto.
+cur | avv | perché? | | Cur fles? – Perché piangi?
+quare | avv | perché?; per la qual cosa | | Quare id fecisti? – Perché l'hai fatto?
+ubique | avv | dappertutto | | Ubique hostes erant. – Dappertutto c'erano nemici.
+undique | avv | da ogni parte | | Undique clamor oritur. – Da ogni parte si leva un grido.
+forte | avv | per caso | | Forte amicum vidi. – Per caso vidi un amico. | id=a
+bene | avv | bene | | Bene dixisti. – Hai parlato bene.
+male | avv | male | | Male se habet. – Sta male.
+parum | avv | poco; troppo poco | | Parum dormivi. – Ho dormito poco.
+multum | avv | molto | | Multum ambulavi. – Ho camminato molto.
+paulum | avv | un poco | | Paulum exspecta. – Aspetta un poco.
+facile | avv | facilmente | | Facile vincemus. – Vinceremo facilmente.
+ceterum | avv | del resto; per il resto | | Ceterum censeo Carthaginem esse delendam. – Del resto penso che Cartagine debba essere distrutta.
+etiamnunc | avv | ancora adesso | | Etiamnunc dormit. – Dorme ancora adesso.
+plus | avv | più; di più | | Plus laborat quam tu. – Lavora più di te.
+minus | avv | meno | | Minus timeo. – Ho meno paura.
+
+# ============ INTERIEZIONI ============
+o | inter | o!; oh! | | O fortunate adulescens! – O fortunato giovane!
+heu | inter | ahimè! | | Heu, quid accidit? – Ahimè, che cosa è successo? | forme=eheu
+ecce | inter | ecco! | | Ecce amicus venit. – Ecco, arriva un amico.
+vae | inter | guai! | dativo | Vae victis! – Guai ai vinti!
+
+# ============ PRONOMI ============
+ego, mei | pron | io | | Ego te amo. – Io ti amo. | pron=ego
+tu, tui | pron | tu | | Tu mihi carus es. – Tu mi sei caro. | pron=tu
+sui, sibi, se | pron | di sé, sé (riflessivo di 3ª persona) | | Se defendit. – Si difende. | pron=sui
+is, ea, id | pron | egli, ella, esso; quello; costui | | Eum video. – Lo vedo. | pron=is
+hic, haec, hoc | pron | questo (vicino a chi parla) | | Hic liber meus est. – Questo libro è mio. | pron=hic
+ille, illa, illud | pron | quello; egli; quel famoso | | Ille rex. – Quel re. | pron=ille
+iste, ista, istud | pron | codesto (vicino a chi ascolta) | | Iste homo. – Codesto uomo. | pron=iste
+ipse, ipsa, ipsum | pron | stesso; proprio lui | | Ipse dixit. – Lo disse lui stesso. | pron=ipse
+idem, eadem, idem | pron | lo stesso; il medesimo | | Idem sentimus. – Pensiamo la stessa cosa. | pron=idem
+qui, quae, quod | pron | il quale, la quale, la qual cosa; che | | Puer, quem vides, meus filius est. – Il ragazzo che vedi è mio figlio. | pron=qui
+quis, quid | pron | chi?, che cosa? (interrogativo) | | Quis est? Quid dicis? – Chi è? Che cosa dici? | pron=quis
+aliquis, aliquid | pron | qualcuno, qualcosa | | Aliquis venit. – Qualcuno viene. | pron=aliquis
+quidam, quaedam, quoddam | pron | un tale, un certo | | Quidam poeta. – Un certo poeta. | pron=quidam
+quisque, quidque | pron | ciascuno | | Suum cuique. – A ciascuno il suo. | pron=quisque
+nemo, neminis | pron | nessuno | | Nemo venit. – Nessuno viene. | pron=nemo
+nihil | pron | niente; nulla | | Nihil video. – Non vedo nulla. | pron=nihil
+
+# ============ NUMERALI E AGGETTIVI PRONOMINALI ============
+unus, una, unum | num | uno; uno solo | | Unus ex militibus. – Uno dei soldati. | pronominale nocomp
+duo, duae, duo | num | due | | Duo fratres. – Due fratelli. | pron=duo
+tres, tria | num | tre | | Tres puellae. – Tre fanciulle. | pron=tres
+quattuor | num | quattro | | Quattuor anni. – Quattro anni.
+quinque | num | cinque | | Quinque digiti. – Cinque dita.
+sex | num | sei | | Sex dies. – Sei giorni.
+septem | num | sette | | Septem colles. – Sette colli.
+octo | num | otto | | Octo naves. – Otto navi.
+novem | num | nove | | Novem Musae. – Le nove Muse.
+decem | num | dieci | | Decem milites. – Dieci soldati.
+centum | num | cento | | Centum anni. – Cento anni.
+mille | num | mille (plurale: milia, milium, n.) | | Mille passus. – Mille passi (un miglio). | extra=milia:nom.pl/milia:acc.pl/milium:gen.pl/milibus:dat.pl/milibus:abl.pl
+primus, prima, primum | num | primo | | Primus venit. – Arrivò per primo.
+secundus, secunda, secundum | num | secondo; favorevole | | Ventus secundus. – Vento favorevole.
+tertius, tertia, tertium | num | terzo | | Tertia hora. – All'ora terza.
+solus, sola, solum | agg | solo | | Solus ambulat. – Cammina da solo. | pronominale nocomp
+totus, tota, totum | agg | tutto intero | | Tota urbs. – Tutta la città. | pronominale nocomp
+nullus, nulla, nullum | agg | nessuno | | Nullum periculum est. – Non c'è nessun pericolo. | pronominale nocomp
+ullus, ulla, ullum | agg | alcuno (in frasi negative) | | Sine ulla spe. – Senza alcuna speranza. | pronominale nocomp
+alius, alia, aliud | agg | altro (fra molti) | | Alius alium adiuvat. – L'uno aiuta l'altro. | pronominale ud nocomp
+alter, altera, alterum | agg | l'altro (fra due); secondo | | Alter ex fratribus. – L'altro dei due fratelli. | pronominale nocomp
+uter, utra, utrum | agg | quale dei due? | | Uter vestrum venit? – Chi di voi due viene? | pronominale nocomp
+neuter, neutra, neutrum | agg | nessuno dei due | | Neuter consul venit. – Nessuno dei due consoli venne. | pronominale nocomp
+ceterus, cetera, ceterum | agg | il resto; (al plurale) gli altri | | Ceteri fugerunt. – Gli altri fuggirono. | nocomp
+meus, mea, meum | agg | mio | | Liber meus. – Il mio libro. | nocomp
+tuus, tua, tuum | agg | tuo | | Domus tua. – La tua casa. | nocomp
+suus, sua, suum | agg | suo; loro (riflessivo) | | Suos amicos amat. – Ama i suoi amici. | nocomp
+noster, nostra, nostrum | agg | nostro | | Patria nostra. – La nostra patria. | nocomp
+vester, vestra, vestrum | agg | vostro | | Urbs vestra. – La vostra città. | nocomp
+
+# ============ NOMI: 1ª DECLINAZIONE ============
+rosa, rosae, f. | n | rosa | | Puella rosas amat. – La fanciulla ama le rose.
+puella, puellae, f. | n | fanciulla; ragazza | | Puella in horto ludit. – La fanciulla gioca nell'orto.
+nauta, nautae, m. | n | marinaio | | Nauta navem regit. – Il marinaio guida la nave.
+agricola, agricolae, m. | n | contadino; agricoltore | | Agricola agrum arat. – Il contadino ara il campo.
+poeta, poetae, m. | n | poeta | | Poeta carmina scribit. – Il poeta scrive poesie.
+incola, incolae, m./f. | n | abitante | | Incolae insulae pauperes erant. – Gli abitanti dell'isola erano poveri.
+dea, deae, f. | n | dea | | Minerva dea sapientiae est. – Minerva è la dea della sapienza. | abus
+filia, filiae, f. | n | figlia | | Filia matrem adiuvat. – La figlia aiuta la madre. | abus
+domina, dominae, f. | n | padrona; signora | | Domina ancillas vocat. – La padrona chiama le ancelle.
+regina, reginae, f. | n | regina | | Regina populo cara erat. – La regina era cara al popolo.
+ancilla, ancillae, f. | n | ancella; serva | | Ancilla aquam portat. – L'ancella porta l'acqua.
+insula, insulae, f. | n | isola | | Sicilia magna insula est. – La Sicilia è una grande isola.
+silva, silvae, f. | n | bosco; selva | | In silva lupi vivunt. – Nel bosco vivono i lupi.
+terra, terrae, f. | n | terra; regione | | Terra rotunda est. – La terra è rotonda.
+aqua, aquae, f. | n | acqua | | Aqua vitam dat. – L'acqua dà la vita.
+via, viae, f. | n | via; strada | | Via longa est. – La strada è lunga.
+patria, patriae, f. | n | patria | | Cives patriam amant. – I cittadini amano la patria.
+vita, vitae, f. | n | vita | | Vita brevis est. – La vita è breve.
+fortuna, fortunae, f. | n | fortuna; sorte | | Fortuna caeca est. – La fortuna è cieca.
+gloria, gloriae, f. | n | gloria | | Milites gloriam cupiunt. – I soldati desiderano la gloria.
+ira, irae, f. | n | ira; collera | | Ira furor brevis est. – L'ira è una breve follia.
+pugna, pugnae, f. | n | battaglia; combattimento | | Pugna acris erat. – La battaglia era aspra.
+victoria, victoriae, f. | n | vittoria | | Victoria Romanorum fuit. – La vittoria fu dei Romani.
+copia, copiae, f. | n | abbondanza; (al plurale) truppe, milizie | | Caesar copias in Galliam duxit. – Cesare condusse le truppe in Gallia.
+amicitia, amicitiae, f. | n | amicizia | | Amicitia rara est. – L'amicizia è rara.
+sapientia, sapientiae, f. | n | sapienza; saggezza | | Sapientia est virtus. – La saggezza è una virtù.
+fama, famae, f. | n | fama; notizia; reputazione | | Fama volat. – La notizia vola.
+cura, curae, f. | n | cura; preoccupazione | | Mater curam filiorum habet. – La madre si prende cura dei figli.
+porta, portae, f. | n | porta (della città) | | Portae urbis clausae sunt. – Le porte della città sono chiuse.
+epistula, epistulae, f. | n | lettera (missiva) | | Epistulam amico scribo. – Scrivo una lettera a un amico.
+fabula, fabulae, f. | n | favola; racconto | | Avia fabulas narrat. – La nonna racconta favole.
+lingua, linguae, f. | n | lingua | | Lingua Latina pulchra est. – La lingua latina è bella.
+hora, horae, f. | n | ora | | Prima hora. – All'ora prima.
+causa, causae, f. | n | causa; motivo; processo | | Causam ignoro. – Non conosco il motivo.
+poena, poenae, f. | n | pena; punizione | | Poenas dabit. – Sconterà la pena.
+praeda, praedae, f. | n | preda; bottino | | Milites praedam diviserunt. – I soldati divisero il bottino.
+littera, litterae, f. | n | lettera dell'alfabeto; (al plurale) lettera, letteratura | | Litteras a patre accepi. – Ho ricevuto una lettera dal padre.
+fuga, fugae, f. | n | fuga | | Hostes in fugam dant. – Mettono in fuga i nemici.
+umbra, umbrae, f. | n | ombra | | Sub umbra arboris. – All'ombra dell'albero.
+luna, lunae, f. | n | luna | | Luna lucet. – La luna splende.
+stella, stellae, f. | n | stella | | Stellae in caelo fulgent. – Le stelle brillano nel cielo.
+cena, cenae, f. | n | cena | | Cena parata est. – La cena è pronta.
+divitiae, divitiarum, f. pl. | n | ricchezze | | Divitiae non faciunt beatum. – Le ricchezze non rendono felici. | pl
+insidiae, insidiarum, f. pl. | n | insidie; agguato | | Hostes insidias parant. – I nemici preparano un agguato. | pl
+Athenae, Athenarum, f. pl. | n | Atene | | Athenis vivebat. – Viveva ad Atene. | pl
+
+# ============ NOMI: 2ª DECLINAZIONE ============
+dominus, domini, m. | n | padrone; signore | | Dominus servos vocat. – Il padrone chiama i servi.
+servus, servi, m. | n | servo; schiavo | | Servus in agro laborat. – Il servo lavora nel campo.
+amicus, amici, m. | n | amico | | Amicus certus in re incerta cernitur. – L'amico sicuro si riconosce nella situazione incerta.
+deus, dei, m. | n | dio | | Iuppiter deorum pater est. – Giove è il padre degli dèi. | no=voc.sg extra=deus:voc.sg/di:nom.pl/dii:nom.pl/di:voc.pl/dii:voc.pl/dis:dat.pl/diis:dat.pl/dis:abl.pl/diis:abl.pl/deum:gen.pl
+filius, filii, m. | n | figlio | | Pater filium amat. – Il padre ama il figlio.
+populus, populi, m. | n | popolo | | Populus Romanus. – Il popolo romano.
+animus, animi, m. | n | animo; coraggio; mente | | Bono animo esse. – Essere di buon animo.
+gladius, gladii, m. | n | spada | | Miles gladium stringit. – Il soldato impugna la spada.
+equus, equi, m. | n | cavallo | | Equus celeriter currit. – Il cavallo corre velocemente.
+ventus, venti, m. | n | vento | | Ventus nubes fugat. – Il vento scaccia le nuvole.
+oculus, oculi, m. | n | occhio | | Oculis videmus. – Vediamo con gli occhi.
+liber, libri, m. | n | libro | | Librum lego. – Leggo un libro. | id=libro
+puer, pueri, m. | n | fanciullo; ragazzo | | Puer in via ludit. – Il ragazzo gioca per strada.
+ager, agri, m. | n | campo; territorio | | Agri fertiles sunt. – I campi sono fertili.
+magister, magistri, m. | n | maestro | | Magister discipulos docet. – Il maestro istruisce gli scolari.
+vir, viri, m. | n | uomo (adulto); marito | | Vir fortis. – Un uomo coraggioso.
+socius, socii, m. | n | compagno; alleato | | Socii auxilium miserunt. – Gli alleati mandarono aiuto.
+legatus, legati, m. | n | ambasciatore; luogotenente | | Legati pacem petiverunt. – Gli ambasciatori chiesero la pace.
+murus, muri, m. | n | muro; mura | | Muri urbis alti sunt. – Le mura della città sono alte.
+campus, campi, m. | n | pianura; campo | | In campo exercentur. – Si esercitano nella pianura.
+hortus, horti, m. | n | orto; giardino | | In horto rosae sunt. – Nel giardino ci sono le rose.
+locus, loci, m. | n | luogo; posto | | Locus idoneus. – Un luogo adatto. | extra=loca:nom.pl/loca:acc.pl
+annus, anni, m. | n | anno | | Multos annos vixit. – Visse molti anni.
+numerus, numeri, m. | n | numero | | Magnus numerus hostium. – Un gran numero di nemici.
+nuntius, nuntii, m. | n | messaggero; notizia | | Nuntius victoriam nuntiat. – Il messaggero annuncia la vittoria.
+captivus, captivi, m. | n | prigioniero | | Captivi in castra ducti sunt. – I prigionieri furono condotti nell'accampamento.
+inimicus, inimici, m. | n | nemico (personale) | | Inimicos suos odit. – Odia i suoi nemici.
+discipulus, discipuli, m. | n | scolaro; allievo | | Discipuli attenti sunt. – Gli scolari sono attenti.
+lupus, lupi, m. | n | lupo | | Lupus et agnus. – Il lupo e l'agnello.
+bellum, belli, n. | n | guerra | | Bellum gerere. – Fare la guerra.
+donum, doni, n. | n | dono; regalo | | Dona deis dant. – Fanno doni agli dèi.
+oppidum, oppidi, n. | n | città (fortificata); roccaforte | | Oppidum expugnaverunt. – Espugnarono la città.
+templum, templi, n. | n | tempio | | In templo orant. – Pregano nel tempio.
+verbum, verbi, n. | n | parola; verbo | | Verba volant, scripta manent. – Le parole volano, gli scritti restano.
+periculum, periculi, n. | n | pericolo | | In periculo sumus. – Siamo in pericolo.
+consilium, consilii, n. | n | consiglio; decisione; piano | | Consilium capere. – Prendere una decisione.
+auxilium, auxilii, n. | n | aiuto; (al plurale) truppe ausiliarie | | Auxilium petunt. – Chiedono aiuto.
+praemium, praemii, n. | n | premio; ricompensa | | Praemium virtutis. – Il premio del valore.
+regnum, regni, n. | n | regno | | Regnum Macedoniae. – Il regno di Macedonia.
+signum, signi, n. | n | segno; segnale; insegna | | Signum pugnae dedit. – Diede il segnale della battaglia.
+imperium, imperii, n. | n | comando; potere; impero | | Imperium Romanum. – L'impero romano.
+officium, officii, n. | n | dovere; compito | | Officium suum facit. – Fa il suo dovere.
+caelum, caeli, n. | n | cielo | | Caelum serenum est. – Il cielo è sereno.
+aurum, auri, n. | n | oro | | Aurum non emit amicos. – L'oro non compra gli amici.
+frumentum, frumenti, n. | n | frumento; grano | | Frumentum in castra portant. – Portano il frumento nell'accampamento.
+proelium, proelii, n. | n | battaglia | | Proelium committere. – Attaccare battaglia.
+negotium, negotii, n. | n | affare; occupazione | | Negotia agere. – Sbrigare affari.
+exemplum, exempli, n. | n | esempio | | Exemplum dare. – Dare l'esempio.
+beneficium, beneficii, n. | n | beneficio; favore | | Beneficium accipere. – Ricevere un favore.
+studium, studii, n. | n | passione; studio; impegno | | Studium litterarum. – La passione per la letteratura.
+gaudium, gaudii, n. | n | gioia | | Gaudio exsultat. – Esulta di gioia.
+castra, castrorum, n. pl. | n | accampamento | | Castra ponere. – Porre l'accampamento. | pl
+arma, armorum, n. pl. | n | armi | | Ad arma! – Alle armi! | pl
+
+# ============ NOMI: 3ª DECLINAZIONE ============
+consul, consulis, m. | n | console | | Consules exercitum ducunt. – I consoli guidano l'esercito.
+rex, regis, m. | n | re | | Rex regnum regit. – Il re governa il regno.
+dux, ducis, m. | n | comandante; guida | | Dux milites hortatur. – Il comandante esorta i soldati.
+miles, militis, m. | n | soldato | | Miles fortiter pugnat. – Il soldato combatte coraggiosamente.
+homo, hominis, m. | n | uomo; essere umano | | Homo homini lupus. – L'uomo è un lupo per l'uomo.
+pater, patris, m. | n | padre | | Pater familias. – Il padre di famiglia.
+mater, matris, f. | n | madre | | Mater filiam amat. – La madre ama la figlia.
+frater, fratris, m. | n | fratello | | Frater meus. – Mio fratello.
+soror, sororis, f. | n | sorella | | Soror mea. – Mia sorella.
+uxor, uxoris, f. | n | moglie | | Uxor Ulixis Penelope erat. – La moglie di Ulisse era Penelope.
+imperator, imperatoris, m. | n | comandante supremo; imperatore | | Imperator copias instruit. – Il comandante schiera le truppe.
+orator, oratoris, m. | n | oratore; ambasciatore | | Cicero clarus orator fuit. – Cicerone fu un celebre oratore.
+mos, moris, m. | n | costume; usanza; (al plurale) carattere | | Mos maiorum. – Il costume degli antenati.
+lex, legis, f. | n | legge | | Leges servare. – Rispettare le leggi.
+pax, pacis, f. | n | pace | | Pacem petere. – Chiedere la pace.
+lux, lucis, f. | n | luce | | Prima luce. – All'alba.
+vox, vocis, f. | n | voce; parola | | Magna voce clamat. – Grida a gran voce.
+nox, noctis, f. | n | notte | | Nocte dormimus. – Di notte dormiamo.
+urbs, urbis, f. | n | città; (spesso) Roma | | Urbs magna est. – La città è grande.
+mons, montis, m. | n | monte | | In monte castra posuit. – Pose l'accampamento sul monte.
+pars, partis, f. | n | parte | | Gallia est omnis divisa in partes tres. – La Gallia nel suo insieme è divisa in tre parti.
+gens, gentis, f. | n | popolo; stirpe; famiglia | | Gentes Germaniae. – Le popolazioni della Germania.
+mors, mortis, f. | n | morte | | Mortem non timet. – Non teme la morte.
+civis, civis, m./f. | n | cittadino | | Cives Romani. – I cittadini romani.
+hostis, hostis, m. | n | nemico (in guerra) | | Hostes fugerunt. – I nemici fuggirono.
+navis, navis, f. | n | nave | | Naves in portu sunt. – Le navi sono nel porto.
+ignis, ignis, m. | n | fuoco | | Ignem accendere. – Accendere il fuoco. | abl=i
+finis, finis, m. | n | confine; fine; (al plurale) territorio | | In fines Helvetiorum. – Nel territorio degli Elvezi.
+collis, collis, m. | n | colle | | Roma in septem collibus sita est. – Roma è situata su sette colli.
+avis, avis, f. | n | uccello | | Aves cantant. – Gli uccelli cantano.
+canis, canis, m./f. | n | cane | | Canis domum custodit. – Il cane custodisce la casa. | gpl=um
+iuvenis, iuvenis, m. | n | giovane | | Iuvenes ludunt. – I giovani giocano. | gpl=um
+mens, mentis, f. | n | mente | | Mens sana in corpore sano. – Mente sana in un corpo sano.
+ars, artis, f. | n | arte; abilità | | Ars longa, vita brevis. – L'arte è lunga, la vita breve.
+caput, capitis, n. | n | testa; capo; capitale | | Caput dolet. – Mi duole la testa.
+corpus, corporis, n. | n | corpo | | Corpus exercere. – Esercitare il corpo.
+tempus, temporis, n. | n | tempo | | Tempus fugit. – Il tempo fugge.
+genus, generis, n. | n | stirpe; genere; tipo | | Genus humanum. – Il genere umano.
+nomen, nominis, n. | n | nome | | Nomen meum Marcus est. – Il mio nome è Marco.
+flumen, fluminis, n. | n | fiume | | Flumen latum est. – Il fiume è largo.
+carmen, carminis, n. | n | carme; poesia; canto | | Carmina Horatii. – Le poesie di Orazio.
+opus, operis, n. | n | opera; lavoro | | Opus perfecit. – Portò a termine l'opera.
+iter, itineris, n. | n | viaggio; cammino; marcia | | Iter facere. – Fare un viaggio; marciare.
+mare, maris, n. | n | mare | | Mare tranquillum est. – Il mare è calmo.
+animal, animalis, n. | n | animale | | Animalia in silva vivunt. – Gli animali vivono nel bosco.
+vulnus, vulneris, n. | n | ferita | | Gravi vulnere. – Con una grave ferita.
+scelus, sceleris, n. | n | delitto; crimine | | Scelus committere. – Commettere un delitto.
+ius, iuris, n. | n | diritto; giustizia | | Ius civile. – Il diritto civile.
+virtus, virtutis, f. | n | valore; virtù; coraggio | | Virtus militum. – Il valore dei soldati.
+salus, salutis, f. | n | salvezza; salute; saluto | | Salutem dicit. – Manda un saluto.
+labor, laboris, m. | n | fatica; lavoro | | Labor omnia vincit. – La fatica vince ogni cosa.
+amor, amoris, m. | n | amore | | Amor patriae. – L'amore per la patria.
+timor, timoris, m. | n | timore; paura | | Timore perterriti. – Atterriti dalla paura.
+honor, honoris, m. | n | onore; carica pubblica | | Honores petere. – Aspirare alle cariche pubbliche.
+dolor, doloris, m. | n | dolore | | Dolore afficitur. – È colpito dal dolore.
+clamor, clamoris, m. | n | grido; clamore | | Clamor militum. – Il grido dei soldati.
+sermo, sermonis, m. | n | discorso; conversazione | | Sermo familiaris. – Una conversazione amichevole.
+ratio, rationis, f. | n | ragione; calcolo; modo | | Ratione uti. – Usare la ragione.
+natio, nationis, f. | n | popolo; nazione | | Nationes Galliae. – I popoli della Gallia.
+legio, legionis, f. | n | legione | | Decima legio. – La decima legione.
+oratio, orationis, f. | n | discorso | | Orationem habere. – Tenere un discorso.
+regio, regionis, f. | n | regione | | In ea regione. – In quella regione.
+multitudo, multitudinis, f. | n | moltitudine; folla | | Magna multitudo hominum. – Una grande folla di uomini.
+virgo, virginis, f. | n | vergine; fanciulla | | Virgines Vestales. – Le vergini Vestali.
+civitas, civitatis, f. | n | cittadinanza; stato; comunità | | Civitas Romana. – La cittadinanza romana.
+libertas, libertatis, f. | n | libertà | | Pro libertate pugnare. – Combattere per la libertà.
+potestas, potestatis, f. | n | potere; facoltà | | In potestate hostium. – In potere dei nemici.
+voluntas, voluntatis, f. | n | volontà | | Bona voluntas. – Buona volontà.
+aetas, aetatis, f. | n | età; epoca | | Aetas aurea. – L'età dell'oro.
+veritas, veritatis, f. | n | verità | | Veritas odium parit. – La verità genera odio.
+senex, senis, m. | n | vecchio; anziano | | Senex baculo nititur. – Il vecchio si appoggia al bastone. | gpl=um
+arbor, arboris, f. | n | albero | | Arbores altae. – Alberi alti.
+leo, leonis, m. | n | leone | | Leo rex animalium est. – Il leone è il re degli animali.
+pes, pedis, m. | n | piede | | Pedibus ire. – Andare a piedi.
+eques, equitis, m. | n | cavaliere | | Equites Romani. – I cavalieri romani.
+princeps, principis, m. | n | capo; principe; il primo | | Princeps civitatis. – Il primo cittadino dello stato.
+vis, f. | n | forza; violenza; (al plurale vires) forze | | Vi et armis. – Con la forza e con le armi. | sg extra=vis:nom.sg/vim:acc.sg/vi:abl.sg/vires:nom.pl/virium:gen.pl/viribus:dat.pl/vires:acc.pl/viribus:abl.pl
+Iuppiter, Iovis, m. | n | Giove | | Iuppiter optimus maximus. – Giove ottimo massimo. | sg extra=Iuppiter:nom.sg/Iuppiter:voc.sg/Iupiter:nom.sg
+
+# ============ NOMI: 4ª DECLINAZIONE ============
+manus, manus, f. | n | mano; schiera | | Manu scribere. – Scrivere a mano.
+exercitus, exercitus, m. | n | esercito | | Exercitum ducere. – Guidare l'esercito.
+senatus, senatus, m. | n | senato | | Senatus populusque Romanus. – Il senato e il popolo romano.
+impetus, impetus, m. | n | assalto; slancio | | Impetum facere. – Fare un assalto.
+metus, metus, m. | n | paura; timore | | Metu perterritus. – Atterrito dalla paura.
+adventus, adventus, m. | n | arrivo | | Adventu Caesaris. – All'arrivo di Cesare.
+cursus, cursus, m. | n | corsa; percorso; rotta | | Cursum dirigere. – Dirigere la rotta.
+fructus, fructus, m. | n | frutto; profitto | | Fructus arborum. – I frutti degli alberi.
+portus, portus, m. | n | porto | | In portum navigant. – Navigano verso il porto.
+equitatus, equitatus, m. | n | cavalleria | | Equitatum praemittit. – Manda avanti la cavalleria.
+magistratus, magistratus, m. | n | magistrato; carica pubblica | | Magistratus Romani. – I magistrati romani.
+casus, casus, m. | n | caso; caduta; sventura | | Casu accidit. – Accadde per caso.
+domus, domus, f. | n | casa; patria | | Domum redire. – Tornare a casa. | extra=domo:abl.sg/domos:acc.pl/domorum:gen.pl/domi:loc
+cornu, cornus, n. | n | corno; ala dell'esercito | | Dextrum cornu. – L'ala destra.
+
+# ============ NOMI: 5ª DECLINAZIONE ============
+res, rei, f. | n | cosa; fatto; situazione | | Res publica. – Lo stato.
+dies, diei, m./f. | n | giorno | | Multos dies. – Per molti giorni.
+spes, spei, f. | n | speranza | | Spes ultima dea. – La speranza è l'ultima dea.
+fides, fidei, f. | n | fede; lealtà; fiducia | | Fidem servare. – Mantenere la parola data.
+acies, aciei, f. | n | schiera; esercito schierato; filo (della spada) | | Aciem instruere. – Schierare l'esercito.
+meridies, meridiei, m. | n | mezzogiorno; sud | | Ad meridiem. – Verso mezzogiorno. | sg
+
+# ============ AGGETTIVI: 1ª CLASSE ============
+bonus, bona, bonum | agg | buono; valente | | Vir bonus. – Un uomo buono. | comp=melior sup=optimus avv=bene
+malus, mala, malum | agg | cattivo; malvagio | | Mala consilia. – Cattivi consigli. | comp=peior sup=pessimus avv=male
+magnus, magna, magnum | agg | grande | | Magna urbs. – Una grande città. | comp=maior sup=maximus avv=magnopere
+parvus, parva, parvum | agg | piccolo | | Parvus puer. – Un bambino piccolo. | comp=minor sup=minimus avv=parum
+multus, multa, multum | agg | molto; (al plurale) molti | | Multi homines. – Molti uomini. | comp=- sup=plurimus avv=multum
+altus, alta, altum | agg | alto; profondo | | Altus mons. – Un monte alto.
+longus, longa, longum | agg | lungo | | Longa via. – Una lunga strada.
+latus, lata, latum | agg | largo; ampio | | Latum flumen. – Un fiume largo. | id=largo
+clarus, clara, clarum | agg | illustre; famoso; luminoso | | Vir clarus. – Un uomo illustre.
+carus, cara, carum | agg | caro; amato | dativo | Patria mihi cara est. – La patria mi è cara.
+laetus, laeta, laetum | agg | lieto; contento | | Laeti sumus. – Siamo contenti.
+miser, misera, miserum | agg | infelice; misero | | Miseri captivi. – I poveri prigionieri.
+liber, libera, liberum | agg | libero | | Populus liber. – Un popolo libero. | id=libero
+pulcher, pulchra, pulchrum | agg | bello | | Pulchra puella. – Una bella fanciulla.
+aeger, aegra, aegrum | agg | malato | | Puer aeger est. – Il fanciullo è malato.
+sacer, sacra, sacrum | agg | sacro | | Locus sacer. – Un luogo sacro. | nocomp
+novus, nova, novum | agg | nuovo | | Nova consilia. – Nuovi progetti.
+antiquus, antiqua, antiquum | agg | antico | | Antiqua templa. – Templi antichi.
+notus, nota, notum | agg | noto; conosciuto | | Res omnibus nota. – Una cosa nota a tutti.
+iustus, iusta, iustum | agg | giusto | | Iustus rex. – Un re giusto.
+beatus, beata, beatum | agg | felice; beato | | Vita beata. – Una vita felice.
+dignus, digna, dignum | agg | degno | ablativo | Dignus laude. – Degno di lode.
+plenus, plena, plenum | agg | pieno | genitivo o ablativo | Plenus vini. – Pieno di vino.
+cupidus, cupida, cupidum | agg | desideroso; avido | genitivo | Cupidus gloriae. – Desideroso di gloria.
+certus, certa, certum | agg | certo; sicuro | | Certa victoria. – Una vittoria sicura.
+firmus, firma, firmum | agg | saldo; forte | | Firmum praesidium. – Un saldo presidio.
+validus, valida, validum | agg | forte; robusto | | Validum corpus. – Un corpo robusto.
+tutus, tuta, tutum | agg | sicuro; protetto | | Locus tutus. – Un luogo sicuro.
+saevus, saeva, saevum | agg | crudele; feroce | | Saevus tyrannus. – Un tiranno crudele.
+durus, dura, durum | agg | duro; difficile | | Dura vita. – Una vita dura.
+verus, vera, verum | agg | vero | | Verus amicus. – Un vero amico. | id=vero
+falsus, falsa, falsum | agg | falso | | Falsa fama. – Una falsa notizia.
+publicus, publica, publicum | agg | pubblico; dello stato | | Res publica. – Lo stato. | nocomp
+Romanus, Romana, Romanum | agg | romano | | Populus Romanus. – Il popolo romano. | nocomp
+Graecus, Graeca, Graecum | agg | greco | | Lingua Graeca. – La lingua greca. | nocomp
+superbus, superba, superbum | agg | superbo; arrogante | | Tarquinius Superbus. – Tarquinio il Superbo.
+avarus, avara, avarum | agg | avaro; avido | | Avarus senex. – Un vecchio avaro.
+iratus, irata, iratum | agg | adirato; arrabbiato | dativo | Iratus est mihi. – È arrabbiato con me.
+idoneus, idonea, idoneum | agg | adatto; idoneo | | Locus idoneus castris. – Un luogo adatto all'accampamento. | nocomp
+proximus, proxima, proximum | agg | vicinissimo; prossimo | dativo | Proxima nocte. – La notte seguente. | nocomp
+reliquus, reliqua, reliquum | agg | restante; rimanente | | Reliqui milites. – I soldati rimanenti. | nocomp
+cunctus, cuncta, cunctum | agg | tutto; (al plurale) tutti insieme | | Cuncta Italia. – Tutta l'Italia. | nocomp
+inimicus, inimica, inimicum | agg | ostile; nemico | dativo | Inimicus Romanis. – Ostile ai Romani. | id=agg
+amicus, amica, amicum | agg | amico; favorevole | dativo | Amicus populo Romano. – Amico del popolo romano. | id=agg
+
+# ============ AGGETTIVI: 2ª CLASSE ============
+fortis, forte | agg | forte; coraggioso | | Fortes fortuna adiuvat. – La fortuna aiuta gli audaci.
+brevis, breve | agg | breve | | Brevis vita. – Una vita breve.
+facilis, facile | agg | facile | | Facilis via. – Una strada facile. | avv=facile
+difficilis, difficile | agg | difficile | | Difficile iter. – Un viaggio difficile.
+similis, simile | agg | simile | genitivo o dativo | Similis patri. – Simile al padre.
+omnis, omne | agg | ogni; (al plurale) tutti | | Omnes cives. – Tutti i cittadini. | nocomp
+gravis, grave | agg | pesante; grave; serio | | Grave vulnus. – Una ferita grave.
+levis, leve | agg | leggero; lieve | | Levis armatura. – Armatura leggera.
+nobilis, nobile | agg | nobile; famoso | | Nobilis familia. – Una famiglia nobile.
+utilis, utile | agg | utile | dativo | Utilis rei publicae. – Utile allo stato.
+dulcis, dulce | agg | dolce | | Dulce et decorum est pro patria mori. – È dolce e onorevole morire per la patria.
+tristis, triste | agg | triste | | Tristis nuntius. – Una triste notizia.
+crudelis, crudele | agg | crudele | | Crudelis tyrannus. – Un tiranno crudele.
+celer, celeris, celere | agg | veloce; rapido | | Celer equus. – Un cavallo veloce. | gpl=um avv=celeriter
+acer, acris, acre | agg | aspro; acuto; energico | | Acre proelium. – Un'aspra battaglia.
+alacer, alacris, alacre | agg | pronto; vivace | | Alacres milites. – Soldati pronti.
+felix, felicis | agg | felice; fortunato | | Felix dies. – Un giorno felice.
+audax, audacis | agg | audace | | Audax consilium. – Un progetto audace. | avv=audacter
+ferox, ferocis | agg | feroce; fiero | | Ferox gens. – Un popolo fiero.
+liberi, liberorum, m. pl. | n | figli (di genitori liberi) | | Parentes liberos amant. – I genitori amano i figli. | pl
+prudens, prudentis | agg | prudente; saggio | | Prudens consilium. – Una decisione prudente.
+sapiens, sapientis | agg | saggio; sapiente | | Sapiens vir. – Un uomo saggio.
+ingens, ingentis | agg | enorme; immenso | | Ingens multitudo. – Un'immensa moltitudine. | nocomp
+potens, potentis | agg | potente | | Potens rex. – Un re potente.
+vetus, veteris | agg | vecchio; antico | | Vetus amicus. – Un vecchio amico. | abl=e gpl=um nocomp
+pauper, pauperis | agg | povero | | Pauper agricola. – Un povero contadino. | abl=e gpl=um nocomp
+dives, divitis | agg | ricco | | Dives mercator. – Un ricco mercante. | abl=e gpl=um nocomp
+memor, memoris | agg | memore; che ricorda | genitivo | Memor beneficii. – Memore del beneficio. | abl=i gpl=um nocomp
+par, paris | agg | pari; uguale | dativo | Par Romanis. – Pari ai Romani. | nocomp
+
+# ============ VERBI: 1ª CONIUGAZIONE ============
+amo, amas, amavi, amatum, amare | v | amare | accusativo | Mater filios amat. – La madre ama i figli.
+laudo, laudas, laudavi, laudatum, laudare | v | lodare | accusativo | Magister discipulum laudat. – Il maestro loda lo scolaro.
+voco, vocas, vocavi, vocatum, vocare | v | chiamare | accusativo | Dominus servos vocat. – Il padrone chiama i servi.
+porto, portas, portavi, portatum, portare | v | portare | accusativo | Ancilla aquam portat. – L'ancella porta l'acqua.
+pugno, pugnas, pugnavi, pugnatum, pugnare | v | combattere | | Milites fortiter pugnant. – I soldati combattono coraggiosamente.
+narro, narras, narravi, narratum, narrare | v | raccontare; narrare | accusativo | Fabulam narrat. – Racconta una favola.
+paro, paras, paravi, paratum, parare | v | preparare; procurare | accusativo | Cenam paro. – Preparo la cena.
+servo, servas, servavi, servatum, servare | v | conservare; salvare; osservare | accusativo | Patriam servant. – Salvano la patria.
+specto, spectas, spectavi, spectatum, spectare | v | guardare; osservare | accusativo | Stellas spectamus. – Guardiamo le stelle.
+oro, oras, oravi, oratum, orare | v | pregare; chiedere | accusativo | Deos orant. – Pregano gli dèi.
+habito, habitas, habitavi, habitatum, habitare | v | abitare | | In insula habitant. – Abitano su un'isola.
+navigo, navigas, navigavi, navigatum, navigare | v | navigare | | Nautae navigant. – I marinai navigano.
+ambulo, ambulas, ambulavi, ambulatum, ambulare | v | camminare; passeggiare | | In horto ambulamus. – Passeggiamo nel giardino.
+laboro, laboras, laboravi, laboratum, laborare | v | lavorare; faticare; soffrire | | Agricolae laborant. – I contadini lavorano.
+do, das, dedi, datum, dare | v | dare | accusativo e dativo | Puellae rosam do. – Do una rosa alla fanciulla.
+sto, stas, steti, statum, stare | v | stare (in piedi); restare | | Stat sua cuique dies. – Per ciascuno è fissato il suo giorno.
+iuvo, iuvas, iuvi, iutum, iuvare | v | aiutare; giovare | accusativo | Fortes fortuna iuvat. – La fortuna aiuta i coraggiosi.
+libero, liberas, liberavi, liberatum, liberare | v | liberare | accusativo e ablativo | Patriam periculo liberavit. – Liberò la patria dal pericolo.
+nuntio, nuntias, nuntiavi, nuntiatum, nuntiare | v | annunciare | accusativo | Victoriam nuntiant. – Annunciano la vittoria.
+appello, appellas, appellavi, appellatum, appellare | v | chiamare; nominare | accusativo | Eum regem appellant. – Lo chiamano re.
+exspecto, exspectas, exspectavi, exspectatum, exspectare | v | aspettare | accusativo | Te exspecto. – Ti aspetto.
+occupo, occupas, occupavi, occupatum, occupare | v | occupare | accusativo | Collem occupant. – Occupano il colle.
+supero, superas, superavi, superatum, superare | v | superare; vincere | accusativo | Hostes superaverunt. – Vinsero i nemici.
+vulnero, vulneras, vulneravi, vulneratum, vulnerare | v | ferire | accusativo | Militem vulneravit. – Ferì il soldato.
+neco, necas, necavi, necatum, necare | v | uccidere | accusativo | Lupus agnum necat. – Il lupo uccide l'agnello.
+rogo, rogas, rogavi, rogatum, rogare | v | chiedere; pregare | accusativo | Auxilium rogant. – Chiedono aiuto.
+erro, erras, erravi, erratum, errare | v | sbagliare; vagare | | Errare humanum est. – Sbagliare è umano.
+clamo, clamas, clamavi, clamatum, clamare | v | gridare | | Pueri clamant. – I ragazzi gridano.
+dono, donas, donavi, donatum, donare | v | donare; regalare | accusativo e dativo | Librum amico donat. – Regala un libro all'amico.
+aedifico, aedificas, aedificavi, aedificatum, aedificare | v | costruire | accusativo | Templum aedificant. – Costruiscono un tempio.
+impero, imperas, imperavi, imperatum, imperare | v | comandare; ordinare | dativo | Caesar militibus imperat. – Cesare dà ordini ai soldati.
+creo, creas, creavi, creatum, creare | v | creare; eleggere | accusativo | Consules creant. – Eleggono i consoli.
+existimo, existimas, existimavi, existimatum, existimare | v | ritenere; stimare | accusativo | Eum virum bonum existimo. – Lo ritengo un uomo buono.
+puto, putas, putavi, putatum, putare | v | pensare; ritenere | accusativo | Id verum puto. – Ritengo che ciò sia vero.
+curo, curas, curavi, curatum, curare | v | curare; occuparsi di | accusativo | Corpus curat. – Si prende cura del corpo.
+vito, vitas, vitavi, vitatum, vitare | v | evitare | accusativo | Periculum vitant. – Evitano il pericolo.
+muto, mutas, mutavi, mutatum, mutare | v | cambiare | accusativo | Consilium mutavit. – Cambiò decisione.
+oppugno, oppugnas, oppugnavi, oppugnatum, oppugnare | v | assediare; attaccare | accusativo | Oppidum oppugnant. – Assediano la città.
+expugno, expugnas, expugnavi, expugnatum, expugnare | v | espugnare; conquistare | accusativo | Urbem expugnaverunt. – Espugnarono la città.
+convoco, convocas, convocavi, convocatum, convocare | v | convocare; radunare | accusativo | Senatum convocat. – Convoca il senato.
+tempto, temptas, temptavi, temptatum, temptare | v | tentare; mettere alla prova | accusativo | Fortunam temptat. – Tenta la fortuna.
+festino, festinas, festinavi, festinatum, festinare | v | affrettarsi | | Festina lente. – Affrettati lentamente.
+canto, cantas, cantavi, cantatum, cantare | v | cantare | | Aves cantant. – Gli uccelli cantano.
+lavo, lavas, lavi, lautum, lavare | v | lavare | accusativo | Manus lavat. – Si lava le mani.
+
+# ============ VERBI: 2ª CONIUGAZIONE ============
+moneo, mones, monui, monitum, monere | v | ammonire; avvertire; consigliare | accusativo | Pater filium monet. – Il padre ammonisce il figlio.
+habeo, habes, habui, habitum, habere | v | avere; ritenere; (orationem habere) tenere un discorso | accusativo | Multos amicos habet. – Ha molti amici.
+video, vides, vidi, visum, videre | v | vedere; (passivo videor) sembrare | accusativo | Montes video. – Vedo i monti.
+timeo, times, timui, timere | v | temere; avere paura | accusativo | Nihil timeo. – Non temo nulla.
+teneo, tenes, tenui, tentum, tenere | v | tenere; possedere | accusativo | Librum manu tenet. – Tiene il libro in mano.
+doceo, doces, docui, doctum, docere | v | insegnare | doppio accusativo | Magister pueros grammaticam docet. – Il maestro insegna la grammatica ai ragazzi.
+deleo, deles, delevi, deletum, delere | v | distruggere | accusativo | Carthaginem deleverunt. – Distrussero Cartagine.
+terreo, terres, terrui, territum, terrere | v | atterrire; spaventare | accusativo | Tonitrua pueros terrent. – I tuoni spaventano i bambini.
+debeo, debes, debui, debitum, debere | v | dovere | infinito | Studere debes. – Devi studiare.
+iubeo, iubes, iussi, iussum, iubere | v | ordinare; comandare | accusativo e infinito | Milites pugnare iubet. – Ordina ai soldati di combattere.
+maneo, manes, mansi, mansum, manere | v | rimanere; restare | | Domi maneo. – Resto a casa.
+moveo, moves, movi, motum, movere | v | muovere; spostare | accusativo | Castra movet. – Leva l'accampamento.
+respondeo, respondes, respondi, responsum, respondere | v | rispondere | dativo | Magistro respondeo. – Rispondo al maestro.
+sedeo, sedes, sedi, sessum, sedere | v | sedere; stare seduto | | In sella sedet. – Siede sulla sedia.
+rideo, rides, risi, risum, ridere | v | ridere | | Puellae rident. – Le fanciulle ridono.
+placeo, places, placui, placitum, placere | v | piacere | dativo | Fabula mihi placet. – Il racconto mi piace.
+pareo, pares, parui, paritum, parere | v | obbedire | dativo | Milites duci parent. – I soldati obbediscono al comandante.
+noceo, noces, nocui, nocitum, nocere | v | nuocere; danneggiare | dativo | Fumus oculis nocet. – Il fumo nuoce agli occhi.
+taceo, taces, tacui, tacitum, tacere | v | tacere | | Discipuli tacent. – Gli scolari tacciono.
+valeo, vales, valui, valiturus, valere | v | stare bene; essere forte; valere | | Vale! – Stammi bene! Addio!
+prohibeo, prohibes, prohibui, prohibitum, prohibere | v | impedire; tenere lontano | accusativo e ablativo | Hostes itinere prohibent. – Impediscono ai nemici il passaggio.
+augeo, auges, auxi, auctum, augere | v | aumentare; accrescere | accusativo | Copias auget. – Accresce le truppe.
+persuadeo, persuades, persuasi, persuasum, persuadere | v | persuadere; convincere | dativo | Civibus persuasit. – Persuase i cittadini.
+possideo, possides, possedi, possessum, possidere | v | possedere | accusativo | Agros possidet. – Possiede dei campi.
+obtineo, obtines, obtinui, obtentum, obtinere | v | ottenere; occupare; mantenere | accusativo | Principatum obtinuit. – Ottenne il primato.
+careo, cares, carui, cariturus, carere | v | essere privo di; mancare di | ablativo | Caret pecunia. – È privo di denaro.
+studeo, studes, studui, studere | v | dedicarsi a; studiare | dativo | Litteris studet. – Si dedica allo studio delle lettere.
+gaudeo, gaudes, gavisus sum, gaudere | v | godere; rallegrarsi | ablativo | Victoria gaudent. – Si rallegrano della vittoria.
+audeo, audes, ausus sum, audere | v | osare | infinito | Nemo pugnare audet. – Nessuno osa combattere.
+soleo, soles, solitus sum, solere | v | essere solito | infinito | Mane surgere soleo. – Sono solito alzarmi presto.
+fleo, fles, flevi, fletum, flere | v | piangere | | Puer flet. – Il bambino piange.
+
+# ============ VERBI: 3ª CONIUGAZIONE ============
+lego, legis, legi, lectum, legere | v | leggere; scegliere; raccogliere | accusativo | Libros legimus. – Leggiamo dei libri.
+dico, dicis, dixi, dictum, dicere | v | dire; chiamare | accusativo | Verum dicit. – Dice il vero. | imp=dic
+duco, ducis, duxi, ductum, ducere | v | condurre; guidare; ritenere | accusativo | Exercitum ducit. – Guida l'esercito. | imp=duc
+mitto, mittis, misi, missum, mittere | v | mandare; inviare | accusativo | Legatos mittit. – Manda ambasciatori.
+scribo, scribis, scripsi, scriptum, scribere | v | scrivere | accusativo | Epistulam scribo. – Scrivo una lettera.
+vinco, vincis, vici, victum, vincere | v | vincere | accusativo | Romani hostes vicerunt. – I Romani vinsero i nemici.
+rego, regis, rexi, rectum, regere | v | reggere; governare | accusativo | Rex populum regit. – Il re governa il popolo.
+pono, ponis, posui, positum, ponere | v | porre; collocare | accusativo | Castra ponunt. – Pongono l'accampamento.
+peto, petis, petivi, petitum, petere | v | chiedere; dirigersi verso; attaccare | accusativo | Pacem petunt. – Chiedono la pace.
+cedo, cedis, cessi, cessum, cedere | v | cedere; ritirarsi | | Hostes cesserunt. – I nemici si ritirarono.
+gero, geris, gessi, gestum, gerere | v | portare; compiere; (bellum gerere) fare la guerra | accusativo | Bellum gerunt. – Fanno la guerra.
+ago, agis, egi, actum, agere | v | fare; agire; condurre; trattare | accusativo | Gratias agere. – Ringraziare.
+cogo, cogis, coegi, coactum, cogere | v | radunare; costringere | accusativo | Copias cogit. – Raduna le truppe.
+colo, colis, colui, cultum, colere | v | coltivare; venerare; abitare | accusativo | Agros colunt. – Coltivano i campi.
+credo, credis, credidi, creditum, credere | v | credere; affidare | dativo | Tibi credo. – Ti credo.
+defendo, defendis, defendi, defensum, defendere | v | difendere | accusativo | Patriam defendunt. – Difendono la patria.
+discedo, discedis, discessi, discessum, discedere | v | allontanarsi; partire | | Ab urbe discessit. – Si allontanò dalla città.
+relinquo, relinquis, reliqui, relictum, relinquere | v | lasciare; abbandonare | accusativo | Patriam reliquit. – Lasciò la patria.
+quaero, quaeris, quaesivi, quaesitum, quaerere | v | cercare; chiedere | accusativo | Amicum quaero. – Cerco un amico.
+vivo, vivis, vixi, victum, vivere | v | vivere | | Diu vixit. – Visse a lungo. | id=vivere
+curro, curris, cucurri, cursum, currere | v | correre | | Pueri currunt. – I ragazzi corrono.
+emo, emis, emi, emptum, emere | v | comprare | accusativo | Panem emit. – Compra il pane.
+consulo, consulis, consului, consultum, consulere | v | consultare (+ acc.); provvedere a (+ dat.) | accusativo o dativo | Oraculum consulunt. – Consultano l'oracolo.
+constituo, constituis, constitui, constitutum, constituere | v | stabilire; decidere | accusativo | Diem constituunt. – Stabiliscono il giorno.
+statuo, statuis, statui, statutum, statuere | v | collocare; stabilire | accusativo | Statuit proficisci. – Decise di partire.
+trado, tradis, tradidi, traditum, tradere | v | consegnare; tramandare | accusativo e dativo | Urbem hostibus tradidit. – Consegnò la città ai nemici.
+reddo, reddis, reddidi, redditum, reddere | v | restituire; rendere | accusativo | Librum reddo. – Restituisco il libro.
+ostendo, ostendis, ostendi, ostentum, ostendere | v | mostrare | accusativo | Viam ostendit. – Mostra la strada.
+incendo, incendis, incendi, incensum, incendere | v | incendiare; infiammare | accusativo | Vicos incenderunt. – Incendiarono i villaggi.
+occido, occidis, occidi, occisum, occidere | v | uccidere | accusativo | Hostem occidit. – Uccise il nemico.
+cognosco, cognoscis, cognovi, cognitum, cognoscere | v | conoscere; venire a sapere | accusativo | Rem cognovit. – Venne a sapere la cosa.
+disco, discis, didici, discere | v | imparare | accusativo | Linguam Latinam discimus. – Impariamo la lingua latina.
+claudo, claudis, clausi, clausum, claudere | v | chiudere | accusativo | Portas claudunt. – Chiudono le porte.
+contendo, contendis, contendi, contentum, contendere | v | affrettarsi; combattere; sostenere | | In Italiam contendit. – Si diresse in fretta verso l'Italia.
+sumo, sumis, sumpsi, sumptum, sumere | v | prendere | accusativo | Arma sumunt. – Prendono le armi.
+surgo, surgis, surrexi, surrectum, surgere | v | alzarsi; sorgere | | Sol surgit. – Il sole sorge. | nopass
+tollo, tollis, sustuli, sublatum, tollere | v | sollevare; togliere | accusativo | Manus tollunt. – Alzano le mani.
+verto, vertis, verti, versum, vertere | v | volgere; voltare | accusativo | Terga vertunt. – Volgono le spalle (fuggono).
+solvo, solvis, solvi, solutum, solvere | v | sciogliere; pagare | accusativo | Naves solvunt. – Salpano.
+iungo, iungis, iunxi, iunctum, iungere | v | unire; congiungere | accusativo | Dextras iungunt. – Si stringono la mano.
+metuo, metuis, metui, metuere | v | temere | accusativo | Mortem metuit. – Teme la morte.
+instruo, instruis, instruxi, instructum, instruere | v | schierare; preparare | accusativo | Aciem instruit. – Schiera l'esercito.
+intellego, intellegis, intellexi, intellectum, intellegere | v | capire; comprendere | accusativo | Verba tua intellego. – Capisco le tue parole.
+neglego, neglegis, neglexi, neglectum, neglegere | v | trascurare | accusativo | Officium neglegit. – Trascura il dovere.
+diligo, diligis, dilexi, dilectum, diligere | v | amare; stimare | accusativo | Parentes diligimus. – Amiamo i genitori.
+ludo, ludis, lusi, lusum, ludere | v | giocare | | Pueri pila ludunt. – I ragazzi giocano a palla.
+bibo, bibis, bibi, bibere | v | bere | accusativo | Aquam bibit. – Beve acqua.
+cresco, crescis, crevi, cretum, crescere | v | crescere | | Arbores crescunt. – Gli alberi crescono. | nopass
+pello, pellis, pepuli, pulsum, pellere | v | spingere; scacciare | accusativo | Hostes pepulerunt. – Respinsero i nemici.
+cado, cadis, cecidi, casum, cadere | v | cadere | | Folia cadunt. – Le foglie cadono. | nopass
+
+# ============ VERBI: 3ª CONIUGAZIONE IN -IO ============
+capio, capis, cepi, captum, capere | v | prendere; catturare | accusativo | Urbem ceperunt. – Presero la città.
+facio, facis, feci, factum, facere | v | fare (al passivo si usa fio) | accusativo | Iter faciunt. – Fanno un viaggio; marciano. | imp=fac
+iacio, iacis, ieci, iactum, iacere | v | gettare; lanciare | accusativo | Tela iaciunt. – Lanciano dardi.
+fugio, fugis, fugi, fugiturus, fugere | v | fuggire; evitare | | Hostes fugiunt. – I nemici fuggono. | nopass
+cupio, cupis, cupivi, cupitum, cupere | v | desiderare | accusativo | Pacem cupimus. – Desideriamo la pace.
+accipio, accipis, accepi, acceptum, accipere | v | ricevere; accogliere | accusativo | Epistulam accepi. – Ho ricevuto la lettera.
+recipio, recipis, recepi, receptum, recipere | v | ricevere; riprendere; (se recipere) ritirarsi | accusativo | Se in castra recepit. – Si ritirò nell'accampamento.
+interficio, interficis, interfeci, interfectum, interficere | v | uccidere | accusativo | Tyrannum interfecerunt. – Uccisero il tiranno.
+conficio, conficis, confeci, confectum, conficere | v | portare a termine; sfinire | accusativo | Bellum confecit. – Portò a termine la guerra.
+efficio, efficis, effeci, effectum, efficere | v | compiere; ottenere | accusativo | Effecit ut… – Ottenne che…
+incipio, incipis, coepi, inceptum, incipere | v | cominciare | infinito | Pugnare incipiunt. – Cominciano a combattere.
+conspicio, conspicis, conspexi, conspectum, conspicere | v | scorgere; vedere | accusativo | Hostes conspexit. – Scorse i nemici.
+rapio, rapis, rapui, raptum, rapere | v | rapire; afferrare | accusativo | Praedam rapiunt. – Afferrano il bottino.
+
+# ============ VERBI: 4ª CONIUGAZIONE ============
+audio, audis, audivi, auditum, audire | v | ascoltare; udire | accusativo | Vocem audio. – Sento una voce.
+venio, venis, veni, ventum, venire | v | venire; giungere | | Veni, vidi, vici. – Venni, vidi, vinsi. | nopass
+dormio, dormis, dormivi, dormitum, dormire | v | dormire | | Infans dormit. – Il neonato dorme.
+scio, scis, scivi, scitum, scire | v | sapere | accusativo | Nihil scio. – Non so nulla.
+nescio, nescis, nescivi, nescitum, nescire | v | non sapere; ignorare | accusativo | Nescio quid dicas. – Non so che cosa tu dica.
+munio, munis, munivi, munitum, munire | v | fortificare | accusativo | Castra muniunt. – Fortificano l'accampamento.
+sentio, sentis, sensi, sensum, sentire | v | sentire; accorgersi; pensare | accusativo | Dolorem sentio. – Sento dolore.
+invenio, invenis, inveni, inventum, invenire | v | trovare | accusativo | Viam invenit. – Trovò la strada.
+pervenio, pervenis, perveni, perventum, pervenire | v | giungere; arrivare | | Ad urbem pervenerunt. – Giunsero alla città. | nopass
+convenio, convenis, conveni, conventum, convenire | v | radunarsi; incontrare | | Omnes in forum conveniunt. – Tutti si radunano nel foro.
+aperio, aperis, aperui, apertum, aperire | v | aprire | accusativo | Portam aperit. – Apre la porta.
+reperio, reperis, repperi, repertum, reperire | v | trovare; scoprire | accusativo | Causam repperit. – Scoprì la causa.
+impedio, impedis, impedivi, impeditum, impedire | v | impedire; ostacolare | accusativo | Iter impedit. – Ostacola il cammino.
+custodio, custodis, custodivi, custoditum, custodire | v | custodire; sorvegliare | accusativo | Canis domum custodit. – Il cane custodisce la casa.
+punio, punis, punivi, punitum, punire | v | punire | accusativo | Sceleratos punit. – Punisce i malvagi.
+servio, servis, servivi, servitum, servire | v | servire; essere schiavo | dativo | Patriae servit. – Serve la patria.
+
+# ============ VERBI DEPONENTI E SEMIDEPONENTI ============
+hortor, hortaris, hortatus sum, hortari | v | esortare; incoraggiare | accusativo | Dux milites hortatur. – Il comandante esorta i soldati.
+conor, conaris, conatus sum, conari | v | tentare; cercare di | infinito | Fugere conantur. – Tentano di fuggire.
+miror, miraris, miratus sum, mirari | v | ammirare; meravigliarsi | accusativo | Pulchritudinem miramur. – Ammiriamo la bellezza.
+arbitror, arbitraris, arbitratus sum, arbitrari | v | ritenere; giudicare | accusativo | Ita arbitror. – Così ritengo.
+moror, moraris, moratus sum, morari | v | indugiare; trattenersi | | Diu morati sunt. – Indugiarono a lungo.
+vereor, vereris, veritus sum, vereri | v | temere; rispettare | accusativo | Deos veretur. – Rispetta gli dèi.
+polliceor, polliceris, pollicitus sum, polliceri | v | promettere | accusativo | Auxilium pollicetur. – Promette aiuto.
+fateor, fateris, fassus sum, fateri | v | confessare; ammettere | accusativo | Culpam fatetur. – Confessa la colpa.
+sequor, sequeris, secutus sum, sequi | v | seguire | accusativo | Ducem sequuntur. – Seguono il comandante.
+loquor, loqueris, locutus sum, loqui | v | parlare | | Latine loquitur. – Parla in latino.
+proficiscor, proficisceris, profectus sum, proficisci | v | partire; mettersi in marcia | | Caesar in Galliam profectus est. – Cesare partì per la Gallia.
+utor, uteris, usus sum, uti | v | usare; servirsi di | ablativo | Armis utuntur. – Usano le armi.
+fruor, frueris, fructus sum, frui | v | godere di | ablativo | Otio fruitur. – Gode del tempo libero.
+nascor, nasceris, natus sum, nasci | v | nascere | | Poeta nascitur. – Poeti si nasce. | futpart=nasciturus
+morior, moreris, mortuus sum, mori | v | morire | | Pro patria mortuus est. – Morì per la patria. | futpart=moriturus
+patior, pateris, passus sum, pati | v | sopportare; soffrire; permettere | accusativo | Dolorem patitur. – Sopporta il dolore.
+gradior, graderis, gressus sum, gradi | v | camminare; avanzare | | Lente graditur. – Avanza lentamente.
+egredior, egrederis, egressus sum, egredi | v | uscire | | E castris egressi sunt. – Uscirono dall'accampamento.
+progredior, progrederis, progressus sum, progredi | v | avanzare; procedere | | Longius progrediuntur. – Avanzano più lontano.
+orior, oriris, ortus sum, oriri | v | sorgere; nascere | | Sol oritur. – Il sole sorge. | futpart=oriturus
+experior, experiris, expertus sum, experiri | v | sperimentare; tentare | accusativo | Fortunam experitur. – Tenta la sorte.
+potior, potiris, potitus sum, potiri | v | impadronirsi di | ablativo o genitivo | Castris potiti sunt. – S'impadronirono dell'accampamento.
+mentior, mentiris, mentitus sum, mentiri | v | mentire | | Numquam mentitur. – Non mente mai.
+
+# ============ VERBI IRREGOLARI ============
+sum, es, fui, esse | v | essere; esserci; (con il dativo) avere | | Roma in Italia est. – Roma è in Italia.
+possum, potes, potui, posse | v | potere; essere in grado | infinito | Pugnare possumus. – Possiamo combattere.
+absum, abes, afui, abesse | v | essere lontano; mancare | ablativo | Ab urbe absum. – Sono lontano dalla città.
+adsum, ades, adfui, adesse | v | essere presente; assistere | dativo | Amicis adsum. – Assisto gli amici.
+desum, dees, defui, deesse | v | mancare; venir meno | dativo | Nihil mihi deest. – Non mi manca nulla.
+prosum, prodes, profui, prodesse | v | giovare; essere utile | dativo | Studium tibi prodest. – Lo studio ti giova.
+praesum, praees, praefui, praeesse | v | essere a capo di; comandare | dativo | Exercitui praeest. – Comanda l'esercito.
+intersum, interes, interfui, interesse | v | essere presente; partecipare | dativo | Proelio interfuit. – Partecipò alla battaglia.
+eo, is, ii, itum, ire | v | andare | | Romam eo. – Vado a Roma.
+abeo, abis, abii, abitum, abire | v | andarsene; partire | | Abiit, excessit, evasit, erupit. – Se ne andò, uscì, scappò, fuggì.
+redeo, redis, redii, reditum, redire | v | ritornare | | Domum redit. – Torna a casa.
+exeo, exis, exii, exitum, exire | v | uscire | | Ex urbe exit. – Esce dalla città.
+transeo, transis, transii, transitum, transire | v | attraversare; passare | accusativo | Flumen transeunt. – Attraversano il fiume.
+adeo, adis, adii, aditum, adire | v | andare verso; avvicinarsi | accusativo | Regem adit. – Si reca dal re. | id=v
+pereo, peris, perii, peritum, perire | v | morire; perire | | Multi perierunt. – Molti morirono.
+fero, fers, tuli, latum, ferre | v | portare; sopportare; riferire | accusativo | Auxilium ferunt. – Portano aiuto.
+affero, affers, attuli, allatum, afferre | v | portare (verso); recare | accusativo | Nuntium affert. – Reca una notizia.
+aufero, aufers, abstuli, ablatum, auferre | v | portare via; togliere | accusativo | Praedam abstulerunt. – Portarono via il bottino.
+confero, confers, contuli, collatum, conferre | v | portare insieme; (se conferre) recarsi | accusativo | Se in urbem contulit. – Si recò in città.
+refero, refers, rettuli, relatum, referre | v | riportare; riferire | accusativo | Rem ad senatum refert. – Riferisce la questione al senato.
+offero, offers, obtuli, oblatum, offerre | v | offrire | accusativo e dativo | Auxilium offert. – Offre aiuto.
+volo, vis, volui, velle | v | volere | infinito | Vincere volo. – Voglio vincere.
+nolo, non vis, nolui, nolle | v | non volere | infinito | Pugnare nolunt. – Non vogliono combattere.
+malo, mavis, malui, malle | v | preferire | infinito | Mori malo quam servire. – Preferisco morire che essere schiavo.
+fio, fis, factus sum, fieri | v | diventare; accadere; essere fatto | | Consul factus est. – Fu fatto console.
+
+# ============ VERBI DIFETTIVI E IMPERSONALI ============
+memini, meministi, meminisse | v | ricordare | genitivo o accusativo | Memini tui. – Mi ricordo di te.
+odi, odisti, osurus, odisse | v | odiare | accusativo | Odi et amo. – Odio e amo.
+coepi, coepisti, coeptum, coepisse | v | cominciai, ho cominciato | infinito | Pugnare coeperunt. – Cominciarono a combattere.
+licet, licuit, licere | v | è lecito; è permesso | dativo | Mihi licet. – Mi è permesso.
+oportet, oportuit, oportere | v | bisogna; è necessario | infinito | Oportet studere. – Bisogna studiare.
+decet, decuit, decere | v | si addice; è conveniente | accusativo | Hoc te decet. – Questo ti si addice.
+pudet, puduit, pudere | v | vergognarsi (mi vergogno: me pudet) | accusativo e genitivo | Me pudet. – Mi vergogno.
+paenitet, paenituit, paenitere | v | pentirsi (mi pento: me paenitet) | accusativo e genitivo | Me paenitet culpae. – Mi pento della colpa.
