@@ -53,7 +53,8 @@ cpSync(join(root, 'src'), dist, { recursive: true });
 cpSync(join(root, 'latino'), join(dist, 'latino'), { recursive: true });
 
 // prima aMICOLatino, così il suo sw.js è già completo quando si calcola la versione di aMICOLettore
-const lat = finishApp(join(dist, 'latino'), [...PDFJS, ...SPEECH], []);
+const JSPDF = [['jspdf/dist/jspdf.umd.min.js', 'jspdf.umd.min.js']];
+const lat = finishApp(join(dist, 'latino'), [...PDFJS, ...SPEECH, ...JSPDF], []);
 const let_ = finishApp(dist, [...PDFJS, ...SPEECH], ['latino']);
 
 writeFileSync(join(dist, '.nojekyll'), '');

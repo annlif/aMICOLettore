@@ -75,14 +75,58 @@ prepara la cartella `dist/` e la pubblica su GitHub Pages. Va attivata una sola 
 ## aMICOLatino (sull'iPad: **aMICOLat**)
 
 Una seconda app, nello stesso repository, per fare le **versioni di latino ragionando**: divide la versione in frasi,
-aiuta con il vocabolario e l'analisi delle forme, ma **non traduce al posto tuo**.
+aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto tuo**.
 
 👉 Indirizzo: **https://annlif.github.io/aMICOLettore/latino/**
 
-Si installa come app **separata** (Safari → Condividi → Aggiungi alla schermata Home): ha la sua icona, il suo archivio
-e funziona anche senza internet. I sorgenti sono nella cartella [`latino/`](latino/); `npm run build` la prepara in `dist/latino/`.
+### Cosa fa
 
-Stato: **fase 1 in costruzione** – pronte la struttura e le **versioni** (PDF o testo incollato → frasi → traduzione salvata sul dispositivo); vocabolario, analisi delle forme e parole arrivano nei prossimi aggiornamenti.
+- **Versioni** – carica il PDF (o incolla il testo): l'app lo divide in frasi, toglie numeri di riga e parole spezzate,
+  mette a parte titolo e consegne. Accanto a ogni frase c'è il campo per la **tua traduzione**, salvata da sola.
+  Puoi unire, dividere o correggere le frasi. Se il PDF è una scansione, l'app lo dice chiaramente.
+- **Ogni parola si tocca**: *Cerca nel vocabolario*, *Analizza la forma*, *Ascolta*, *Aggiungi alle mie parole*.
+- **Analisi delle forme** – riconosce le forme flesse (es. *rosarum* → *rosa, rosae*, genitivo plurale) e mostra **tutte**
+  le analisi possibili quando una forma è ambigua, invitando a scegliere guardando la frase.
+- **Connettivi** – un pulsante li evidenzia; quelli con più valori (*cum*, *ut*, *quod*…) sono tratteggiati.
+- **Vocabolario offline** – lessico di base del primo anno (oltre 600 voci, con tutti i connettivi principali), con paradigma,
+  declinazione o coniugazione, significati, caso retto ed esempio. Le voci sono state **confrontate con il dizionario
+  Olivetti** (paradigma, categoria, genere, declinazione o coniugazione, significati principali) e restano da verificare
+  con la professoressa: dal Vocabolario si scarica l'**elenco in PDF** da rivedere.
+  Per ogni voce c'è il pulsante **Apri nell'Olivetti** (dizionario-latino.com).
+- **Parole che non ci sono** – si aggiungono con un tocco alla lista **"da completare"**: le schede vengono poi compilate
+  seguendo l'Olivetti e aggiunte al lessico in un aggiornamento dell'app.
+- **Le mie parole** – il vocabolario personale, con la scheda, le frasi in cui hai incontrato la parola e i tuoi appunti;
+  filtri per categoria e i connettivi in una sezione a parte.
+- **Ascolta** – voce italiana di Azure (pronuncia scolastica), la stessa di aMICOLettore; l'audio viene salvato sul
+  dispositivo. Senza internet usa la voce dell'iPad.
+- **Esporta** una versione (latino + traduzione) in **PDF** o **testo** da mandare alla professoressa.
+- **Backup** di tutti i dati in un file, e ripristino.
+- **Ricerca unica** nella barra in alto: vocabolario (anche forme flesse), significati, versioni.
+
+### Collegare la voce di aMICOLettore (una volta sola)
+
+Sull'iPad ogni app della schermata Home ha un archivio separato, quindi aMICOLatino non può leggere da sola la chiave
+salvata in aMICOLettore. Basta passarla con gli appunti:
+
+1. Apri **aMICOLettore** → ⚙︎ Impostazioni → **Copia la voce per aMICOLatino**.
+2. Apri **aMICOLatino** → ⚙︎ Impostazioni → **Incolla da aMICOLettore**, poi **Prova la voce**.
+
+(In Safari o sul computer, dove l'archivio è lo stesso, aMICOLatino trova la chiave da solo.)
+
+### Installarla sull'iPad
+
+Safari → **https://annlif.github.io/aMICOLettore/latino/** → Condividi → **Aggiungi alla schermata Home**.
+Compare l'icona con la colonna e il nome **aMICOLat**. È un'app separata da aMICOLettore.
+
+### Il lessico
+
+Il lessico è nel file [`latino/data/lessico.txt`](latino/data/lessico.txt), una voce per riga
+(`paradigma | categoria | significati | caso retto | esempio | etichette`). Il motore in
+[`latino/js/morfo.js`](latino/js/morfo.js) ricava dal paradigma tutte le forme flesse, senza dati esterni.
+I significati sono scritti per aMICOLatino: dal dizionario Olivetti non viene copiato nulla.
+
+Prossime fasi (già previste nella navigazione, ma nascoste): **Regole**, **Esercizi**, **Quaderno**,
+riconoscimento del testo dei PDF scansionati.
 
 ## Per chi sviluppa
 
@@ -93,7 +137,8 @@ npm start        # prepara dist/ e la apre su http://localhost:8080
 
 - `src/` contiene l'app (HTML, CSS, JavaScript senza framework); `scripts/build.mjs` copia le librerie in `dist/vendor/`.
 - `npm run icons` rigenera le icone PNG di entrambe le app, `docs/logo.png` e `docs/logo-latino.png` dagli SVG (richiede Playwright).
-- `npm test` prepara `dist/` e prova le due app nel browser (anche offline), imitando l'indirizzo di GitHub Pages.
+- `npm test` prepara `dist/` e prova le due app nel browser (anche offline), imitando l'indirizzo di GitHub Pages,
+  e verifica il motore morfologico di aMICOLatino su centinaia di forme.
 - Il testo del PDF e l'audio sono salvati in IndexedDB; le impostazioni in `localStorage`.
 - Il testo da leggere viene inviato soltanto ad Azure Speech; non c'è nessun altro server.
 

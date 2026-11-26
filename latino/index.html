@@ -79,6 +79,15 @@
       <input class="ver-title" id="ver-title-input" type="text" aria-label="Titolo della versione" autocomplete="off">
       <span class="ver-saved" id="ver-saved" aria-live="polite"></span>
     </div>
+    <div class="ver-tools">
+      <button class="tool" id="ver-conn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13 7 4 4M3 22h18"/></svg>Evidenzia i connettivi
+      </button>
+      <button class="tool" id="ver-export" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>Esporta per la professoressa
+      </button>
+    </div>
+    <p class="conn-legend" id="conn-legend" hidden><span class="w conn">connettivo</span> <span class="w conn amb">può avere più valori: ragionaci!</span></p>
     <p class="ver-meta" id="ver-meta"></p>
     <div class="lib-bar ver-bar" aria-hidden="true"><span id="ver-progress"></span></div>
     <details class="ver-notes" id="ver-notes" hidden>
@@ -96,29 +105,39 @@
   <!-- VOCABOLARIO -->
   <main id="view-vocabolario" class="view" data-view="vocabolario" hidden>
     <h1 class="view-title">Vocabolario</h1>
-    <div class="coming">
-      <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
-      <p>Qui troverai il vocabolario del primo anno, che riconosce anche le forme flesse e funziona senza internet.</p>
-      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+    <p class="muted" id="vocab-count"></p>
+    <p><button class="tool" type="button" id="vocab-pdf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 14l2 2 4-4"/></svg>Elenco per la professoressa (PDF)</button></p>
+    <div class="search inline-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="vocab-search" type="search" placeholder="Cerca un lemma, una forma flessa o un significato…" aria-label="Cerca nel vocabolario" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
+    <div class="chips" id="vocab-chips" role="group" aria-label="Filtra per categoria"></div>
+    <details class="dacompl" id="dc-box" hidden>
+      <summary>Parole da completare <span class="dc-n" id="dc-n"></span></summary>
+      <p class="muted small">Sono le parole che hai aggiunto e che non erano nel vocabolario: le loro schede verranno compilate seguendo l'Olivetti.</p>
+      <ul class="dc-list" id="dc-list"></ul>
+      <button class="ghost" type="button" id="dc-export">Condividi la lista</button>
+    </details>
+    <ul class="vocab-list" id="vocab-list"></ul>
   </main>
 
   <!-- PAROLE -->
   <main id="view-parole" class="view" data-view="parole" hidden>
     <h1 class="view-title">Le mie parole</h1>
-    <div class="coming">
+    <p class="muted" id="parole-count"></p>
+    <div class="coming" id="parole-empty">
       <svg class="coming-o" aria-hidden="true"><use href="#column-o"/></svg>
-      <p>Qui ci saranno le parole che scegli di imparare, con la frase della versione in cui le hai incontrate.</p>
-      <p class="muted">In costruzione: arriva nei prossimi aggiornamenti.</p>
+      <p>Qui raccoglierai le parole che vuoi imparare.</p>
+      <p class="muted">Tocca una parola in una versione e scegli <b>Aggiungi alle mie parole</b>: la ritroverai qui con la sua scheda e la frase in cui l'hai incontrata.</p>
     </div>
+    <div class="chips" id="parole-chips" role="group" aria-label="Filtra per categoria"></div>
+    <div id="parole-list"></div>
   </main>
 
   <!-- RICERCA -->
   <main id="view-cerca" class="view" data-view="cerca" hidden>
-    <h1 class="view-title">Ricerca: <span id="search-query"></span></h1>
-    <div class="coming">
-      <p>La ricerca funzionerà quando il vocabolario sarà pronto.</p>
-    </div>
+    <h1 class="view-title">Ricerca: <span id="search-query" lang="la"></span></h1>
+    <div id="search-results"></div>
   </main>
 
   <!-- barra delle sezioni: i pulsanti sono creati da js/app.js (solo le sezioni pronte) -->
@@ -129,12 +148,33 @@
     <form method="dialog">
       <h2 id="settings-title">Impostazioni</h2>
       <fieldset>
-        <legend>Voce</legend>
-        <p class="help">Per "Ascolta" userò la stessa voce di Azure di aMICOLettore. Presto potrai copiarla da lì con un tocco.</p>
+        <legend>Voce per "Ascolta"</legend>
+        <p class="help" id="voce-stato"></p>
+        <div class="btn-row">
+          <button type="button" class="secondary" id="btn-incolla-voce">Incolla da aMICOLettore</button>
+          <button type="button" class="ghost" id="btn-prova-voce">Prova la voce</button>
+        </div>
+        <p class="help">In aMICOLettore apri le Impostazioni e tocca <em>Copia la voce per aMICOLatino</em>, poi torna qui e tocca <em>Incolla da aMICOLettore</em>.</p>
+        <details class="manual">
+          <summary>Inserisci la chiave a mano</summary>
+          <label>Chiave di Azure Speech<input id="set-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="incolla qui la chiave"></label>
+          <label>Regione<input id="set-region" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="es. westeurope"></label>
+        </details>
+        <label>Voce<select id="set-voce"></select></label>
+        <label>Velocità<select id="set-rate"><option value="0.8">Lenta</option><option value="0.9">Un po' lenta</option><option value="1">Normale</option></select></label>
+        <label class="check"><input type="checkbox" id="set-ipad"> Se manca internet, usa la voce dell'iPad</label>
+        <p class="help" id="voce-msg" role="status"></p>
+        <p class="help" id="voce-usage"></p>
       </fieldset>
       <fieldset>
         <legend>Backup</legend>
-        <p class="help">Presto potrai salvare in un file tutte le versioni, le traduzioni e le parole, e ripristinarle.</p>
+        <p class="help">Salva in un file tutte le versioni, le traduzioni e le parole (la chiave di Azure non viene salvata). Conservalo in File o iCloud: serve se cambi iPad o se i dati vengono cancellati.</p>
+        <div class="btn-row">
+          <button type="button" class="secondary" id="btn-backup">Salva un backup</button>
+          <button type="button" class="ghost" id="btn-restore">Ripristina da un backup</button>
+        </div>
+        <input type="file" id="restore-input" accept="application/json,.json" hidden>
+        <p class="help" id="backup-msg" role="status"></p>
       </fieldset>
       <fieldset>
         <legend>Informazioni</legend>
@@ -147,7 +187,30 @@
     </form>
   </dialog>
 
- <!-- INCOLLA IL TESTO -->
+  <!-- RIPRISTINO DEL BACKUP -->
+  <dialog class="sheet" id="restore-dialog" aria-labelledby="restore-h">
+    <form method="dialog">
+      <h2 id="restore-h">Ripristina il backup</h2>
+      <p id="restore-info"></p>
+      <p class="help"><b>Unisci</b>: aggiunge le versioni e le parole del backup a quelle che hai già.<br><b>Sostituisci</b>: cancella tutto quello che c'è ora e rimette solo il backup.</p>
+      <div class="sheet-actions">
+        <button class="ghost" value="cancel">Annulla</button>
+        <button class="danger" value="sostituisci">Sostituisci</button>
+        <button class="primary" value="unisci">Unisci</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- PAROLA: vocabolario e analisi -->
+  <dialog class="sheet word-sheet" id="word-sheet" aria-labelledby="word-title">
+    <div class="word-head">
+      <div><p class="word-mode" id="word-mode"></p><h2 id="word-title" lang="la"></h2></div>
+      <form method="dialog"><button class="close-x" aria-label="Chiudi">×</button></form>
+    </div>
+    <div class="word-body" id="word-body"></div>
+  </dialog>
+
+  <!-- INCOLLA IL TESTO -->
   <dialog class="sheet" id="paste-dialog" aria-labelledby="paste-h">
     <form method="dialog">
       <h2 id="paste-h">Incolla il testo della versione</h2>
