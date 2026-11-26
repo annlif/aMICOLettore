@@ -53,16 +53,6 @@ await page.setContent(`<style>
   .o{width:.8em;height:.8em;margin:0 .02em -.02em;color:#FF6F61}
 </style>${colSymbol}<div class="logo">${latIcon}<span class="wm"><span class="g">a</span><span class="c">MIC<svg class="o"><use href="#column-o"/></svg>L</span><span class="g">atino</span></span></div>`);
 writeFileSync(new URL('../docs/logo-latino.png', import.meta.url), await page.locator('.logo').screenshot({ omitBackground: true }));
-// logo della famiglia aMICOL™ (per il README): la scritta con Micol nella O
-const oImg = readFileSync(new URL('../src/icons/amicol-o.webp', import.meta.url)).toString('base64');
-await page.setContent(`<style>
-  body{margin:0;background:transparent;font-family:ui-rounded,"SF Pro Rounded",system-ui,"Inter",sans-serif}
-  .logo{display:inline-flex;align-items:baseline;padding:20px 40px 50px;font-weight:800;font-size:170px;letter-spacing:3px;line-height:1.2}
-  .g{color:#6B819B;font-weight:600}.c{color:#FF6F61}
-  img{height:.915em;margin:0 .01em;position:relative;top:.144em}
-  sup{font-size:.26em;color:#6B819B;font-weight:700;align-self:flex-start;margin:.25em 0 0 .15em}
-</style><div class="logo"><span class="g">a</span><span class="c">MIC</span><img src="data:image/webp;base64,${oImg}"><span class="c">L</span><sup>TM</sup></div>`);
-await page.waitForTimeout(200);
-writeFileSync(new URL('../docs/logo-amicol.png', import.meta.url), await page.locator('.logo').screenshot({ omitBackground: true }));
+// docs/logo-amicol.png (marchio aMICOL™) è l'immagine originale del marchio: non viene generata qui.
 await browser.close();
 console.log('Icone generate');
