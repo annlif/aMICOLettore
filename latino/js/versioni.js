@@ -4,6 +4,7 @@ import { $, esc, toast, fmtDate, debounce, autosize, openMenu, closeMenu } from 
 import { readPdf, cleanVersion, letterCount, makeSentences, tokenize, newId } from './testo.js';
 import { lexicon } from './vocab.js';
 import { shareText, versionPdf, shareFile } from './esporta.js';
+import { initGuida, startGuide, tapWord, guideActive, guideSentenceId, stopGuide } from './guida.js';
 
 let go = () => {};          // navigazione, fornita da app.js
 let wordActions = () => []; // azioni del menu di una parola, fornite da app.js
@@ -26,6 +27,14 @@ export function initVersioni(opts) {
   $('ver-sentences').addEventListener('focusout', () => saveSoon.flush());
   $('ver-split-cancel').addEventListener('click', () => setSplitMode(null));
   $('edit-dialog').addEventListener('close', onEditClosed);
+  initGuida({
+    refresh: refreshSentence,
+    save: () => save(),
+    focusTranslation: (s) => {
+      const ta = document.querySelector(`.sent[data-id="${s.id}"] textarea`);
+      if (ta) { ta.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => ta.focus(), 300); }
+    },
+  });
   $('ver-conn').addEventListener('click', () => { setConnOn(!connOn()); markConnectives(); });
   $('ver-export').addEventListener('click', () => openMenu($('ver-export'), 'Esporta la versione', [
     { label: 'Salva o condividi come PDF', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/>', action: exportPdf },
@@ -152,15 +161,33 @@ function renderSentences() {
   $('ver-sentences').innerHTML = cur.sentences.map((s, i) => `
     <li class="sent" data-id="${esc(s.id)}">
       <span class="sent-num" aria-hidden="true">${i + 1}</span>
-      <div class="sent-la" lang="la">${tokenize(s.la).map((p) => (p.w ? `<span class="w" role="button" tabindex="0" data-w="${esc(p.t)}">${esc(p.t)}</span>` : esc(p.t))).join('')}</div>
+      <div class="sent-la" lang="la">${wordsHtml(s)}</div>
       <div class="sent-it">
         <textarea rows="2" lang="it" aria-label="La tua traduzione della frase ${i + 1}" placeholder="La tua traduzione…">${esc(s.it)}</textarea>
+        <button class="help-btn" type="button" data-guide>🧭 Sono bloccata: aiutami</button>
       </div>
       <button class="sent-more" type="button" data-more aria-label="Altre azioni per la frase ${i + 1}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
       </button>
     </li>`).join('');
   for (const ta of $('ver-sentences').querySelectorAll('textarea')) autosize(ta);
+  markConnectives();
+}
+
+// ---------- guida ----------
+function openGuide(s) {
+  if (splitFor) setSplitMode(null);
+  if (guideActive()) stopGuide();
+  const li = document.querySelector(`.sent[data-id="${s.id}"]`);
+  li?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  startGuide(s);
+}
+/** Ridisegna le parole di una frase (segni della guida, connettivi). */
+function refreshSentence(s) {
+  const li = document.querySelector(`.sent[data-id="${s.id}"]`);
+  if (!li) return;
+  li.querySelector('.sent-la').innerHTML = wordsHtml(s);
+  li.classList.toggle('guided', guideActive() && guideSentenceId() === s.id);
   markConnectives();
 }
 
@@ -174,8 +201,10 @@ async function markConnectives() {
   const on = connOn();
   $('ver-conn').setAttribute('aria-pressed', String(on));
   $('conn-legend').hidden = !on;
-  const words = $('ver-sentences').querySelectorAll('.w');
-  if (!on) { for (const w of words) w.classList.remove('conn', 'amb'); return; }
+  const gid = guideActive() ? guideSentenceId() : null;
+  const words = [...$('ver-sentences').querySelectorAll('.w')].filter((w) => on || (gid && w.closest('.sent')?.dataset.id === gid));
+  for (const w of $('ver-sentences').querySelectorAll('.w')) if (!words.includes(w)) w.classList.remove('conn', 'amb');
+  if (!words.length) return;
   const L = await lexicon();
   for (const w of words) {
     const res = L.analyze(w.dataset.w).filter((r) => !r.enclitica);
@@ -197,6 +226,22 @@ async function exportPdf() {
     const how = await shareFile(file, cur.title);
     if (how === 'download') toast('PDF salvato.');
   } catch (e) { toast(e.message || String(e), 5000); }
+}
+
+function wordsHtml(s) {
+  let k = 0;
+  const g = s.guida || {};
+  const mark = (i) => {
+    if (g.verb === i) return ' g-verb';
+    if (g.subj === i) return ' g-subj';
+    if (g.pred === i) return ' g-pred';
+    if (g.obj === i) return ' g-obj';
+    if (g.preps?.some(([a, b]) => a === i || b === i)) return ' g-prep';
+    return '';
+  };
+  return tokenize(s.la).map((p) => (p.w
+    ? `<span class="w${mark(k)}" role="button" tabindex="0" data-k="${k++}" data-w="${esc(p.t)}">${esc(p.t)}</span>`
+    : esc(p.t))).join('');
 }
 
 function updateProgress() {
@@ -261,7 +306,15 @@ async function onTitleChanged() {
 
 // ---------- parole e menu delle frasi ----------
 function onSentencesClick(e) {
+  const gb = e.target.closest('[data-guide]');
+  if (gb) { const s = sentenceOf(gb); if (s) { closeMenu(); openGuide(s); } return; }
   const w = e.target.closest('.w');
+  if (w && guideActive()) {
+    const s = sentenceOf(w);
+    if (s?.id === guideSentenceId()) tapWord(Number(w.dataset.k));
+    else toast('La guida sta lavorando su un\'altra frase: finisci quella o tocca "Esci dalla guida".');
+    return;
+  }
   if (w) {
     const s = sentenceOf(w);
     if (splitFor) { splitAt(w); return; }
@@ -272,7 +325,12 @@ function onSentencesClick(e) {
   if (more) {
     const s = sentenceOf(more);
     const i = cur.sentences.indexOf(s);
+    const hasMarks = s.guida && Object.keys(s.guida).length > 0;
     openMenu(more, `Frase ${i + 1}`, [
+      { label: 'Aiutami: guida all\'analisi', action: () => openGuide(s),
+        icon: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>' },
+      ...(hasMarks ? [{ label: 'Cancella i segni della guida', action: () => { delete s.guida; refreshSentence(s); save(); },
+        icon: '<path d="M4 20h16M7 16 17 6M14 3l7 7"/>' }] : []),
       { label: 'Ascolta la frase', action: () => speak(s.la),
         icon: '<path d="M4 9v6h4l5 4V5L8 9Z"/><path d="M16 9a3.5 3.5 0 0 1 0 6M18.5 6.5a7 7 0 0 1 0 11"/>' },
       { label: 'Unisci con la frase successiva', action: () => merge(i), disabled: i >= cur.sentences.length - 1,
@@ -337,4 +395,4 @@ function onEditClosed() {
 }
 
 export function currentVersion() { return cur; }
-export function leaveVersion() { saveSoon.flush(); setSplitMode(null); closeMenu(); }
+export function leaveVersion() { stopGuide(); saveSoon.flush(); setSplitMode(null); closeMenu(); }
