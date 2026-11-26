@@ -2,7 +2,7 @@
 import { loadSettings, saveSettings, askPersistence, db } from './store.js';
 import { $, toast, closeMenu, esc } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
-import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI } from './voce.js';
+import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI, audioState } from './voce.js';
 import { makeBackup, readBackup, restoreBackup, shareFile } from './esporta.js';
 import { initParole, showParole, addWord, addFromWord } from './parole.js';
 import { initVocab, showVocab, showWord, showSearch, addToComplete, wordContext, renderDaCompletare, initDaCompletare, lexicon } from './vocab.js';
@@ -276,4 +276,4 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 // per i test automatici
-window.__amicolatino = { SECTIONS, settings };
+window.__amicolatino = { SECTIONS, settings, audioState };
