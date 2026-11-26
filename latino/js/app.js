@@ -1,6 +1,6 @@
 // aMICOLatino – navigazione tra le sezioni, impostazioni di base, installazione offline.
-import { loadSettings, saveSettings, askPersistence } from './store.js';
-import { $, toast, closeMenu } from './ui.js';
+import { loadSettings, saveSettings, askPersistence, db } from './store.js';
+import { $, toast, closeMenu, esc } from './ui.js';
 import { initVersioni, showList, showVersion, leaveVersion } from './versioni.js';
 import { ascolta, loadVoce, saveVoce, parseVoceCode, provaVoce, usage, VOCI } from './voce.js';
 import { makeBackup, readBackup, restoreBackup, shareFile } from './esporta.js';
@@ -62,7 +62,31 @@ function voceStato(v) {
   if (v.key && v.region) return `Voce di Azure collegata (regione ${v.region})${v.from === 'amicolettore' ? ', presa da aMICOLettore' : ''}. ✓`;
   return 'La voce di Azure non è ancora collegata: per ora "Ascolta" usa la voce dell\'iPad.';
 }
-function openSettings() { fillSettings(); $('settings').showModal(); }
+function openSettings() { fillSettings(); renderAudio(); $('settings').showModal(); }
+
+// ---------- audio salvato ----------
+const kb = (b) => (b >= 1048576 ? `${(b / 1048576).toLocaleString('it-IT', { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+async function renderAudio() {
+  const list = (await db.audio.all()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const tot = list.reduce((n, a) => n + (a.audio?.byteLength || 0), 0);
+  $('audio-info').textContent = list.length ? `${list.length} ${list.length === 1 ? 'parola o frase' : 'parole e frasi'} · ${kb(tot)}` : 'Nessun audio salvato.';
+  $('btn-audio-clear').hidden = !list.length;
+  $('audio-list').innerHTML = list.map((a) => `<li><span class="audio-name" lang="la">${esc(a.text || '(senza testo)')}</span>
+    <span class="audio-meta">${kb(a.audio?.byteLength || 0)}${a.createdAt ? ' · ' + new Date(a.createdAt).toLocaleDateString('it-IT') : ''}</span>
+    <button type="button" class="ghost small-btn" data-audio-del="${esc(a.key)}">Cancella</button></li>`).join('');
+}
+$('audio-list').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-audio-del]');
+  if (!b) return;
+  await db.audio.del(b.dataset.audioDel);
+  renderAudio();
+});
+$('btn-audio-clear').addEventListener('click', async () => {
+  if (!confirm('Cancellare tutto l\'audio salvato di aMICOLatino?\nRiascoltare le parole userà di nuovo la quota di Azure.')) return;
+  await db.audio.clear();
+  renderAudio();
+  toast('Audio cancellato.');
+});
 function fillSettings() {
   const v = loadVoce();
   $('voce-stato').textContent = voceStato(v);

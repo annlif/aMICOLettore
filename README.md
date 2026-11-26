@@ -28,6 +28,8 @@
   caratteri servono e quanti ne restano nel mese). Poi il documento si legge anche senza internet, con le voci di Azure.
 - **Voce dell'iPad di riserva**: se manca internet o la quota di Azure è finita, le parti non ancora salvate vengono lette
   con una voce italiana installata sull'iPad (gratis e offline, meno naturale). Si può disattivare nelle impostazioni.
+- **Audio salvato sotto controllo**: nelle impostazioni c'è lo spazio occupato documento per documento, con un pulsante per
+  cancellare l'audio di un solo documento; togliendo un documento dalla libreria l'app chiede se cancellare anche il suo audio.
 - **Contatore dei caratteri**: barra con i caratteri inviati ad Azure nel mese (stima per dispositivo), con avvisi
   all'80%, al 95% e al 100% della quota gratuita.
 - **Testo regolabile** (A− / A+), colori chiari e tema scuro automatico.
