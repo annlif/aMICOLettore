@@ -215,3 +215,47 @@ test('guida nell\'app: si arriva alla struttura toccando le parole', async () =>
     server.close();
   }
 });
+
+test('contesto: le 5 frasi di prova (forma sicura, funzione ipotizzata)', async () => {
+  const { tipoPredicato, ipotesiFunzioni, formeCaso } = await import('../latino/js/struttura.js');
+  const fun = (S, w, forma) => {
+    const k = S.words.findIndex((x) => x.t === w);
+    const f = ipotesiFunzioni(S, k).find((x) => x.forma === forma);
+    return f?.no ? `NO: ${f.no}` : f?.funzioni.map((y) => y.nome).join(' | ');
+  };
+  // 1. Prope oram insulae parva casa est.
+  let S = analyzeSentence(L, 'Prope oram insulae parva casa est.');
+  assert.deepEqual(T(S, S.main), ['est']);
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['casa']);
+  assert.equal(tipoPredicato(S, S.main[0]).tipo, 'verbale', 'est = c\'è, si trova');
+  assert.equal(fun(S, 'oram', 'accusativo singolare'), 'complemento di stato in luogo');
+  assert.deepEqual(formeCaso(S.words[2]), ['genitivo singolare', 'dativo singolare', 'nominativo plurale', 'vocativo plurale']);
+  assert.match(fun(S, 'insulae', 'genitivo singolare'), /specificazione/);
+  assert.match(fun(S, 'insulae', 'nominativo plurale'), /NO: il verbo è singolare/);
+  assert.equal(fun(S, 'parva', 'nominativo singolare'), 'attributo di casa', 'con est = c\'è, parva non è nome del predicato');
+  assert.equal(fun(S, 'casa', 'nominativo singolare'), 'soggetto');
+  // 2. In casa nauta cum filiabus habitat.
+  S = analyzeSentence(L, 'In casa nauta cum filiabus habitat.');
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['nauta']);
+  assert.match(fun(S, 'casa', 'ablativo singolare'), /stato in luogo/);
+  assert.match(fun(S, 'filiabus', 'ablativo plurale'), /compagnia/);
+  assert.match(fun(S, 'filiabus', 'dativo plurale'), /NO: cum non regge il dativo/);
+  // 3. Vita nautae dura est.
+  S = analyzeSentence(L, 'Vita nautae dura est.');
+  const tp = tipoPredicato(S, S.main[0]);
+  assert.equal(tp.tipo, 'nominale');
+  assert.equal(S.words[tp.pred].t, 'dura');
+  assert.deepEqual(T(S, complementCandidates(S, S.main[0], 'pred', [0])), ['dura'], 'nautae (nom. plurale) non concorda con est');
+  assert.match(fun(S, 'nautae', 'genitivo singolare'), /specificazione/);
+  // 4. Agricola puellae rosas donat.
+  S = analyzeSentence(L, 'Agricola puellae rosas donat.');
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['Agricola']);
+  assert.deepEqual(T(S, complementCandidates(S, S.main[0], 'acc', [])), ['rosas']);
+  assert.match(fun(S, 'puellae', 'dativo singolare'), /termine/);
+  // 5. Filiae nautam laetitia salutant.
+  S = analyzeSentence(L, 'Filiae nautam laetitia salutant.');
+  assert.deepEqual(T(S, subjectCandidates(S, S.main[0]).all), ['Filiae']);
+  assert.deepEqual(T(S, complementCandidates(S, S.main[0], 'acc', [])), ['nautam']);
+  assert.match(fun(S, 'laetitia', 'nominativo singolare'), /NO: il verbo è plurale/);
+  assert.match(fun(S, 'laetitia', 'ablativo singolare'), /modo/);
+});

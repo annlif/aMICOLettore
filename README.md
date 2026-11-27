@@ -102,6 +102,14 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   Con *sum* chiede se il predicato è verbale o nominale. Gli altri complementi si **ragionano in tre passi**: *in che caso
   è?* → *a quale domanda risponde?* (elenco completo: dove?, quando?, con chi?…) → nome del complemento; l'app controlla
   che ogni passo sia compatibile con caso, preposizione e (con l'IA) con il senso della frase.
+  **Forma e funzione sono distinte**: la forma (caso e numero) viene dalla morfologia ed è sicura; la funzione è
+  un'**ipotesi** che dipende dal contesto. Le regole di contesto: la preposizione decide il caso (prope/ad + accusativo,
+  in + ablativo o accusativo, cum/sine + ablativo…); un nominativo che non concorda con il verbo non può essere soggetto;
+  un genitivo dipende da un nome vicino (la guida chiede *da quale nome dipende?*); un aggettivo vicino a un nome con cui
+  concorda ne è l'attributo; con *sum* il predicato è nominale solo se c'è un nominativo che dice com'è il soggetto, ed è
+  verbale ("c'è, si trova") se c'è un complemento di luogo. Quando le letture possibili sono più d'una, l'indizio mostra
+  tutte le ipotesi con la domanda-guida invece di dare una sola risposta. Anche l'analisi dell'IA viene controllata con
+  la morfologia (es. un genitivo infilato in un complemento di luogo viene separato come specificazione).
   Alla fine compare l'**analisi logica scritta**, che resta sotto la frase e può andare nel PDF. Non traduce mai.
 - **Intelligenza artificiale per la guida (facoltativa)** – con una chiave di **Gemini** (Google AI Studio, quota
   gratuita) o di **Azure OpenAI** (anche Azure for Students), la guida usa l'analisi dell'IA per verbo principale, soggetto,

@@ -158,3 +158,80 @@ test('guida con Gemini: il senso decide il complemento', async () => {
     server.close();
   }
 });
+
+test('IA che sbaglia (genitivo dentro il luogo, casa nome del predicato): la morfologia la corregge', async () => {
+  const server = await startPagesServer(8077);
+  const browser = await chromium.launch();
+  const page = await (await browser.newContext({ viewport: { width: 1180, height: 820 } })).newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  // 0 Prope 1 oram 2 insulae 3 parva 4 casa 5 est
+  const SBAGLIATA = {
+    principale: { verbo: 5, tipo: 'nominale', nomePredicato: 4 }, soggetto: 4, soggettoSottinteso: '',
+    complementi: [{ parole: [0, 1, 2], tipo: 'stato-luogo', dipendeDa: -1 }], attributi: [{ parola: 3, riferito: 4 }], apposizioni: [], subordinate: [], dubbi: '',
+  };
+  await page.route('https://generativelanguage.googleapis.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(SBAGLIATA) }] } }] }) }));
+  const tap = (w) => page.locator('.sent.guided .sent-la .w', { hasText: new RegExp(`^${w}$`) }).click();
+  const fb = (re) => page.waitForFunction((src) => new RegExp(src).test(document.getElementById('guide-fb').textContent), re.source);
+  const q = (re) => page.waitForFunction((src) => new RegExp(src).test(document.getElementById('guide-q').textContent), re.source, { timeout: 8000 });
+  const avanti = () => page.click('#guide-btns [data-g="avanti"]');
+  try {
+    await page.goto('http://localhost:8077/aMICOLettore/latino/');
+    await page.evaluate(() => localStorage.setItem('amicolatino.ia', JSON.stringify({ key: 'k', on: true, model: 'gemini-flash-latest' })));
+    await page.click('#btn-paste');
+    await page.fill('#paste-text', 'Prope oram insulae parva casa est.');
+    await page.click('#paste-dialog button[value="ok"]');
+    await page.waitForSelector('#view-versione', { state: 'visible' });
+    await page.locator('.sent').first().locator('[data-guide]').click();
+    await q(/verbo principale/);
+    await tap('est');
+    await avanti();
+    await q(/predicato verbale o nominale/);
+    await page.click('#guide-btns [data-g="pt"][data-id="nominale"]');
+    await fb(/c'è, si trova/);
+    await page.click('#guide-btns [data-g="pt"][data-id="verbale"]');
+    await fb(/Predicato verbale/);
+    await avanti();
+    await q(/soggetto/);
+    await tap('casa');
+    await avanti();
+    await q(/altri pezzi/);
+    await tap('Prope');
+    await tap('oram');
+    await page.click('#guide-btns [data-g="caso"][data-id="acc"]');
+    await page.click('#guide-btns [data-g="dom"][data-id="4"]'); // Dove? (stato)
+    await fb(/stato in luogo/);
+    await avanti();
+    await tap('insulae');
+    await page.click('#guide-btns [data-g="caso"][data-id="nom"]');
+    await fb(/il verbo è singolare/);
+    await page.click('#guide-btns [data-g="caso"][data-id="gen"]');
+    await page.click('#guide-btns [data-g="dom"][data-id="4"]'); // Dove? → no: il genitivo non è un luogo
+    await fb(/altra domanda/);
+    await page.click('#guide-btns [data-g="dom"][data-id="1"]'); // Di chi? Di che cosa?
+    await page.click('#guide-btns [data-g="comp"][data-id="specificazione"]').catch(() => {});
+    await q(/Da quale nome dipende/);
+    await tap('oram');
+    await fb(/specificazione.*di oram/);
+    await avanti();
+    await tap('parva');
+    await page.click('#guide-btns [data-g="caso"][data-id="nom"]');
+    await page.locator('#guide-btns [data-g="dom"]', { hasText: 'Accompagna un nome' }).click();
+    await page.click('#guide-btns [data-g="comp"][data-id="attributo"]');
+    await tap('casa');
+    await fb(/attributo di casa/);
+    await avanti();
+    await page.click('#guide-btns [data-g="fine-altri"]');
+    await q(/analisi logica/);
+    const sum = await page.textContent('#guide-q');
+    assert.match(sum, /predicato verbale\s*est/);
+    assert.match(sum, /soggetto\s*casa/);
+    assert.match(sum, /complemento di stato in luogo\s*Prope oram\s*\(accusativo\)/);
+    assert.match(sum, /complemento di specificazione di oram\s*insulae\s*\(genitivo\)/);
+    assert.match(sum, /attributo di casa\s*parva/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+    server.close();
+  }
+});

@@ -8,6 +8,7 @@ import { lexicon, olivettiUrl } from './vocab.js';
 import {
   analyzeSentence, verbLemmas, subjectCandidates, implicitSubject, complementType, complementCandidates, DOMANDA, isSum,
   COMPLEMENTI, checkComplement, agree, verbPassive, ETICHETTA_RETTO, DOMANDE, low,
+  tipoPredicato, ipotesiFunzioni, formeCaso, nomeConcordato,
 } from './struttura.js';
 import { iaAttiva, analizzaConIA } from './ai.js';
 
@@ -31,7 +32,7 @@ export function initGuida(callbacks) {
     if (act === 'dom') return chooseQuestion(Number(b.dataset.id));
     if (act === 'avanti') return setStep(G.nextStep);
     if (act === 'fine-altri') return finish(b.dataset.force === '1');
-    if (act === 'annulla-item') { G.prep = null; G.target = null; G.caso = null; return setStep('altri'); }
+    if (act === 'annulla-item') { G.prep = null; G.target = null; G.caso = null; G.dom = null; return setStep('altri'); }
     if (act === 'traduci') { const s = G.s; stopGuide(); cb.focusTranslation(s); }
   });
 }
@@ -50,18 +51,51 @@ export async function startGuide(s) {
   // analisi con l'intelligenza artificiale (se attivata): una volta per frase, poi resta salvata
   let nota = '';
   if (iaAttiva()) {
-    if (!(s.ia && s.iaLa === s.la)) {
+    if (!(s.ia && s.iaLa === s.la && s.ia.v === IA_V)) {
       $('guide-q').innerHTML = 'Un momento: preparo la guida per questa frase…';
       $('guide-fb').innerHTML = ''; $('guide-btns').innerHTML = '';
       try { s.ia = await analizzaConIA(s.la); s.iaLa = s.la; cb.save(); } catch (e) { s.ia = null; nota = e.message; }
     }
     if (!G || G.s !== s) return;
   }
-  if (s.ia && s.iaLa === s.la) applyIA(S, s.ia);
+  if (s.ia && s.iaLa === s.la && s.ia.v === IA_V) applyIA(S, correggiIA(S, s.ia));
   $('guide-mode').textContent = S.ia ? '🧠 intelligenza artificiale' : 'regole dell\'app';
   setStep(S.verbs.length ? 'verb' : 'noverb');
   if (nota) feedback(esc(nota), true);
   else if (S.ia?.dubbi) feedback(`Nota: ${esc(S.ia.dubbi)}`, true);
+}
+
+const IA_V = 2; // versione delle istruzioni all'IA: le analisi salvate con istruzioni vecchie vengono richieste di nuovo
+
+/**
+ * Controlla l'analisi dell'IA con la morfologia (che è sicura): toglie dai complementi le parole che non hanno il caso
+ * giusto (es. un genitivo infilato in "prope oram insulae") e corregge il tipo di predicato con sum quando le regole sono sicure.
+ */
+function correggiIA(S, ia0) {
+  const ia = JSON.parse(JSON.stringify(ia0));
+  const extra = [];
+  ia.complementi = ia.complementi.map((c) => {
+    const def = COMPLEMENTI.find((x) => x.id === c.tipo);
+    if (!def?.forme) return c;
+    const pk = c.parole.find((k) => S.isPrep(S.words[k]));
+    const prep = pk != null ? low(S.words[pk].t) : null;
+    const fit = (k) => S.words[k].unknown || S.words[k].an.some((a) => def.forme.some((f) => (f.preps ? f.preps.includes(prep) : prep == null) && f.caso === a.caso));
+    const keep = c.parole.filter((k) => k === pk || fit(k));
+    const head = keep.filter((k) => k !== pk);
+    const ok = keep.concat(c.parole.filter((k) => !keep.includes(k) && head.some((h) => agree(S, k, h, true))));
+    for (const k of c.parole.filter((x) => !ok.includes(x))) {
+      if (S.words[k].an.some((a) => a.caso === 'gen')) extra.push({ parole: [k], tipo: 'specificazione', dipendeDa: head[0] ?? -1 });
+    }
+    return { ...c, parole: c.parole.filter((k) => ok.includes(k)) };
+  }).filter((c) => c.parole.some((k) => !S.isPrep(S.words[k])));
+  ia.complementi.push(...extra);
+  const v = ia.principale.verbo;
+  if (v >= 0 && isSum(S.words[v])) {
+    const tp = tipoPredicato(S, v, ia.soggetto >= 0 ? ia.soggetto : null);
+    if (tp.tipo && tp.tipo !== ia.principale.tipo) ia.principale = { ...ia.principale, tipo: tp.tipo, nomePredicato: tp.tipo === 'nominale' ? (tp.pred ?? -1) : -1 };
+  }
+  if (ia.principale.nomePredicato >= 0 && ia.principale.nomePredicato === ia.soggetto) ia.principale = { ...ia.principale, tipo: 'verbale', nomePredicato: -1 };
+  return ia;
 }
 
 /** Sostituisce le "ipotesi" delle regole con l'analisi dell'IA (verbo principale, subordinate). */
@@ -100,7 +134,7 @@ function iaInfo(k) {
   const a = IA();
   if (!a) return null;
   const c = a.complementi.find((x) => x.parole.includes(k));
-  if (c) return { id: c.tipo, parole: c.parole };
+  if (c) return { id: c.tipo, parole: c.parole, dip: c.dipendeDa };
   const at = a.attributi.find((x) => x.parola === k);
   if (at) return { id: 'attributo', rif: at.riferito };
   const ap = a.apposizioni.find((x) => x.parola === k);
@@ -201,6 +235,10 @@ function setStep(step) {
       btns = [...DOMANDE[G.dom][1].map((id) => ['comp', COMPLEMENTI.find((c) => c.id === id).nome, id]), ['annulla-item', 'Annulla']];
       chips = true;
       break;
+    case 'dip':
+      q = `${traccia()}Da quale <b>nome</b> dipende? Toccalo.`;
+      btns = [['indizio', 'Indizio'], ['annulla-item', 'Annulla']];
+      break;
     case 'rif':
       q = `Tocca il nome a cui si riferisce ${tw(G.target)}.`;
       btns = [['annulla-item', 'Annulla']];
@@ -222,7 +260,7 @@ function renderButtons(btns, chips = false) {
   const cls = (g) => (g === 'esci' || g === 'annulla-item' ? 'ghost' : ['traduci', 'lemma', 'avanti', 'avanti-noverb'].includes(g) ? 'primary' : ['comp', 'dom', 'caso'].includes(g) ? 'chip-btn' : 'secondary');
   const html = btns.map(([g, label, id]) => `<button type="button" class="${cls(g)}" data-g="${g === 'avanti-noverb' ? 'no' : g}"${id ? ` data-id="${esc(id)}"` : ''}>${esc(label)}</button>`).join('');
   $('guide-btns').className = `guide-btns${chips ? ' chips-list' : ''}`;
-  $('guide-btns').innerHTML = html + (G.errors >= 2 && ['verb', 'subj', 'compl', 'altri-reg', 'caso', 'domanda', 'nome'].includes(G.step) ? '<button type="button" class="secondary" data-g="mostra">Mostrami</button>' : '');
+  $('guide-btns').innerHTML = html + (G.errors >= 2 && ['verb', 'subj', 'compl', 'altri-reg', 'caso', 'domanda', 'nome', 'dip'].includes(G.step) ? '<button type="button" class="secondary" data-g="mostra">Mostrami</button>' : '');
 }
 
 function feedback(html, ok) {
@@ -308,6 +346,19 @@ export function tapWord(k) {
       if (k > G.prep && (cases.some((c) => S.hasCase(x, c)) || unk)) { G.target = k; return setStep('caso'); }
       return wrong(`${tw(k)} non dipende da ${tw(G.prep)}.`);
     }
+    case 'dip': {
+      const c = COMPLEMENTI.find((y) => y.id === G.compId);
+      const inf = iaInfo(G.target);
+      const nome = x.an.some((a) => (a.t === 'nome' || a.t === 'pron') && a.caso);
+      if (k === G.target) return wrong('Tocca il nome da cui dipende, non la stessa parola.');
+      if (!nome || k === G.v) return wrong(`${tw(k)} non è un nome: il genitivo dipende da un nome.`);
+      if (inf?.dip != null && inf.dip >= 0 && inf.dip !== k) return wrong(`Grammaticalmente si può, ma nel senso della frase ${tw(G.target)} non dipende da ${tw(k)}.`);
+      if (Math.abs(k - G.target) > 3) return wrong(`${tw(k)} è lontano: di solito il genitivo sta vicino al nome da cui dipende.`);
+      const t0 = G.target, tr = traccia();
+      const avviso = avvisoDativo(t0);
+      addItem([t0], c, k);
+      return done(`${tr}È un <b>${esc(c.nome)}</b> di ${tw(k)}.${avviso}`, 'altri');
+    }
     case 'rif': {
       const c = COMPLEMENTI.find((y) => y.id === G.compId);
       if (k === G.target) return wrong('Tocca un\'altra parola: il nome.');
@@ -330,7 +381,7 @@ export function tapWord(k) {
 }
 
 function addItem(ks, c, rif = null) {
-  G.s.guida.items.push({ ks: G.prep != null ? [G.prep, ...ks] : ks, id: c.id, nome: c.nome, rif });
+  G.s.guida.items.push({ ks: G.prep != null ? [G.prep, ...ks] : ks, id: c.id, nome: c.nome, rif, caso: G.caso ? casoIt(G.caso) : '' });
   G.prep = null; G.target = null; G.caso = null; G.dom = null;
   cb.refresh(G.s);
 }
@@ -354,11 +405,26 @@ function casiPossibili() {
   return cs;
 }
 
+/** Motivo per cui una forma possibile è esclusa dal contesto (verbo non concordato, vocativo senza "o"...). */
+function esclusa(c) {
+  const ip = ipotesiFunzioni(G.S, G.target, G.v ?? G.S.main[0]).filter((x) => x.forma.startsWith(casoIt(c)));
+  return ip.length && ip.every((x) => x.no) ? ip[0].no : '';
+}
+
 function chooseCase(c) {
+  const x = w(G.target);
+  if (x.unknown) { G.caso = c; return setStep('domanda'); }
+  if (!x.an.some((a) => a.caso === c)) return wrong(`${tw(G.target)} non è ${alCaso(c)}: guarda la desinenza.`);
+  if (G.prep != null) {
+    const r = (w(G.prep).res.find((y) => y.entry.cat === 'prep')?.entry.regge || '').toLowerCase();
+    if (r && !r.includes(casoIt(c))) return wrong(`${tw(G.prep)} non regge ${/^[aeiou]/.test(casoIt(c)) ? 'l\'' : 'il '}${casoIt(c)}.`);
+  }
+  const no = esclusa(c);
+  if (no) return wrong(`Come <b>forma</b> può essere ${casoIt(c)}, ma qui no: ${esc(no)}.`);
   const cs = casiPossibili();
-  if (w(G.target).unknown || !cs.length || cs.includes(c)) { G.caso = c; return setStep('domanda'); }
-  if (G.prep != null && w(G.target).an.some((a) => a.caso === c)) return wrong(`${tw(G.prep)} non regge ${/^[aeiou]/.test(casoIt(c)) ? 'l\'' : 'il '}${casoIt(c)}.`);
-  return wrong(`${tw(G.target)} non è ${alCaso(c)}: guarda la desinenza.`);
+  if (cs.length && !cs.includes(c)) return wrong(`Come <b>forma</b> può essere ${casoIt(c)}, ma nel senso della frase no.`);
+  G.caso = c;
+  return setStep('domanda');
 }
 
 /** Complementi della domanda i che funzionano con il caso scelto (e la preposizione). */
@@ -386,6 +452,20 @@ function chooseQuestion(i) {
   if (ids.length === 1) return chooseComplement(ids[0]);
   if (validi.length === 1 && !COMPLEMENTI.find((c) => c.id === validi[0]).rif) return chooseComplement(validi[0]);
   return setStep('nome');
+}
+
+/** Senza IA: se con lo stesso caso la domanda poteva portare ad altro, lo dice (ipotesi da verificare). */
+function altreIpotesi(id) {
+  const altri = DOMANDE.map((_, j) => j).filter((j) => j !== G.dom && complementiValidi(j).some((x) => x !== id && !COMPLEMENTI.find((c) => c.id === x).rif));
+  return altri.length ? `<br><span class="muted">È un'ipotesi: con ${casoIt(G.caso)} potrebbe anche rispondere a ${altri.slice(0, 3).map((j) => `«${esc(DOMANDE[j][0])}»`).join(', ')}. Controlla il senso.</span>` : '';
+}
+/** Genitivo che potrebbe essere dativo con un verbo che regge il dativo (puellae con donat). */
+function avvisoDativo(k) {
+  const v = G.v ?? G.S.main[0];
+  if (v == null || iaInfo(k)) return '';
+  const r = (w(v).an.find((a) => a.entry?.regge)?.entry.regge || '').toLowerCase();
+  return /dativo/.test(r) && w(k).an.some((a) => a.caso === 'dat')
+    ? `<br><span class="muted">⚠ Attenzione: ${tw(k)} può essere anche dativo e ${tw(v)} regge il dativo. «A chi?» ha più senso?</span>` : '';
 }
 
 // ---------- risposte: pulsanti ----------
@@ -419,19 +499,23 @@ function chooseLemma(id) {
 
 function choosePredType(t) {
   const S = G.S;
-  const noms = complementCandidates(S, G.v, 'pred', []);
-  const adj = noms.some((k) => w(k).an.some((a) => a.caso === 'nom' && (a.t === 'agg' || a.t === 'part')));
-  const nominale = IA() ? IA().principale.tipo === 'nominale' : (adj || noms.length >= 2 || (noms.length >= 1 && implicitSubject(S, G.v, G.lemmaId)));
-  if ((t === 'nominale') === !!nominale) {
+  const tp = tipoPredicato(S, G.v);
+  const sicuro = tp.tipo ?? IA()?.principale.tipo ?? null;
+  if (!sicuro) { // incerto: due letture possibili, Micol sceglie ragionando sul senso
+    G.predType = t;
+    G.s.guida.predType = t;
+    return done(`Può andare: ${esc(tp.perche)}. Scegli la lettura che ha senso: "${t === 'nominale' ? 'il soggetto è …' : 'c\'è …'}".`, 'subj');
+  }
+  if ((t === 'nominale') === (sicuro === 'nominale')) {
     G.predType = t;
     G.s.guida.predType = t;
     return done(t === 'nominale'
-      ? 'Sì! <b>Predicato nominale</b>: essere è la copula.'
-      : 'Sì! <b>Predicato verbale</b>: essere vuol dire "esserci, trovarsi".', 'subj');
+      ? `Sì! <b>Predicato nominale</b>: essere è la copula.${tp.tipo ? ` <span class="muted">(${esc(tp.perche)})</span>` : ''}`
+      : `Sì! <b>Predicato verbale</b>: essere vuol dire "c'è, si trova".${tp.tipo ? ` <span class="muted">(${esc(tp.perche)})</span>` : ''}`, 'subj');
   }
   return wrong(t === 'nominale'
-    ? 'Non c\'è un nome del predicato: qui essere vuol dire "esserci".'
-    : 'Guarda meglio: c\'è una parola al nominativo che dice com\'è il soggetto.');
+    ? `Qui essere vuol dire "c'è, si trova"${tp.tipo === 'verbale' ? `: ${esc(tp.perche)}` : ''}.`
+    : `Guarda meglio: ${tp.tipo === 'nominale' ? esc(tp.perche) : 'c\'è una parola al nominativo che dice com\'è il soggetto'}.`);
 }
 
 function chooseComplement(id) {
@@ -439,11 +523,13 @@ function chooseComplement(id) {
   const inf = iaInfo(G.target);
   if (inf && inf.id !== id) return wrong(`No: nel senso della frase non è un ${esc(c.nome)}.`);
   if (c.rif) { G.compId = id; return setStep('rif'); }
+  if (['specificazione', 'partitivo'].includes(id) && G.prep == null) { G.compId = id; G.dom ??= DOMANDE.findIndex(([, ids]) => ids.includes(id)); return setStep('dip'); }
   const r = checkComplement(G.S, G.target, G.prep, id, { passive: verbPassive(G.S, G.v ?? 0, G.lemmaId) });
   if (!r.ok) return wrong(r.msg);
   const tr = traccia();
+  const alt = !inf ? altreIpotesi(id) : '';
   addItem([G.target], c);
-  return done(`${tr}È un <b>${esc(c.nome)}</b>.${r.unsure ? ' (Parola non nel vocabolario: controlla il caso.)' : ''}`, 'altri');
+  return done(`${tr}È un <b>${esc(c.nome)}</b>.${r.unsure ? ' (Parola non nel vocabolario: controlla il caso.)' : ''}${alt}`, 'altri');
 }
 
 function finish(force) {
@@ -477,13 +563,19 @@ function hint() {
       pred: 'È al nominativo e dice com\'è o che cos\'è il soggetto.',
     }[G.type]),
     'altri-reg': () => 'Di solito viene subito dopo la preposizione.',
-    caso: () => (G.prep != null
-      ? `${tw(G.prep)} regge: ${esc(w(G.prep).res.find((r) => r.entry.cat === 'prep')?.entry.regge || '?')}.`
-      : 'Guarda la desinenza e chiediti che funzione può avere.'),
-    domanda: () => 'Rileggi la frase con il verbo e prova le domande: dove? quando? con chi? come? perché?',
+    caso: () => `<b>Forma</b> (sicura): ${tw(G.target)} può essere ${esc(formeCaso(w(G.target)).join(' · ') || '?')}.${G.prep != null ? ` ${tw(G.prep)} regge: ${esc(w(G.prep).res.find((r) => r.entry.cat === 'prep')?.entry.regge || '?')}.` : ''}`,
+    domanda: () => ipotesiHtml(),
+    dip: () => 'Il genitivo dipende di solito dal nome che gli sta vicino: «la riva <i>dell\'isola</i>».',
   };
   const f = H[G.step];
   if (f) { feedback(`💡 ${f()}`, true); $('guide-fb').className = 'guide-fb hint'; }
+}
+
+/** Ipotesi sulla funzione (da verificare) per il caso scelto, con la domanda-guida. */
+function ipotesiHtml() {
+  const ip = ipotesiFunzioni(G.S, G.target, G.v ?? G.S.main[0]).filter((x) => !G.caso || x.forma.startsWith(casoIt(G.caso)));
+  const righe = ip.filter((x) => !x.no && x.funzioni.length).map((x) => `${esc(x.forma)}: ${x.funzioni.map((f) => `${esc(f.nome)} → <i>${esc(f.domanda)}</i>`).join('; ')}`);
+  return righe.length ? `<b>Ipotesi</b> (da verificare sul senso):<br>${righe.join('<br>')}` : 'Rileggi la frase con il verbo e prova le domande: dove? quando? con chi? come? perché?';
 }
 
 function show() {
@@ -497,10 +589,11 @@ function show() {
   const inf = iaInfo(G.target);
   if (G.step === 'domanda') {
     const i = inf ? DOMANDE.findIndex(([, ids]) => ids.includes(inf.id)) : -1;
-    const ok = i >= 0 ? [i] : DOMANDE.map((_, j) => j).filter((j) => complementiValidi(j).length);
-    feedback(ok.length ? `${i >= 0 ? 'Risponde a' : 'Può rispondere a'}: <b>${ok.map((j) => esc(DOMANDE[j][0])).join(' · ')}</b>` : 'Qui non riesco a mostrartelo: ragiona sul senso.', true);
+    if (i >= 0) feedback(`Risponde a: <b>${esc(DOMANDE[i][0])}</b>`, true);
+    else feedback(ipotesiHtml(), true);
     return;
   }
+  if (G.step === 'dip') { const d = inf?.dip >= 0 ? inf.dip : [G.target - 1, G.target + 1, G.target - 2].find((j) => j >= 0 && j < S.words.length && j !== G.v && w(j).an.some((a) => a.t === 'nome' && a.caso)); k = d ?? null; }
   if (G.step === 'nome' && inf) { feedback(`È un <b>${esc(COMPLEMENTI.find((x) => x.id === inf.id).nome)}</b>.`, true); return; }
   if (k == null || k < 0) { feedback('Qui non riesco a mostrartelo: ragiona sul senso.', true); return; }
   const el = document.querySelector(`.sent[data-id="${G.s.id}"] .w[data-k="${k}"]`);
@@ -523,7 +616,7 @@ function analysisRows() {
   else if (g.verb != null) rows.push({ testo: '—', ruolo: 'soggetto sottinteso', nota: g.subjImp || '' });
   if (g.obj != null) rows.push({ testo: t(g.obj), ruolo: ETICHETTA_RETTO[G.type] || 'complemento', nota: '' });
   for (const it of g.items || []) {
-    rows.push({ testo: it.ks.map(t).join(' '), ruolo: it.rif != null ? `${it.nome} di ${t(it.rif)}` : it.nome, nota: '' });
+    rows.push({ testo: it.ks.map(t).join(' '), ruolo: it.rif != null ? `${it.nome} di ${t(it.rif)}` : it.nome, nota: it.caso || '' });
   }
   if (S.ia) for (const sb of S.ia.subordinate) rows.push({ testo: `${t(Math.min(...sb.parole))} … ${t(Math.max(...sb.parole))}`, ruolo: `proposizione subordinata ${sb.tipo}`.trim(), nota: '' });
   else if (S.spans.length) rows.push({ testo: S.spans.map(([a, b]) => `${t(a)} … ${t(b)}`).join('; '), ruolo: 'proposizione subordinata', nota: 'non analizzata dalla guida' });
@@ -533,7 +626,7 @@ function analysisRows() {
 function summary() {
   const rows = G.s.guida.rows || [];
   const chip = (r) => (/predicato/.test(r.ruolo) ? 'g-verb' : /soggetto/.test(r.ruolo) ? 'g-subj' : /attributo|apposizione/.test(r.ruolo) ? 'g-attr' : /subordinata/.test(r.ruolo) ? 'g-sub' : /oggetto|termine|retto|nome del predicato/.test(r.ruolo) ? 'g-obj' : 'g-prep');
-  return `<b>Brava!</b> Ecco l'<b>analisi logica</b>:<ul class="g-sum">${rows.map((r) => `<li><span class="g-chip ${chip(r)}">${esc(r.ruolo)}</span> <b lang="la">${esc(r.testo)}</b>${r.nota ? ` <span class="muted">(${esc(r.nota)})</span>` : ''}</li>`).join('')}</ul>Ora traduci: parti da predicato e soggetto.`;
+  return `<b>Brava!</b> Ecco l'<b>analisi logica</b> <span class="muted">(tra parentesi la forma, che è sicura; la funzione è da verificare sul senso)</span>:<ul class="g-sum">${rows.map((r) => `<li><span class="g-chip ${chip(r)}">${esc(r.ruolo)}</span> <b lang="la">${esc(r.testo)}</b>${r.nota ? ` <span class="muted">(${esc(r.nota)})</span>` : ''}</li>`).join('')}</ul>Ora traduci: parti da predicato e soggetto.`;
 }
 
 export { isSum };
