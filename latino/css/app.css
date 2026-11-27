@@ -443,6 +443,9 @@ button.big-btn { border: 0; }
 .help-btn { margin-top: 6px; border: 0; background: none; color: var(--blue); font-weight: 700; font-size: 15px; padding: 6px 2px; }
 @media (prefers-color-scheme: dark) { .help-btn { color: #8FB8E8; } }
 .guiding .help-btn { visibility: hidden; }
+.help-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.tutor-scrivi { display: flex; gap: 8px; flex-basis: 100%; }
+.tutor-scrivi input { flex: 1; min-width: 0; min-height: 46px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
 .guide-bar {
   position: fixed; left: 50%; transform: translateX(-50%); z-index: 30;
   bottom: calc(var(--tabbar-h) + 10px + env(safe-area-inset-bottom));

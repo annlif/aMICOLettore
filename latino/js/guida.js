@@ -43,14 +43,19 @@ export function initGuida(callbacks) {
 export const guideActive = () => !!G || tutorActive();
 export const guideSentenceId = () => G?.s.id ?? tutorSentenceId();
 
-export async function startGuide(s) {
+export async function startGuide(s, modo = 'aiuto') {
   // con l'IA, la guida a dialogo: le domande le decide l'IA; se non risponde, si torna alle regole
   let notaDialogo = '';
   if (dialogoAttivo()) {
-    const r = await startTutor(s, cb);
+    const r = await startTutor(s, cb, modo);
     if (r.ok) return;
     if (r.msg === undefined) return; // uscita durante l'attesa
     notaDialogo = r.msg;
+  }
+  if (modo === 'controlla') { // senza IA non si può controllare la traduzione
+    document.body.classList.remove('guiding'); $('guide-bar').hidden = true;
+    toast(`${notaDialogo || 'Per controllare la traduzione serve l\'intelligenza artificiale.'} Riprova più tardi.`, 4000);
+    return;
   }
   const L = await lexicon();
   const S = analyzeSentence(L, s.la);

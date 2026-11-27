@@ -33,8 +33,12 @@ test('guida a dialogo nell\'app (IA simulata) e ritorno alle regole se l\'IA non
     { esito: 'sbagliato', riscontro: 'Guarda **prope oram**: è un luogo.', domanda: 'Riprova: "è" o "c\'è"?', tipo: 'scegli', opzioni: ['è (copula)', 'c\'è, si trova'], segna: [], analisi: [] },
     { esito: 'giusto', riscontro: 'Brava.', domanda: 'Che caso è **insulae** qui?', tipo: 'scegli', opzioni: ['genitivo', 'dativo', 'nominativo'], segna: [{ parole: [4], ruolo: 'soggetto' }], analisi: [] },
     { esito: 'nessuno', riscontro: 'Te lo dico più semplice.', domanda: 'Di chi è la riva? Che caso esprime "di"?', tipo: 'scegli', opzioni: ['genitivo', 'dativo'], segna: [], analisi: [] },
-    { esito: 'giusto', riscontro: 'Esatto.', domanda: 'Ora traduci partendo da predicato e soggetto.', tipo: 'fine', opzioni: [], segna: [{ parole: [2], ruolo: 'complemento' }],
+    { esito: 'giusto', riscontro: 'Esatto.', domanda: 'Ora scrivi la traduzione nel riquadro e tocca Controlla.', tipo: 'traduci', opzioni: [], segna: [{ parole: [2], ruolo: 'complemento' }],
       analisi: [{ parole: [5], funzione: 'predicato verbale', caso: '' }, { parole: [4], funzione: 'soggetto', caso: 'nominativo singolare' }, { parole: [2], funzione: 'complemento di specificazione di oram', caso: 'genitivo singolare' }] },
+    { esito: 'sbagliato', riscontro: 'Hai fatto di **insulae** il soggetto: che caso è?', domanda: 'Correggi e tocca di nuovo Controlla.', tipo: 'traduci', opzioni: [], segna: [], analisi: [] },
+    { esito: 'nessuno', riscontro: 'Bella domanda.', domanda: 'Pensa a «la riva di…».', tipo: 'scrivi', opzioni: [], segna: [], analisi: [] },
+    { esito: 'giusto', riscontro: 'Perfetto, ora il senso è giusto!', domanda: 'Brava, frase finita.', tipo: 'fine', opzioni: [], segna: [], analisi: [] },
+    { esito: 'nessuno', riscontro: '', domanda: 'Bentornata: vuoi rivedere qualcosa?', tipo: 'tocca', opzioni: [], segna: [], analisi: [] },
   ];
   const richieste = [];
   let rotto = false;
@@ -56,7 +60,7 @@ test('guida a dialogo nell\'app (IA simulata) e ritorno alle regole se l\'IA non
     await page.fill('#paste-text', 'Prope oram insulae parva casa est. Vita nautae dura est.');
     await page.click('#paste-dialog button[value="ok"]');
     await page.waitForSelector('#view-versione', { state: 'visible' });
-    await page.locator('.sent').first().locator('[data-guide]').click();
+    await page.locator('.sent').first().locator('[data-guide="aiuto"]').click();
     await q(/Tocca il verbo principale/);
     assert.match(await page.textContent('#guide-mode'), /dialogo/);
     const primo = richieste[0];
@@ -81,14 +85,37 @@ test('guida a dialogo nell\'app (IA simulata) e ritorno alle regole se l\'IA non
     const sum = await page.textContent('#guide-q');
     assert.match(sum, /predicato verbale\s*est/);
     assert.match(sum, /complemento di specificazione di oram\s*insulae\s*\(genitivo singolare\)/);
-    await page.click('#guide-btns [data-t="traduci"]');
+    // scrive la traduzione (la guida resta aperta) e chiede di controllarla
+    await page.waitForFunction(() => document.activeElement?.tagName === 'TEXTAREA');
+    await page.locator('.sent').first().locator('textarea').fill('Vicino alla riva le isole sono una piccola casa.');
+    await page.click('#guide-btns [data-t="controlla"]');
+    await fb(/Hai fatto di insulae il soggetto/);
+    assert.match(ultima(), /chiede di controllarla: «Vicino alla riva le isole sono una piccola casa\.»/);
+    assert.match(ultima(), /Traduzione che Micol ha scritto nel riquadro \(ora\): «Vicino alla riva/);
+    // può anche scrivere una domanda
+    await page.fill('#tutor-input', 'non capisco il genitivo');
+    await page.press('#tutor-input', 'Enter');
+    await q(/la riva di/);
+    assert.match(ultima(), /ha scritto: «non capisco il genitivo»/);
+    await page.locator('.sent').first().locator('textarea').fill('Vicino alla riva dell\'isola c\'è una piccola casa.');
+    await page.click('#guide-btns [data-t="controlla"]');
+    await fb(/ora il senso è giusto/);
+    await page.click('#guide-btns [data-t="esci"]');
     assert.ok(await page.locator('#guide-bar').isHidden());
     await page.waitForTimeout(600);
     assert.match(await page.locator('.sent').first().locator('.an-logica').textContent(), /insulae → complemento di specificazione di oram/);
+    // riaprendo la guida, l'IA riceve il dialogo già fatto
+    await page.reload();
+    await page.waitForSelector('.sent [data-guide="controlla"]');
+    await page.locator('.sent').first().locator('[data-guide="aiuto"]').click();
+    await q(/Bentornata/);
+    assert.match(ultima(), /riapre la guida/);
+    assert.match(ultima(), /Insegnante: Perfetto, ora il senso è giusto!/);
+    await page.click('#guide-btns [data-t="esci"]');
 
     // l'IA non risponde: si torna alla guida con le regole
     rotto = true;
-    await page.locator('.sent').nth(1).locator('[data-guide]').click();
+    await page.locator('.sent').nth(1).locator('[data-guide="aiuto"]').click();
     await q(/verbo principale/);
     assert.match(await page.textContent('#guide-mode'), /regole/);
     assert.match(await page.textContent('#guide-fb'), /Uso le regole dell'app/);
