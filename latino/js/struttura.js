@@ -150,7 +150,7 @@ export function complementCandidates(S, v, type, exclude = []) {
   return S.words.filter((w, i) => {
     if (i === v || exclude.includes(i) || S.inSub(i) || S.governed.has(i)) return false;
     if (type === 'inf') return w.an.some((a) => a.t === 'inf');
-    if (type === 'pred') return w.an.some((a) => a.caso === 'nom' && (nums.has(a.num) || a.t === 'nome'));
+    if (type === 'pred') return w.an.some((a) => a.caso === 'nom' && nums.has(a.num));
     return w.an.some((a) => a.caso === type);
   }).map((w) => w.k);
 }
@@ -277,3 +277,125 @@ export function agree(S, a, b, gender = true) {
 
 /** "Che cosa regge" il verbo, come etichetta di analisi logica. */
 export const ETICHETTA_RETTO = { acc: 'complemento oggetto', dat: 'complemento di termine', abl: 'complemento in ablativo retto dal verbo', inf: 'infinito retto dal verbo (proposizione infinitiva o servile)', pred: 'nome del predicato' };
+
+// ======================= CONTESTO: forma sicura, funzione ipotizzata =======================
+const NOMI = ['nome', 'pron'];
+const AGG = ['agg', 'part'];
+/** Analisi di caso utili: se la parola è un nome, si ignora il participio omografo (casa ≠ part. di cado). */
+const anCasi = (w) => { const c = w.an.filter((a) => a.caso && a.caso !== 'loc'); return c.some((a) => a.t === 'nome') ? c.filter((a) => a.t !== 'part') : c; };
+const isNoun = (w) => anCasi(w).some((a) => NOMI.includes(a.t));
+const isAdj = (w) => anCasi(w).some((a) => AGG.includes(a.t));
+const LUOGO_ACC = ['prope', 'apud', 'ante', 'post', 'inter', 'iuxta', 'circum', 'super', 'supra', 'infra', 'intra', 'extra'];
+
+/** Forme (sicure) di una parola: "genitivo singolare", ... senza ripetizioni. */
+export function formeCaso(w) {
+  const N = { sg: 'singolare', pl: 'plurale' };
+  const seen = new Set();
+  return anCasi(w).map((a) => `${CASO_IT[a.caso] || a.caso} ${N[a.num] || ''}`.trim()).filter((x) => !seen.has(x) && seen.add(x));
+}
+
+/** Nome vicino (±2, senza saltare il verbo) che concorda con l'aggettivo k; null se non c'è. */
+export function nomeConcordato(S, k) {
+  for (const d of [1, -1, 2, -2]) {
+    const j = k + d;
+    if (j < 0 || j >= S.words.length) continue;
+    if (Math.abs(d) === 2 && finite(S, k + d / 2)) continue;
+    if (isNoun(S.words[j]) && !finite(S, j) && agree(S, k, j, true)) return j;
+  }
+  return null;
+}
+function finite(S, i) { return S.words[i] && S.finite(S.words[i]); }
+
+/** C'è un complemento di luogo con preposizione (in/sub + ablativo, prope/apud... + accusativo)? */
+function haLuogo(S) {
+  for (const [k, p] of S.governed) {
+    const pr = low(S.words[p].t);
+    if ((['in', 'sub'].includes(pr) && S.hasCase(S.words[k], 'abl')) || (LUOGO_ACC.includes(pr) && S.hasCase(S.words[k], 'acc'))) return true;
+  }
+  return false;
+}
+
+/**
+ * Con sum: predicato verbale ("c'è, si trova") o nominale (copula + nome del predicato)?
+ * Restituisce { tipo: 'verbale' | 'nominale' | null (incerto), perche, pred: indice del nome del predicato o null }.
+ */
+export function tipoPredicato(S, v, subj = null) {
+  const nums = new Set(finiteForms(S.words[v]).map((a) => a.num));
+  const nom = (i) => i !== v && i !== subj && !S.inSub(i) && !S.governed.has(i) && anCasi(S.words[i]).some((a) => a.caso === 'nom' && nums.has(a.num));
+  const cand = S.words.map((_, i) => i).filter(nom);
+  const subjK = subj ?? subjectCandidates(S, v).all[0] ?? null;
+  // aggettivi liberi: al nominativo, non attaccati a un nome vicino (dura in "Vita nautae dura est")
+  const liberi = cand.filter((i) => isAdj(S.words[i]) && !isNoun(S.words[i]) && (nomeConcordato(S, i) == null || (subjK != null && nomeConcordato(S, i) === subjK && i > subjK && i + 1 === v)));
+  const attaccati = cand.filter((i) => isAdj(S.words[i]) && !liberi.includes(i));
+  const nomiN = cand.filter((i) => isNoun(S.words[i]) && i !== subjK);
+  if (liberi.length) return { tipo: 'nominale', pred: liberi[0], perche: `${S.words[liberi[0]].t} è al nominativo e dice com'è il soggetto` };
+  if (haLuogo(S)) return { tipo: 'verbale', pred: null, perche: `c'è un complemento di luogo${attaccati.length ? ` e ${attaccati.map((i) => S.words[i].t).join(', ')} accompagna il soggetto` : ''}` };
+  if (nomiN.length && subjK != null) return { tipo: null, pred: nomiN[0], perche: `${S.words[nomiN[0]].t} può essere il nome del predicato (che cos'è il soggetto?) oppure stare con il soggetto` };
+  if (attaccati.length) return { tipo: null, pred: attaccati[0], perche: `${S.words[attaccati[0]].t} può accompagnare il soggetto ("c'è una … ") oppure dire com'è ("… è …")` };
+  return { tipo: 'verbale', pred: null, perche: 'non c\'è un nome o aggettivo al nominativo che dica com\'è il soggetto' };
+}
+
+/**
+ * Funzioni possibili di una parola nel contesto (IPOTESI, da verificare): per ogni forma, che cosa può fare e la domanda-guida.
+ * Restituisce [{ forma, funzioni: [{ nome, domanda }], no: motivo se la forma è esclusa dal contesto }].
+ */
+export function ipotesiFunzioni(S, k, v = S.main[0]) {
+  const w = S.words[k];
+  const p = S.governed.get(k);
+  const vNums = v != null ? new Set(finiteForms(S.words[v]).map((a) => a.num)) : new Set();
+  const sum = v != null && isSum(S.words[v]);
+  const vType = v != null ? complementType(S, v) : null;
+  const tp = sum ? tipoPredicato(S, v) : null;
+  const N = { sg: 'singolare', pl: 'plurale' };
+  const forme = [];
+  const seen = new Set();
+  for (const a of anCasi(w)) {
+    const key = `${a.caso} ${a.num}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const forma = `${CASO_IT[a.caso]} ${N[a.num] || ''}`.trim();
+    const f = [];
+    let no = '';
+    if (p != null) {
+      const pr = low(S.words[p].t);
+      const r = (S.words[p].res.find((x) => x.entry.cat === 'prep')?.entry.regge || '').toLowerCase();
+      if (!r.includes(CASO_IT[a.caso])) no = `${S.words[p].t} non regge il ${CASO_IT[a.caso]}`;
+      else for (const c of COMPLEMENTI) if (c.forme?.some((x) => x.preps?.includes(pr) && x.caso === a.caso)) f.push({ nome: c.nome, domanda: DOMANDE.find(([, ids]) => ids.includes(c.id))?.[0] || '' });
+    } else if (a.caso === 'voc') {
+      if (!(k > 0 && low(S.words[k - 1].t) === 'o')) no = 'il vocativo è raro: di solito è tra virgole o dopo "o"';
+      else f.push({ nome: 'complemento di vocazione', domanda: 'Chi chiamo?' });
+    } else if (a.caso === 'nom') {
+      if (v != null && !vNums.has(a.num)) no = `il verbo è ${[...vNums].map((n) => N[n]).join('/')}: non concorda`;
+      else {
+        const n = isAdj(w) ? nomeConcordato(S, k) : null;
+        if (n != null) f.push({ nome: `attributo di ${S.words[n].t}`, domanda: 'Com\'è? Quale?' });
+        if (isNoun(w)) f.push({ nome: 'soggetto', domanda: 'Chi compie l\'azione? Di chi si parla?' });
+        if (sum && tp.tipo !== 'verbale') f.push({ nome: 'nome del predicato', domanda: 'Che cos\'è / com\'è il soggetto?' });
+      }
+    } else if (a.caso === 'gen') {
+      const near = [k - 1, k + 1, k - 2, k + 2].filter((j) => j >= 0 && j < S.words.length && j !== v && isNoun(S.words[j]));
+      if (near.length) f.push({ nome: 'complemento di specificazione', domanda: `Di chi? Di che cosa? Da quale nome dipende (forse ${near.map((j) => S.words[j].t).join(' o ')})?` });
+      else f.push({ nome: 'complemento di specificazione (o partitivo)', domanda: 'Di chi? Di che cosa? Da quale nome dipende?' });
+    } else if (a.caso === 'dat') {
+      f.push({ nome: 'complemento di termine', domanda: `A chi? A che cosa?${vType === 'dat' || /dativo/.test(verbRegge(S, v)) ? ` (${S.words[v].t} regge il dativo)` : ''}` });
+      f.push({ nome: 'complemento di vantaggio', domanda: 'Per chi? A favore di chi?' });
+    } else if (a.caso === 'acc') {
+      if (sum) no = 'con essere non c\'è complemento oggetto';
+      else f.push({ nome: 'complemento oggetto', domanda: 'Chi? Che cosa? (subisce l\'azione)' });
+      f.push({ nome: 'complemento di tempo continuato', domanda: 'Per quanto tempo?' });
+    } else if (a.caso === 'abl') {
+      f.push({ nome: 'complemento di mezzo / causa / modo', domanda: 'Con che cosa? Perché? Come?' });
+      f.push({ nome: 'complemento di tempo determinato', domanda: 'Quando?' });
+    }
+    if (isAdj(w) && !isNoun(w) && a.caso !== 'nom' && !no) {
+      const n = nomeConcordato(S, k);
+      if (n != null) f.unshift({ nome: `attributo di ${S.words[n].t}`, domanda: 'Com\'è? Quale?' });
+    }
+    forme.push({ forma, funzioni: f, no });
+  }
+  return forme;
+}
+function verbRegge(S, v) {
+  if (v == null) return '';
+  return (S.words[v].an.find((a) => isFiniteAn(a))?.entry.regge || '').toLowerCase();
+}

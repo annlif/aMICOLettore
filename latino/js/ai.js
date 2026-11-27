@@ -22,8 +22,16 @@ Indica le parole con il loro NUMERO. Rispondi solo con il JSON richiesto.
 - principale.nomePredicato: numero della parola che fa da nome del predicato, oppure -1.
 - soggetto: numero della parola soggetto del verbo principale, oppure -1 se è sottinteso.
 - soggettoSottinteso: se il soggetto è sottinteso, il pronome italiano ("io", "tu", "egli", "ella", "noi", "voi", "essi"); altrimenti "".
-- complementi: i complementi della proposizione principale. parole = numeri delle parole del complemento, compresa
-  l'eventuale preposizione e gli aggettivi concordati; tipo = uno di: ${TIPI.join(', ')}.
+- complementi: i complementi della proposizione principale. parole = numeri delle parole del complemento: SOLO
+  l'eventuale preposizione, il nome che regge e gli aggettivi concordati con quel nome. Un genitivo che dipende da un nome
+  (es. "insulae" in "prope oram insulae") è un complemento A PARTE, di tipo specificazione, con dipendeDa = numero del nome
+  da cui dipende; per gli altri complementi dipendeDa = -1. tipo = uno di: ${TIPI.join(', ')}.
+- Controlla sempre caso e numero: la preposizione decide il caso (prope, ad, apud + accusativo; in + ablativo = stato,
+  in + accusativo = moto; cum, sine, a/ab, e/ex, de + ablativo); il soggetto è al nominativo e concorda con il verbo;
+  un aggettivo vicino a un nome con cui concorda è di solito attributo di quel nome.
+- Con il verbo sum: è predicato NOMINALE solo se c'è un nome o aggettivo al nominativo che dice com'è o che cos'è il
+  soggetto (es. "Vita nautae dura est"); se sum vuol dire "c'è, si trova" (es. "Prope oram insulae parva casa est":
+  soggetto "casa", "parva" attributo, "prope oram" stato in luogo) è predicato VERBALE e nomePredicato = -1.
 - attributi: aggettivi o participi che accompagnano un nome della principale (parola, riferito = numero del nome).
 - apposizioni: come gli attributi, ma per i nomi in apposizione.
 - subordinate: per ogni proposizione subordinata, parole (dalla prima all'ultima), verbo, introduttore (numero della congiunzione o del relativo, -1 se non c'è) e tipo in italiano (es. "temporale", "causale", "relativa", "finale", "narrativa (cum + congiuntivo)").
@@ -35,7 +43,7 @@ const SCHEMA = {
     principale: { type: 'OBJECT', properties: { verbo: { type: 'INTEGER' }, tipo: { type: 'STRING', enum: ['verbale', 'nominale'] }, nomePredicato: { type: 'INTEGER' } }, required: ['verbo', 'tipo', 'nomePredicato'] },
     soggetto: { type: 'INTEGER' },
     soggettoSottinteso: { type: 'STRING' },
-    complementi: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, tipo: { type: 'STRING', enum: TIPI } }, required: ['parole', 'tipo'] } },
+    complementi: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, tipo: { type: 'STRING', enum: TIPI }, dipendeDa: { type: 'INTEGER' } }, required: ['parole', 'tipo', 'dipendeDa'] } },
     attributi: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parola: { type: 'INTEGER' }, riferito: { type: 'INTEGER' } }, required: ['parola', 'riferito'] } },
     apposizioni: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parola: { type: 'INTEGER' }, riferito: { type: 'INTEGER' } }, required: ['parola', 'riferito'] } },
     subordinate: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, verbo: { type: 'INTEGER' }, introduttore: { type: 'INTEGER' }, tipo: { type: 'STRING' } }, required: ['parole', 'verbo', 'introduttore', 'tipo'] } },
@@ -50,7 +58,8 @@ export function validaAnalisi(a, n) {
   const ok = (k) => Number.isInteger(k) && k >= -1 && k < n;
   const okList = (l) => Array.isArray(l) && l.every((k) => Number.isInteger(k) && k >= 0 && k < n);
   if (!ok(a.principale.verbo) || !ok(a.principale.nomePredicato ?? -1) || !ok(a.soggetto ?? -1)) return null;
-  const comps = (a.complementi || []).filter((c) => okList(c.parole) && c.parole.length && TIPI.includes(c.tipo));
+  const comps = (a.complementi || []).filter((c) => okList(c.parole) && c.parole.length && TIPI.includes(c.tipo))
+    .map((c) => ({ parole: c.parole, tipo: c.tipo, dipendeDa: ok(c.dipendeDa ?? -1) ? (c.dipendeDa ?? -1) : -1 }));
   const rif = (l) => (l || []).filter((x) => ok(x.parola) && ok(x.riferito) && x.parola >= 0 && x.riferito >= 0);
   const subs = (a.subordinate || []).filter((s) => okList(s.parole) && ok(s.verbo));
   return {
@@ -130,7 +139,7 @@ export async function analizzaConIA(la) {
     try { jsonA = JSON.parse(text); } catch { throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.'); }
     const aA = validaAnalisi(jsonA, parole.length);
     if (!aA) throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.');
-    return { ...aA, parole: parole.length, modello: `azure:${v.deployment}`, quando: Date.now() };
+    return { ...aA, parole: parole.length, modello: `azure:${v.deployment}`, quando: Date.now(), v: 2 };
   }
   const body = {
     systemInstruction: { parts: [{ text: ISTRUZIONI }] },
@@ -155,7 +164,7 @@ export async function analizzaConIA(la) {
   try { json = JSON.parse(text); } catch { throw new Error('Risposta di Gemini non valida: uso le regole dell\'app.'); }
   const a = validaAnalisi(json, parole.length);
   if (!a) throw new Error('Risposta di Gemini non valida: uso le regole dell\'app.');
-  return { ...a, parole: parole.length, modello: v.model, quando: Date.now() };
+  return { ...a, parole: parole.length, modello: v.model, quando: Date.now(), v: 2 };
 }
 
 /** Prova la chiave con una frase semplice. */
