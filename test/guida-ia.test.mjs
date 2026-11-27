@@ -91,7 +91,7 @@ test('guida con Gemini: il senso decide il complemento', async () => {
   const q = (re) => page.waitForFunction((src) => new RegExp(src).test(document.getElementById('guide-q').textContent), re.source, { timeout: 8000 });
   try {
     await page.goto('http://localhost:8075/aMICOLettore/latino/');
-    await page.evaluate(() => localStorage.setItem('amicolatino.ia', JSON.stringify({ key: 'chiave-prova', on: true, model: 'gemini-flash-latest' })));
+    await page.evaluate(() => localStorage.setItem('amicolatino.ia', JSON.stringify({ key: 'chiave-prova', on: true, model: 'gemini-flash-latest', dialogo: false })));
     await page.click('#btn-paste');
     await page.fill('#paste-text', 'Puella cum matre in horto ambulat.');
     await page.click('#paste-dialog button[value="ok"]');
@@ -177,7 +177,7 @@ test('IA che sbaglia (genitivo dentro il luogo, casa nome del predicato): la mor
   const avanti = () => page.click('#guide-btns [data-g="avanti"]');
   try {
     await page.goto('http://localhost:8077/aMICOLettore/latino/');
-    await page.evaluate(() => localStorage.setItem('amicolatino.ia', JSON.stringify({ key: 'k', on: true, model: 'gemini-flash-latest' })));
+    await page.evaluate(() => localStorage.setItem('amicolatino.ia', JSON.stringify({ key: 'k', on: true, model: 'gemini-flash-latest', dialogo: false })));
     await page.click('#btn-paste');
     await page.fill('#paste-text', 'Prope oram insulae parva casa est.');
     await page.click('#paste-dialog button[value="ok"]');

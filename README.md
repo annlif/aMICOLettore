@@ -111,6 +111,13 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   tutte le ipotesi con la domanda-guida invece di dare una sola risposta. Anche l'analisi dell'IA viene controllata con
   la morfologia (es. un genitivo infilato in un complemento di luogo viene separato come specificazione).
   Alla fine compare l'**analisi logica scritta**, che resta sotto la frase e può andare nel PDF. Non traduce mai.
+- **Guida a dialogo con l'IA** (con la chiave e l'opzione "Guida a dialogo" attiva) – le domande le decide
+  l'intelligenza artificiale, una alla volta, come un insegnante: si adatta alle risposte di Micol, spiega gli errori,
+  riformula con "Non ho capito" e dà la soluzione solo con "Mostrami" o dopo due errori. L'app le manda le **forme**
+  delle parole prese dal vocabolario (caso, numero, analisi del verbo: sono certe) e mostra soltanto domanda, riscontro e
+  pulsanti: Micol risponde toccando le parole o scegliendo un'opzione, senza chat libera. Non traduce. Alla fine l'analisi
+  logica resta sotto la frase. Senza internet, o se l'IA non risponde, la guida usa le regole dell'app.
+  Consigliato un modello come **gpt-4.1** (Azure OpenAI): ogni passo costa circa un centesimo.
 - **Intelligenza artificiale per la guida (facoltativa)** – con una chiave di **Gemini** (Google AI Studio, quota
   gratuita) o di **Azure OpenAI** (anche Azure for Students), la guida usa l'analisi dell'IA per verbo principale, soggetto,
   complementi, attributi e tipo di subordinata, e capisce quando una scelta è possibile per la grammatica ma non per il senso.

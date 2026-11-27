@@ -70,10 +70,10 @@ function fillIA() {
   const v = loadIA();
   $('ia-provider').value = v.provider; $('ia-endpoint').value = v.endpoint; $('ia-deployment').value = v.deployment;
   $('ia-azure').hidden = v.provider !== 'azure';
-  $('ia-key').value = v.key; $('ia-on').checked = v.on !== false; $('ia-msg').textContent = v.key ? '' : 'Nessuna chiave: la guida usa le regole dell\'app.';
+  $('ia-key').value = v.key; $('ia-on').checked = v.on !== false; $('ia-dialogo').checked = v.dialogo !== false; $('ia-msg').textContent = v.key ? '' : 'Nessuna chiave: la guida usa le regole dell\'app.';
 }
-const formIA = () => ({ ...loadIA(), provider: $('ia-provider').value, endpoint: $('ia-endpoint').value.trim(), deployment: $('ia-deployment').value.trim(), key: $('ia-key').value.trim(), on: $('ia-on').checked });
-for (const id of ['ia-provider', 'ia-endpoint', 'ia-deployment', 'ia-key', 'ia-on']) $(id).addEventListener('change', () => { saveIA(formIA()); $('ia-azure').hidden = $('ia-provider').value !== 'azure'; });
+const formIA = () => ({ ...loadIA(), provider: $('ia-provider').value, endpoint: $('ia-endpoint').value.trim(), deployment: $('ia-deployment').value.trim(), key: $('ia-key').value.trim(), on: $('ia-on').checked, dialogo: $('ia-dialogo').checked });
+for (const id of ['ia-provider', 'ia-endpoint', 'ia-deployment', 'ia-key', 'ia-on', 'ia-dialogo']) $(id).addEventListener('change', () => { saveIA(formIA()); $('ia-azure').hidden = $('ia-provider').value !== 'azure'; });
 $('ia-prova').addEventListener('click', async () => {
   saveIA(formIA());
   $('ia-msg').textContent = 'Provo…';

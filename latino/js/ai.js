@@ -5,11 +5,12 @@ import { tokenize } from './testo.js';
 import { COMPLEMENTI } from './struttura.js';
 
 const KEY = 'amicolatino.ia';
-const IA_DEFAULTS = { provider: 'gemini', key: '', model: 'gemini-flash-latest', on: true, endpoint: '', deployment: '' };
+const IA_DEFAULTS = { provider: 'gemini', key: '', model: 'gemini-flash-latest', on: true, endpoint: '', deployment: '', dialogo: true };
 export function loadIA() {
   try { return { ...IA_DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...IA_DEFAULTS }; }
 }
 export function saveIA(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { /* ignora */ } }
+export const dialogoAttivo = () => iaAttiva() && loadIA().dialogo !== false;
 export const iaAttiva = () => { const v = loadIA(); return !!(v.on && v.key && (v.provider !== 'azure' || (v.endpoint && v.deployment))); };
 
 const TIPI = COMPLEMENTI.filter((c) => !c.rif).map((c) => c.id);
@@ -90,18 +91,18 @@ export function azureBase(endpoint) {
   try { return new URL(s).origin; } catch { return s.replace(/\/+$/, ''); }
 }
 
-async function chiamaAzure(v, la, numerata, signal) {
+async function chiamaAzure(v, system, user, schema, nome, temperature, signal) {
   if (!String(v.endpoint || '').trim()) throw new Error('Azure OpenAI: manca l\'indirizzo della risorsa (Endpoint), quello che finisce con .openai.azure.com.');
   if (!String(v.deployment || '').trim()) throw new Error('Azure OpenAI: manca il nome della distribuzione del modello (Deployment).');
   const base = azureBase(v.endpoint);
   if (!/^https:\/\/[^/]+\.[a-z]{2,}$/i.test(base) || base === location.origin) throw new Error('Azure OpenAI: l\'indirizzo della risorsa (Endpoint) non è valido: deve essere come https://nome-risorsa.openai.azure.com');
   const dep = v.deployment.trim();
-  const messages = [{ role: 'system', content: ISTRUZIONI }, { role: 'user', content: `Frase: ${la}\nParole numerate: ${numerata}` }];
-  const response_format = { type: 'json_schema', json_schema: { name: 'analisi_logica', strict: true, schema: jsonSchema(SCHEMA) } };
+  const messages = [{ role: 'system', content: system }, { role: 'user', content: user }];
+  const response_format = { type: 'json_schema', json_schema: { name: nome, strict: true, schema: jsonSchema(schema) } };
   // Prima l'indirizzo classico, poi quello nuovo "v1" (risorse Foundry); senza temperatura se il modello non la accetta.
   const tentativi = [
-    { url: `${base}/openai/deployments/${encodeURIComponent(dep)}/chat/completions?api-version=2024-10-21`, body: { messages, temperature: 0, response_format } },
-    { url: `${base}/openai/v1/chat/completions`, body: { model: dep, messages, temperature: 0, response_format } },
+    { url: `${base}/openai/deployments/${encodeURIComponent(dep)}/chat/completions?api-version=2024-10-21`, body: { messages, temperature, response_format } },
+    { url: `${base}/openai/v1/chat/completions`, body: { model: dep, messages, temperature, response_format } },
   ];
   let res;
   for (let i = 0; i < tentativi.length; i++) {
@@ -110,61 +111,59 @@ async function chiamaAzure(v, la, numerata, signal) {
     res = await invia(t.body);
     if (res.status === 400) {
       const err = await res.clone().text().catch(() => '');
-      if (/temperature/i.test(err)) { const { temperature, ...senza } = t.body; res = await invia(senza); }
+      if (/temperature/i.test(err)) { const { temperature: _t, ...senza } = t.body; res = await invia(senza); }
     }
     if (!(res.status === 404 || res.status === 405) || i === tentativi.length - 1) break;
   }
   if (res.status === 401 || res.status === 403) throw new Error('Azure OpenAI non accetta la chiave: controllala nelle impostazioni.');
   if (res.status === 404 || res.status === 405) throw new Error(`Azure OpenAI (errore ${res.status}): controlla l'indirizzo (deve finire con .openai.azure.com) e il nome della distribuzione (${dep}).`);
-  if (res.status === 429) throw new Error('Troppe richieste ad Azure OpenAI o credito finito: uso le regole dell\'app.');
-  if (!res.ok) throw new Error(`Azure OpenAI non risponde (errore ${res.status}): uso le regole dell'app.`);
+  if (res.status === 429) throw new Error('Troppe richieste ad Azure OpenAI o credito finito.');
+  if (!res.ok) throw new Error(`Azure OpenAI non risponde (errore ${res.status}).`);
   const data = await res.json();
   return data?.choices?.[0]?.message?.content || '';
 }
 
-export async function analizzaConIA(la) {
-  const v = loadIA();
-  if (!v.key) throw new Error('Chiave dell\'intelligenza artificiale mancante.');
-  if (!navigator.onLine) throw new Error('Senza internet uso le regole dell\'app.');
-  const parole = tokenize(la).filter((p) => p.w).map((p) => p.t);
-  const numerata = parole.map((w, i) => `[${i}] ${w}`).join('  ');
-  if (v.provider === 'azure') {
-    const ctrlA = new AbortController();
-    const tA = setTimeout(() => ctrlA.abort(), 25000);
-    let text;
-    try { text = await chiamaAzure(v, la, numerata, ctrlA.signal); } catch (e) {
-      throw e instanceof Error && /Azure/.test(e.message) ? e : new Error('Non riesco a contattare Azure OpenAI: uso le regole dell\'app.');
-    } finally { clearTimeout(tA); }
-    let jsonA;
-    try { jsonA = JSON.parse(text); } catch { throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.'); }
-    const aA = validaAnalisi(jsonA, parole.length);
-    if (!aA) throw new Error('Risposta di Azure OpenAI non valida: uso le regole dell\'app.');
-    return { ...aA, parole: parole.length, modello: `azure:${v.deployment}`, quando: Date.now(), v: 2 };
-  }
+async function chiamaGemini(v, system, user, schema, temperature, signal) {
   const body = {
-    systemInstruction: { parts: [{ text: ISTRUZIONI }] },
-    contents: [{ role: 'user', parts: [{ text: `Frase: ${la}\nParole numerate: ${numerata}` }] }],
-    generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: SCHEMA },
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: 'user', parts: [{ text: user }] }],
+    generationConfig: { temperature, responseMimeType: 'application/json', responseSchema: schema },
   };
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(v.model || 'gemini-flash-latest')}:generateContent`;
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 25000);
-  let res;
-  try {
-    res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': v.key.trim() }, body: JSON.stringify(body), signal: ctrl.signal });
-  } catch {
-    throw new Error('Non riesco a contattare Gemini: uso le regole dell\'app.');
-  } finally { clearTimeout(t); }
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': v.key.trim() }, body: JSON.stringify(body), signal });
   if (res.status === 400 || res.status === 401 || res.status === 403) throw new Error('Gemini non accetta la chiave: controllala nelle impostazioni.');
-  if (res.status === 429) throw new Error('Per oggi la quota gratuita di Gemini è finita: uso le regole dell\'app.');
-  if (!res.ok) throw new Error(`Gemini non risponde (errore ${res.status}): uso le regole dell'app.`);
+  if (res.status === 429) throw new Error('Per oggi la quota gratuita di Gemini è finita.');
+  if (!res.ok) throw new Error(`Gemini non risponde (errore ${res.status}).`);
   const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+  return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+}
+
+/** Chiede all'IA una risposta JSON secondo lo schema; lancia un errore comprensibile se qualcosa va storto. */
+export async function chiamaJSON(system, user, schema, nome = 'risposta', temperature = 0) {
+  const v = loadIA();
+  if (!v.key) throw new Error('Chiave dell\'intelligenza artificiale mancante.');
+  if (!navigator.onLine) throw new Error('Senza internet l\'intelligenza artificiale non è disponibile.');
+  const chi = v.provider === 'azure' ? 'Azure OpenAI' : 'Gemini';
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30000);
+  let text;
+  try {
+    text = v.provider === 'azure' ? await chiamaAzure(v, system, user, schema, nome, temperature, ctrl.signal) : await chiamaGemini(v, system, user, schema, temperature, ctrl.signal);
+  } catch (e) {
+    throw e instanceof Error && /Azure|Gemini/.test(e.message) ? e : new Error(`Non riesco a contattare ${chi}.`);
+  } finally { clearTimeout(t); }
+  try { return JSON.parse(text); } catch { throw new Error(`Risposta di ${chi} non valida.`); }
+}
+export const modelloIA = () => { const v = loadIA(); return v.provider === 'azure' ? `azure:${v.deployment}` : v.model; };
+
+export async function analizzaConIA(la) {
+  const parole = tokenize(la).filter((p) => p.w).map((p) => p.t);
+  const numerata = parole.map((w, i) => `[${i}] ${w}`).join('  ');
   let json;
-  try { json = JSON.parse(text); } catch { throw new Error('Risposta di Gemini non valida: uso le regole dell\'app.'); }
+  try { json = await chiamaJSON(ISTRUZIONI, `Frase: ${la}\nParole numerate: ${numerata}`, SCHEMA, 'analisi_logica', 0); } catch (e) { throw new Error(`${e.message} Uso le regole dell'app.`); }
   const a = validaAnalisi(json, parole.length);
-  if (!a) throw new Error('Risposta di Gemini non valida: uso le regole dell\'app.');
-  return { ...a, parole: parole.length, modello: v.model, quando: Date.now(), v: 2 };
+  if (!a) throw new Error('Risposta dell\'intelligenza artificiale non valida: uso le regole dell\'app.');
+  return { ...a, parole: parole.length, modello: modelloIA(), quando: Date.now(), v: 2 };
 }
 
 /** Prova la chiave con una frase semplice. */
