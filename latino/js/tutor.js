@@ -7,7 +7,7 @@ import { lexicon } from './vocab.js';
 import { tokenize } from './testo.js';
 import { chiamaJSON, modelloIA } from './ai.js';
 
-import { ISTRUZIONI_TUTOR, SCHEMA_TUTOR, validaTurno, schedaForme } from './tutor-ia.js';
+import { ISTRUZIONI_TUTOR, SCHEMA_TUTOR, validaTurno, schedaForme, controlliGrammaticali } from './tutor-ia.js';
 
 let T = null;   // dialogo in corso
 let cb = {};
@@ -28,7 +28,7 @@ export async function startTutor(s, callbacks, modo = 'aiuto') {
   const parole = tokenize(s.la).filter((p) => p.w).map((p) => p.t);
   // il dialogo già fatto su questa frase resta: l'IA sa da dove si riparte
   const storia = s.dialogo?.la === s.la ? [...s.dialogo.storia] : [];
-  T = { s, parole, forme: schedaForme(L, parole), storia, attesa: false, ultimo: null, turno: null };
+  T = { s, parole, forme: `${schedaForme(L, parole)}\n\nCONTROLLI GRAMMATICALI dell'app (affidabili):\n${controlliGrammaticali(L, s.la)}`, storia, attesa: false, ultimo: null, turno: null };
   if (!s.guida || !storia.length) s.guida = { items: [] };
   s.guida.items ??= [];
   document.body.classList.add('guiding');

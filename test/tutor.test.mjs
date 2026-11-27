@@ -10,6 +10,15 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 
 const L = new Lexicon(parseLexicon(readFileSync(new URL('../latino/data/lessico.txt', import.meta.url), 'utf8')));
 
+test('controlli grammaticali per l\'IA: cum filiabus non è un secondo soggetto', async () => {
+  const { controlliGrammaticali } = await import('../latino/js/tutor-ia.js');
+  const c = controlliGrammaticali(L, 'In casa nauta cum filiabus habitat.');
+  assert.match(c, /\[3\] cum è una preposizione \(regge ablativo\): \[4\] filiabus dipende da lei, quindi NON è soggetto/);
+  assert.match(c, /Possono essere soggetto di \[5\] habitat .*: \[2\] nauta\. Nessun'altra parola/);
+  const d = controlliGrammaticali(L, 'Filiae autem in casa manent et nautam exspectant.');
+  assert.match(d, /soggetto di \[4\] manent .*\[0\] Filiae/);
+});
+
 test('scheda delle forme per l\'IA e controllo della risposta', () => {
   const sch = schedaForme(L, ['Prope', 'oram', 'insulae', 'parva', 'casa', 'est']);
   assert.match(sch, /\[0\] Prope: prope \(preposizione, regge accusativo/);
@@ -66,6 +75,8 @@ test('guida a dialogo nell\'app (IA simulata) e ritorno alle regole se l\'IA non
     const primo = richieste[0];
     assert.match(primo.systemInstruction.parts[0].text, /Non tradurre mai/);
     assert.match(ultima(), /\[2\] insulae: insula.*genitivo singolare/, 'all\'IA arrivano le forme certe');
+    assert.match(ultima(), /Possono essere soggetto di \[5\] est .*: \[4\] casa\. Nessun'altra parola/, 'e i controlli grammaticali');
+    assert.match(ultima(), /\[0\] Prope è una preposizione \(regge accusativo\): \[1\] oram dipende da lei/);
     await tap('est');
     await fb(/Sì, est è il verbo/);
     assert.match(ultima(), /Ultima azione di Micol: ha toccato \[5\] est/);

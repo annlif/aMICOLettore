@@ -1,4 +1,5 @@
 // Parte "pura" della guida a dialogo (senza pagina): istruzioni all'IA, schema della risposta, forme delle parole, controlli.
+import { analyzeSentence, subjectCandidates, finiteForms } from './struttura.js';
 export const RUOLI = ['verbo', 'soggetto', 'oggetto', 'nome-predicato', 'complemento', 'attributo', 'apposizione', 'subordinata'];
 
 export const ISTRUZIONI_TUTOR = `Sei un insegnante di latino paziente e preciso. Guidi Micol, studentessa del primo anno di liceo scientifico, nell'ANALISI di UNA frase latina, perché poi la traduca da sola. Ragioni come un buon insegnante: una domanda alla volta, adattandoti a quello che lei risponde.
@@ -6,6 +7,8 @@ export const ISTRUZIONI_TUTOR = `Sei un insegnante di latino paziente e preciso.
 REGOLE FERME
 - Non tradurre mai la frase o parti di essa e non dire i significati delle parole: per quelli Micol usa il vocabolario.
 - Le FORME che ricevi (caso, numero, analisi dei verbi) vengono dal vocabolario dell'app e sono certe: basati su quelle e non contraddirle. Nel contesto scegli tu quale delle forme possibili è quella giusta.
+- Ricevi anche i CONTROLLI GRAMMATICALI dell'app (parole rette da preposizione, parole che possono essere soggetto): rispettali. Una parola retta da una preposizione non è mai soggetto né oggetto; il soggetto deve avere il nominativo e concordare con il verbo; "cum" + ablativo è un complemento (compagnia, unione, modo), non un secondo soggetto.
+- Prima di giudicare una risposta di Micol, verificala nel campo "verifica" (forme, preposizioni, concordanza): non dire mai che è sbagliata una risposta giusta.
 - Testi brevissimi e semplici: domanda al massimo 15 parole, riscontro al massimo 25. Scrivi le parole latine tra **doppi asterischi**.
 - Non dare subito la soluzione: se sbaglia, spiega in una frase perché e falla riprovare, con un indizio (desinenza, preposizione, concordanza, senso). Dai la soluzione solo dopo due errori sullo stesso punto o se chiede "Mostrami", spiegandola in breve.
 - Se dice "Non ho capito", riformula la domanda più semplice o scomponila in passi più piccoli.
@@ -28,6 +31,7 @@ COME PROCEDERE (adatta l'ordine alla frase; salta ciò che è ovvio o già fatto
 9. Usa tipo "fine" solo quando la traduzione è giusta (o se Micol chiude): una breve frase di complimenti.
 
 FORMATO DELLA RISPOSTA (JSON)
+- verifica: il tuo controllo, breve e solo per te (Micol non lo vede): che cosa ha risposto, che forma e funzione ha davvero quella parola, quindi se è giusto.
 - esito: com'era l'ultima risposta di Micol: "giusto", "parziale", "sbagliato"; "nessuno" all'inizio, dopo "Non ho capito" o "Mostrami".
 - riscontro: breve commento sull'ultima risposta ("" all'inizio).
 - domanda: la prossima domanda (con tipo "fine": una frase di chiusura).
@@ -39,6 +43,7 @@ FORMATO DELLA RISPOSTA (JSON)
 export const SCHEMA_TUTOR = {
   type: 'OBJECT',
   properties: {
+    verifica: { type: 'STRING' },
     esito: { type: 'STRING', enum: ['giusto', 'parziale', 'sbagliato', 'nessuno'] },
     riscontro: { type: 'STRING' },
     domanda: { type: 'STRING' },
@@ -47,7 +52,7 @@ export const SCHEMA_TUTOR = {
     segna: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, ruolo: { type: 'STRING', enum: RUOLI } }, required: ['parole', 'ruolo'] } },
     analisi: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, funzione: { type: 'STRING' }, caso: { type: 'STRING' } }, required: ['parole', 'funzione', 'caso'] } },
   },
-  required: ['esito', 'riscontro', 'domanda', 'tipo', 'opzioni', 'segna', 'analisi'],
+  required: ['verifica', 'esito', 'riscontro', 'domanda', 'tipo', 'opzioni', 'segna', 'analisi'],
 };
 
 /** Controlla la risposta dell'IA (numeri delle parole validi, testi non troppo lunghi). */
@@ -89,3 +94,26 @@ export function schedaForme(L, parole) {
   }).join('\n');
 }
 
+
+/** Controlli grammaticali affidabili (dalla morfologia e dalle preposizioni) da dare all'IA insieme alle forme. */
+export function controlliGrammaticali(L, la) {
+  const S = analyzeSentence(L, la);
+  const t = (k) => `[${k}] ${S.words[k].t}`;
+  const N = { sg: 'singolare', pl: 'plurale' };
+  const righe = [];
+  const verbi = S.verbs.map((k) => `${t(k)} (${[...new Set(finiteForms(S.words[k]).map((a) => N[a.num]))].join('/')})`);
+  righe.push(`- Verbi di modo finito: ${verbi.join(', ') || 'nessuno (forse est/sunt sottinteso)'}.`);
+  const gruppi = new Map();
+  for (const [k, p] of S.governed) { if (!gruppi.has(p)) gruppi.set(p, []); gruppi.get(p).push(k); }
+  for (const [p, ks] of gruppi) {
+    const regge = S.words[p].res.find((r) => r.entry.cat === 'prep')?.entry.regge || '';
+    righe.push(`- ${t(p)} è una preposizione${regge ? ` (regge ${regge})` : ''}: ${ks.map(t).join(', ')} dipende da lei, quindi NON è soggetto né oggetto.`);
+  }
+  for (const v of S.main) {
+    const c = subjectCandidates(S, v).all;
+    righe.push(c.length
+      ? `- Possono essere soggetto di ${t(v)} (nominativo che concorda, fuori dai gruppi con preposizione): ${c.map(t).join(', ')}. Nessun'altra parola.`
+      : `- Nessuna parola può essere soggetto di ${t(v)}: il soggetto è sottinteso (o è lo stesso di un altro verbo coordinato).`);
+  }
+  return righe.join('\n');
+}
