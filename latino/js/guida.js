@@ -10,7 +10,8 @@ import {
   COMPLEMENTI, checkComplement, agree, verbPassive, ETICHETTA_RETTO, DOMANDE, low,
   tipoPredicato, ipotesiFunzioni, formeCaso, nomeConcordato,
 } from './struttura.js';
-import { iaAttiva, analizzaConIA } from './ai.js';
+import { iaAttiva, analizzaConIA, dialogoAttivo } from './ai.js';
+import { startTutor, stopTutor, tutorActive, tutorSentenceId, tutorTap, tutorClick } from './tutor.js';
 
 let G = null; // stato della guida in corso
 let cb = {};  // callback da versioni.js: { refresh(sentence), save(), focusTranslation(sentence) }
@@ -18,6 +19,8 @@ let cb = {};  // callback da versioni.js: { refresh(sentence), save(), focusTran
 export function initGuida(callbacks) {
   cb = callbacks;
   $('guide-btns').addEventListener('click', (e) => {
+    const bt = e.target.closest('[data-t]');
+    if (bt && tutorActive()) return tutorClick(bt);
     const b = e.target.closest('[data-g]');
     if (!b || !G) return;
     const act = b.dataset.g;
@@ -37,10 +40,18 @@ export function initGuida(callbacks) {
   });
 }
 
-export const guideActive = () => !!G;
-export const guideSentenceId = () => G?.s.id;
+export const guideActive = () => !!G || tutorActive();
+export const guideSentenceId = () => G?.s.id ?? tutorSentenceId();
 
 export async function startGuide(s) {
+  // con l'IA, la guida a dialogo: le domande le decide l'IA; se non risponde, si torna alle regole
+  let notaDialogo = '';
+  if (dialogoAttivo()) {
+    const r = await startTutor(s, cb);
+    if (r.ok) return;
+    if (r.msg === undefined) return; // uscita durante l'attesa
+    notaDialogo = r.msg;
+  }
   const L = await lexicon();
   const S = analyzeSentence(L, s.la);
   G = { s, S, L, step: null, errors: 0, v: null, lemmaId: null, type: null, prep: null, target: null, predType: null, caso: null, dom: null, nextStep: null };
@@ -50,7 +61,7 @@ export async function startGuide(s) {
   cb.refresh(s);
   // analisi con l'intelligenza artificiale (se attivata): una volta per frase, poi resta salvata
   let nota = '';
-  if (iaAttiva()) {
+  if (iaAttiva() && !notaDialogo) {
     if (!(s.ia && s.iaLa === s.la && s.ia.v === IA_V)) {
       $('guide-q').innerHTML = 'Un momento: preparo la guida per questa frase…';
       $('guide-fb').innerHTML = ''; $('guide-btns').innerHTML = '';
@@ -61,6 +72,7 @@ export async function startGuide(s) {
   if (s.ia && s.iaLa === s.la && s.ia.v === IA_V) applyIA(S, correggiIA(S, s.ia));
   $('guide-mode').textContent = S.ia ? '🧠 intelligenza artificiale' : 'regole dell\'app';
   setStep(S.verbs.length ? 'verb' : 'noverb');
+  if (notaDialogo) nota = `${notaDialogo} Uso le regole dell'app.`;
   if (nota) feedback(esc(nota), true);
   else if (S.ia?.dubbi) feedback(`Nota: ${esc(S.ia.dubbi)}`, true);
 }
@@ -143,6 +155,7 @@ function iaInfo(k) {
 }
 
 export function stopGuide() {
+  if (tutorActive()) return stopTutor();
   if (!G) return;
   const s = G.s;
   G = null;
@@ -291,6 +304,7 @@ function done(html, nextStep) {
 
 // ---------- risposte: parole toccate ----------
 export function tapWord(k) {
+  if (tutorActive()) return tutorTap(k);
   if (!G) return;
   const S = G.S, x = w(k);
   const unk = x.unknown;
