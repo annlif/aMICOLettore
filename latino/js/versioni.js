@@ -5,6 +5,7 @@ import { readPdf, cleanVersion, letterCount, makeSentences, tokenize, newId } fr
 import { lexicon } from './vocab.js';
 import { shareText, versionPdf, shareFile } from './esporta.js';
 import { initGuida, startGuide, tapWord, guideActive, guideSentenceId, stopGuide } from './guida.js';
+import { dialogoAttivo } from './ai.js';
 
 let go = () => {};          // navigazione, fornita da app.js
 let wordActions = () => []; // azioni del menu di una parola, fornite da app.js
@@ -170,7 +171,7 @@ function renderSentences() {
       <div class="sent-la" lang="la">${wordsHtml(s)}</div>
       <div class="sent-it">
         <textarea rows="2" lang="it" aria-label="La tua traduzione della frase ${i + 1}" placeholder="La tua traduzione…">${esc(s.it)}</textarea>
-        <button class="help-btn" type="button" data-guide>🧭 Sono bloccata: aiutami</button>
+        <span class="help-row"><button class="help-btn" type="button" data-guide="aiuto">🧭 Sono bloccata: aiutami</button>${dialogoAttivo() ? '<button class="help-btn" type="button" data-guide="controlla">✔︎ Controlla la mia traduzione</button>' : ''}</span>
         <div class="an-logica">${analisiHtml(s)}</div>
       </div>
       <button class="sent-more" type="button" data-more aria-label="Altre azioni per la frase ${i + 1}">
@@ -208,12 +209,13 @@ function onHover(e) {
 }
 
 // ---------- guida ----------
-function openGuide(s) {
+function openGuide(s, modo = 'aiuto') {
   if (splitFor) setSplitMode(null);
   if (guideActive()) stopGuide();
+  saveSoon.flush();
   const li = document.querySelector(`.sent[data-id="${s.id}"]`);
   li?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  startGuide(s);
+  startGuide(s, modo);
 }
 /** Ridisegna le parole di una frase (segni della guida, connettivi). */
 function refreshSentence(s) {
@@ -349,7 +351,13 @@ async function onTitleChanged() {
 // ---------- parole e menu delle frasi ----------
 function onSentencesClick(e) {
   const gb = e.target.closest('[data-guide]');
-  if (gb) { const s = sentenceOf(gb); if (s) { closeMenu(); openGuide(s); } return; }
+  if (gb) {
+    const s = sentenceOf(gb);
+    if (!s) return;
+    if (gb.dataset.guide === 'controlla' && !s.it.trim()) { toast('Scrivi prima la traduzione, poi tocca «Controlla».'); gb.closest('.sent-it')?.querySelector('textarea')?.focus(); return; }
+    closeMenu(); openGuide(s, gb.dataset.guide || 'aiuto');
+    return;
+  }
   const w = e.target.closest('.w');
   if (w && guideActive()) {
     const s = sentenceOf(w);
@@ -371,7 +379,7 @@ function onSentencesClick(e) {
     openMenu(more, `Frase ${i + 1}`, [
       { label: 'Aiutami: guida all\'analisi', action: () => openGuide(s),
         icon: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>' },
-      ...(hasMarks ? [{ label: 'Cancella i segni della guida', action: () => { delete s.guida; refreshSentence(s); save(); },
+      ...(hasMarks ? [{ label: 'Cancella i segni della guida', action: () => { delete s.guida; delete s.dialogo; refreshSentence(s); save(); },
         icon: '<path d="M4 20h16M7 16 17 6M14 3l7 7"/>' }] : []),
       { label: 'Ascolta la frase', action: () => speak(s.la),
         icon: '<path d="M4 9v6h4l5 4V5L8 9Z"/><path d="M16 9a3.5 3.5 0 0 1 0 6M18.5 6.5a7 7 0 0 1 0 11"/>' },

@@ -9,7 +9,12 @@ REGOLE FERME
 - Testi brevissimi e semplici: domanda al massimo 15 parole, riscontro al massimo 25. Scrivi le parole latine tra **doppi asterischi**.
 - Non dare subito la soluzione: se sbaglia, spiega in una frase perché e falla riprovare, con un indizio (desinenza, preposizione, concordanza, senso). Dai la soluzione solo dopo due errori sullo stesso punto o se chiede "Mostrami", spiegandola in breve.
 - Se dice "Non ho capito", riformula la domanda più semplice o scomponila in passi più piccoli.
-- Parla solo della frase.
+- Parla solo della frase. Micol può anche scriverti una risposta o una domanda: rispondi solo se riguarda la frase o il latino, altrimenti riportala gentilmente alla frase.
+
+LA TRADUZIONE DI MICOL
+- Ricevi sempre la traduzione che Micol sta scrivendo nel riquadro (può essere vuota, a metà o completa). Usala: se ha già tradotto una parte, parti da lì e lavora sul punto in cui si è bloccata o sbaglia.
+- Quando chiede di controllarla, confrontala con il latino. Se il senso è giusto, dillo (accetta traduzioni libere e un italiano scorrevole). Se ci sono errori, indicane UNO alla volta con una domanda che le faccia trovare l'errore (es. "Hai fatto di **insulae** il soggetto: che caso è?"), e segnala anche gli errori di italiano. Non scrivere mai la traduzione giusta.
+- Dopo una correzione chiedile di modificare il riquadro e toccare di nuovo "Controlla la mia traduzione".
 
 COME PROCEDERE (adatta l'ordine alla frase; salta ciò che è ovvio o già fatto)
 1. Verbo principale (se ci sono più verbi, chiedi il principale; le subordinate dopo).
@@ -19,16 +24,17 @@ COME PROCEDERE (adatta l'ordine alla frase; salta ciò che è ovvio o già fatto
 5. Altri complementi, uno alla volta: fai ragionare sul caso (e sulla preposizione che lo regge), poi sulla domanda a cui risponde (dove? di chi? con chi? come?...), poi sul nome del complemento. Un genitivo dipende da un nome: chiedi da quale.
 6. Attributi e apposizioni (concordanza in genere, numero e caso).
 7. Subordinate, se ci sono: congiunzione e verbo.
-8. Fine: invito a tradurre partendo da predicato e soggetto.
+8. Quando l'analisi è fatta, usa tipo "traduci": riepilogo in "analisi" e invito a scrivere (o correggere) la traduzione nel riquadro, partendo da predicato e soggetto, e poi a toccare "Controlla la mia traduzione".
+9. Usa tipo "fine" solo quando la traduzione è giusta (o se Micol chiude): una breve frase di complimenti.
 
 FORMATO DELLA RISPOSTA (JSON)
 - esito: com'era l'ultima risposta di Micol: "giusto", "parziale", "sbagliato"; "nessuno" all'inizio, dopo "Non ho capito" o "Mostrami".
 - riscontro: breve commento sull'ultima risposta ("" all'inizio).
 - domanda: la prossima domanda (con tipo "fine": una frase di chiusura).
-- tipo: "tocca" se Micol deve toccare una parola della frase; "scegli" se deve scegliere tra opzioni; "fine" quando l'analisi è completa.
+- tipo: "tocca" se Micol deve toccare una parola della frase; "scegli" se deve scegliere tra opzioni; "scrivi" se deve scrivere una risposta breve (es. come renderebbe in italiano un pezzo che ha già analizzato); "traduci" quando deve scrivere o correggere la traduzione nel riquadro; "fine" quando la traduzione è giusta.
 - opzioni: con "scegli", da 2 a 8 opzioni brevi (es. i casi, le domande, i nomi dei complementi), con la giusta non sempre per prima; altrimenti [].
 - segna: gli elementi appena STABILITI (risposta giusta o soluzione mostrata): parole (numeri) e ruolo.
-- analisi: solo con tipo "fine": tutte le righe dell'analisi logica, con parole (numeri), funzione (es. "predicato verbale", "soggetto", "complemento di specificazione di oram", "attributo di casa") e caso (es. "genitivo singolare"; "" per i verbi). Altrimenti [].`;
+- analisi: con tipo "traduci" o "fine" (se l'analisi è stata fatta): tutte le righe dell'analisi logica, con parole (numeri), funzione (es. "predicato verbale", "soggetto", "complemento di specificazione di oram", "attributo di casa") e caso (es. "genitivo singolare"; "" per i verbi). Altrimenti [].`;
 
 export const SCHEMA_TUTOR = {
   type: 'OBJECT',
@@ -36,7 +42,7 @@ export const SCHEMA_TUTOR = {
     esito: { type: 'STRING', enum: ['giusto', 'parziale', 'sbagliato', 'nessuno'] },
     riscontro: { type: 'STRING' },
     domanda: { type: 'STRING' },
-    tipo: { type: 'STRING', enum: ['tocca', 'scegli', 'fine'] },
+    tipo: { type: 'STRING', enum: ['tocca', 'scegli', 'scrivi', 'traduci', 'fine'] },
     opzioni: { type: 'ARRAY', items: { type: 'STRING' } },
     segna: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, ruolo: { type: 'STRING', enum: RUOLI } }, required: ['parole', 'ruolo'] } },
     analisi: { type: 'ARRAY', items: { type: 'OBJECT', properties: { parole: { type: 'ARRAY', items: { type: 'INTEGER' } }, funzione: { type: 'STRING' }, caso: { type: 'STRING' } }, required: ['parole', 'funzione', 'caso'] } },
@@ -50,7 +56,7 @@ export function validaTurno(r, n) {
   const okList = (l) => Array.isArray(l) && l.length > 0 && l.every((k) => Number.isInteger(k) && k >= 0 && k < n);
   const taglia = (t, max) => String(t || '').trim().slice(0, max);
   const opzioni = (Array.isArray(r.opzioni) ? r.opzioni : []).map((o) => taglia(o, 80)).filter(Boolean).slice(0, 8);
-  let tipo = ['tocca', 'scegli', 'fine'].includes(r.tipo) ? r.tipo : 'tocca';
+  let tipo = ['tocca', 'scegli', 'scrivi', 'traduci', 'fine'].includes(r.tipo) ? r.tipo : 'tocca';
   if (tipo === 'scegli' && opzioni.length < 2) tipo = 'tocca';
   return {
     esito: ['giusto', 'parziale', 'sbagliato'].includes(r.esito) ? r.esito : 'nessuno',

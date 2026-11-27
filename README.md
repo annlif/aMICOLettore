@@ -117,6 +117,10 @@ aiuta con il vocabolario e l'analisi delle forme, ma **non traduce mai al posto 
   delle parole prese dal vocabolario (caso, numero, analisi del verbo: sono certe) e mostra soltanto domanda, riscontro e
   pulsanti: Micol risponde toccando le parole o scegliendo un'opzione, senza chat libera. Non traduce. Alla fine l'analisi
   logica resta sotto la frase. Senza internet, o se l'IA non risponde, la guida usa le regole dell'app.
+  L'IA vede sempre la **traduzione che Micol sta scrivendo**: Micol può cominciare a tradurre e chiedere aiuto quando si
+  blocca (si riparte da lì), scrivere nella guida una risposta o una domanda, e toccare **✔︎ Controlla la mia traduzione**:
+  l'IA indica un errore alla volta con una domanda, senza mai scrivere la traduzione giusta. Il dialogo resta salvato
+  con la frase, così riaprendo la guida si riprende dal punto in cui si era.
   Consigliato un modello come **gpt-4.1** (Azure OpenAI): ogni passo costa circa un centesimo.
 - **Intelligenza artificiale per la guida (facoltativa)** – con una chiave di **Gemini** (Google AI Studio, quota
   gratuita) o di **Azure OpenAI** (anche Azure for Students), la guida usa l'analisi dell'IA per verbo principale, soggetto,
