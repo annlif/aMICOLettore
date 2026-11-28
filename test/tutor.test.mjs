@@ -136,3 +136,10 @@ test('guida a dialogo nell\'app (IA simulata) e ritorno alle regole se l\'IA non
     server.close();
   }
 });
+
+test('istruzioni della guida a dialogo: non rivelare quali complementi ci sono', async () => {
+  const { ISTRUZIONI_TUTOR } = await import('../latino/js/tutor-ia.js');
+  assert.match(ISTRUZIONI_TUTOR, /NON RIVELARE CHE COSA C'È NELLA FRASE/);
+  assert.match(ISTRUZIONI_TUTOR, /Tocca una parola che non hai ancora analizzato/);
+  assert.doesNotMatch(ISTRUZIONI_TUTOR, /^4\. Complemento oggetto/m);
+});

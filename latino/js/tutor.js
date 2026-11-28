@@ -114,7 +114,7 @@ function mostra(r) {
   }
   const opz = r.opzioni.map((o, i) => `<button type="button" class="chip-btn" data-t="opz" data-i="${i}">${md(o)}</button>`).join('');
   const scrivi = `<form class="tutor-scrivi" data-t-form><input type="text" id="tutor-input" maxlength="300" autocomplete="off" lang="it" placeholder="${r.tipo === 'scrivi' ? 'Scrivi qui la tua risposta' : 'Puoi anche scrivere una risposta o una domanda'}"><button type="submit" class="secondary" data-t="invia">Invia</button></form>`;
-  $('guide-btns').innerHTML = `${opz}${scrivi}<button type="button" class="${r.tipo === 'traduci' ? 'primary' : 'secondary'}" data-t="controlla">✔︎ Controlla la mia traduzione</button><button type="button" class="secondary" data-t="capito">Non ho capito</button><button type="button" class="secondary" data-t="mostra">Mostrami</button><button type="button" class="ghost" data-t="esci">Esci</button>`;
+  $('guide-btns').innerHTML = `${opz}${scrivi}${r.tipo === 'tocca' ? '<button type="button" class="secondary" data-t="finito">Ho analizzato tutto</button>' : ''}<button type="button" class="${r.tipo === 'traduci' ? 'primary' : 'secondary'}" data-t="controlla">✔︎ Controlla la mia traduzione</button><button type="button" class="secondary" data-t="capito">Non ho capito</button><button type="button" class="secondary" data-t="mostra">Mostrami</button><button type="button" class="ghost" data-t="esci">Esci</button>`;
   $('guide-btns').querySelector('[data-t-form]').addEventListener('submit', (e) => { e.preventDefault(); invia(); });
   if (r.tipo === 'scrivi') $('tutor-input').focus({ preventScroll: true });
   if (r.tipo === 'traduci') cb.focusTranslation(T.s);
@@ -178,6 +178,7 @@ export function tutorClick(b) {
   if (T.attesa || t === 'invia') return; // "Invia" passa dal modulo (anche con Invio da tastiera)
   if (t === 'opz') turno(`ha scelto «${T.turno.opzioni[Number(b.dataset.i)]}»`);
   else if (t === 'controlla') controlla();
+  else if (t === 'finito') turno('dice di aver analizzato tutte le parole');
   else if (t === 'capito') turno('non ha capito la domanda: riformulala più semplice');
   else if (t === 'mostra') turno('chiede di vedere la risposta (Mostrami): dagliela spiegandola in breve, poi vai avanti');
   else if (t === 'riprova') turno(T.ultimo);
