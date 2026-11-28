@@ -12,6 +12,7 @@ REGOLE FERME
 - Testi brevissimi e semplici: domanda al massimo 15 parole, riscontro al massimo 25. Scrivi le parole latine tra **doppi asterischi**.
 - Non dare subito la soluzione: se sbaglia, spiega in una frase perché e falla riprovare, con un indizio (desinenza, preposizione, concordanza, senso). Dai la soluzione solo dopo due errori sullo stesso punto o se chiede "Mostrami", spiegandola in breve.
 - NON RIVELARE CHE COSA C'È NELLA FRASE. Non chiedere mai "Qual è il complemento oggetto?", "Qual è il complemento di specificazione?", "Dov'è il complemento di luogo?" o "C'è un attributo?": così le diresti quali complementi ci sono. Fai invece scegliere a lei la prossima parola da analizzare ("Tocca una parola che non hai ancora analizzato") oppure chiedi della parola che ha toccato: "In che caso è **X**?", "A quale domanda risponde?", "Che funzione ha?". Solo il verbo principale e il soggetto si possono chiedere direttamente, perché ci sono sempre (anche sottinteso).
+- NON DIRE TU IL NOME DEL COMPLEMENTO. Dopo che Micol ha trovato il caso e la domanda giusta, nel riscontro dille solo che è giusto e chiedile "Allora che complemento è?" (o "che funzione ha?"): il nome lo deve dire lei. Puoi nominare un complemento solo se l'ha appena detto lei (per confermare o correggere) o se ha chiesto "Mostrami".
 - Quando le fai scegliere la funzione o il complemento, le opzioni devono essere varie e plausibili (anche funzioni che nella frase non ci sono), non solo quelle presenti. Non usare come opzioni le parole della frase: per indicare una parola, Micol la tocca.
 - Se dice "Non ho capito", riformula la domanda più semplice o scomponila in passi più piccoli.
 - Micol è una ragazza: usa il femminile ("Brava", "sei stata attenta").
@@ -85,16 +86,35 @@ const pulisci = (t) => t.replace(/\*\*/g, '').trim().toLowerCase();
  * Regole che l'app fa rispettare all'IA: niente domande che rivelano quali complementi ci sono, niente parole della frase
  * come opzioni. Restituisce l'elenco dei problemi (vuoto se va bene).
  */
-export function problemiTurno(r, parole) {
+export function problemiTurno(r, parole, azione = '') {
   const p = [];
+  const nomi = RIVELA.test(r.domanda) ? [] : nominati(r, azione);
+  if (nomi.length) p.push(`hai scritto tu il nome (${nomi.join(', ')}) che Micol non ha ancora detto: dille solo se la risposta è giusta e chiedile "Allora che complemento è?", il nome lo deve dire lei`);
   if (r.tipo !== 'fine' && r.tipo !== 'traduci' && RIVELA.test(r.domanda)) p.push(`la domanda «${r.domanda}» dice a Micol quale complemento c'è nella frase: chiedile invece di toccare una parola non ancora analizzata, oppure chiedi caso, domanda o funzione della parola che ha toccato`);
   const ws = new Set(parole.map(pulisci));
   if (r.opzioni.some((o) => ws.has(pulisci(o)) || pulisci(o).split(/\s+(?:e|o)\s+/).every((x) => ws.has(x)))) p.push('le opzioni contengono parole della frase: le parole Micol le tocca, usa tipo "tocca"');
   return p;
 }
 
+/** Nomi di complementi scritti dall'IA (riscontro o domanda) che Micol non ha detto e non ha chiesto ("Mostrami"). */
+const PAROLA_CHIAVE = /complemento\s+(?:di\s+|d'|in\s+)?(\p{L}{4,})|(attribut)[oi]|(apposizion)[ei]|(nome del predicato)/giu;
+function nominati(r, azione) {
+  if (r.tipo === 'fine' || r.tipo === 'traduci' || /Mostrami/.test(azione)) return [];
+  const az = azione.toLowerCase();
+  const out = [];
+  for (const m of `${r.riscontro} ${r.domanda}`.matchAll(PAROLA_CHIAVE)) {
+    const k = (m[1] || m[2] || m[3] || m[4]).toLowerCase();
+    if (!az.includes(k.slice(0, 6)) && !out.includes(m[0])) out.push(m[0]);
+  }
+  return out;
+}
+
 /** Se l'IA non ha rispettato le regole nemmeno al secondo tentativo, l'app corregge il passo da sola. */
-export function correggiTurno(r, parole) {
+export function correggiTurno(r, parole, azione = '') {
+  if (!RIVELA.test(r.domanda) && nominati(r, azione).length) {
+    const ok = r.esito === 'giusto' ? 'Giusto! ' : '';
+    return { ...r, riscontro: ok, domanda: 'Allora che complemento è? Scrivilo tu (o che funzione ha).', tipo: 'scrivi', opzioni: [] };
+  }
   const ws = new Set(parole.map(pulisci));
   let opzioni = r.opzioni.filter((o) => !ws.has(pulisci(o)) && !pulisci(o).split(/\s+(?:e|o)\s+/).every((x) => ws.has(x)));
   let { domanda, tipo } = r;

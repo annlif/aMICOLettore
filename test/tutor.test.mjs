@@ -159,3 +159,20 @@ test('l\'app fa rispettare le regole all\'IA: niente complementi rivelati, nient
     assert.equal(problemiTurno({ ...base, domanda: d, opzioni: ['genitivo', 'dativo'] }, parole).length, 0, d);
   assert.equal(problemiTurno({ ...base, domanda: 'Chi?', opzioni: ['nauta e filiabus', 'altro'] }, ['nauta', 'filiabus']).length, 1);
 });
+
+test('l\'IA non dice lei il nome del complemento: lo deve dire Micol', async () => {
+  const { problemiTurno, correggiTurno } = await import('../latino/js/tutor-ia.js');
+  const parole = ['Deae', 'lacrimas', 'puellarum', 'spectant'];
+  const r = { esito: 'giusto', riscontro: 'Brava! **puellarum** è un complemento di specificazione.', domanda: 'Tocca un\'altra parola.', tipo: 'tocca', opzioni: [], segna: [], analisi: [] };
+  assert.equal(problemiTurno(r, parole, 'ha scelto «Di chi? Di che cosa?»').length, 1);
+  const c = correggiTurno(r, parole, 'ha scelto «Di chi? Di che cosa?»');
+  assert.equal(c.tipo, 'scrivi');
+  assert.match(c.domanda, /Allora che complemento è/);
+  assert.doesNotMatch(c.riscontro, /specificazione/);
+  // se l'ha detto lei, o se ha chiesto Mostrami, si può nominare
+  assert.equal(problemiTurno(r, parole, 'ha scelto «complemento di specificazione»').length, 0);
+  assert.equal(problemiTurno(r, parole, 'ha scritto: «specificazione»').length, 0);
+  assert.equal(problemiTurno(r, parole, 'chiede di vedere la risposta (Mostrami)').length, 0);
+  // domande sulla parola toccata senza nomi: ok
+  assert.equal(problemiTurno({ ...r, riscontro: 'Giusto!', domanda: 'Allora che complemento è?' }, parole, 'ha scelto «Di chi?»').length, 0);
+});

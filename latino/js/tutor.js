@@ -73,10 +73,10 @@ async function turno(azione) {
     r = validaTurno(await chiamaJSON(ISTRUZIONI_TUTOR, user, SCHEMA_TUTOR, 'passo_guida', 0.2), T.parole.length);
     if (!r) throw new Error('Risposta dell\'intelligenza artificiale non valida.');
     // l'app controlla che l'IA rispetti le regole (niente complementi rivelati, niente parole come opzioni): un secondo tentativo, poi corregge da sola
-    const prob = problemiTurno(r, T.parole);
+    const prob = problemiTurno(r, T.parole, azione);
     if (prob.length && T === t0) {
       const r2 = validaTurno(await chiamaJSON(ISTRUZIONI_TUTOR, `${user}\n\nATTENZIONE: la tua risposta precedente non rispetta le regole: ${prob.join('; ')}. Rifai la risposta rispettandole.`, SCHEMA_TUTOR, 'passo_guida', 0.2).catch(() => null), T.parole.length);
-      r = correggiTurno(r2 && !problemiTurno(r2, T.parole).length ? r2 : (r2 || r), T.parole);
+      r = correggiTurno(r2 && !problemiTurno(r2, T.parole, azione).length ? r2 : (r2 || r), T.parole, azione);
     }
   } catch (e) {
     if (T !== t0) return false;
