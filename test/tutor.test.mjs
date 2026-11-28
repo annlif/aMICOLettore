@@ -176,3 +176,22 @@ test('l\'IA non dice lei il nome del complemento: lo deve dire Micol', async () 
   // domande sulla parola toccata senza nomi: ok
   assert.equal(problemiTurno({ ...r, riscontro: 'Giusto!', domanda: 'Allora che complemento è?' }, parole, 'ha scelto «Di chi?»').length, 0);
 });
+
+test('quando Micol tocca una parola nuova, l\'IA non dice il caso: lo chiede', async () => {
+  const { problemiTurno, correggiTurno } = await import('../latino/js/tutor-ia.js');
+  const parole = ['Vita', 'nautae', 'dura', 'est'];
+  const r = { esito: 'giusto', riscontro: 'Brava, hai identificato il genitivo **nautae**.', domanda: 'Da quale nome dipende?', tipo: 'tocca', opzioni: [], segna: [], analisi: [] };
+  const az = 'ha toccato [1] nautae';
+  assert.equal(problemiTurno(r, parole, az).length, 1);
+  const c = correggiTurno(r, parole, az);
+  assert.equal(c.domanda, 'In che caso è **nautae**?');
+  assert.equal(c.riscontro, '');
+  assert.equal(c.tipo, 'scegli');
+  assert.ok(c.opzioni.includes('genitivo'));
+  // se il caso l'ha detto lei, va bene confermarlo
+  assert.equal(problemiTurno({ ...r, riscontro: 'Giusto, è genitivo.', domanda: 'A quale domanda risponde?' }, parole, 'ha scelto «genitivo»').length, 0);
+  // dopo una risposta sbagliata (non un tocco) si può dare un indizio sul caso
+  assert.equal(problemiTurno({ ...r, esito: 'sbagliato', riscontro: 'No: il soggetto deve essere al nominativo.', domanda: 'Riprova.' }, parole, 'ha scelto «ablativo»').length, 0);
+  // la domanda giusta dopo un tocco
+  assert.equal(problemiTurno({ ...r, esito: 'nessuno', riscontro: '', domanda: 'In che caso è **nautae**?', tipo: 'scegli', opzioni: ['genitivo', 'dativo'] }, parole, az).length, 0);
+});
