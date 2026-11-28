@@ -143,3 +143,19 @@ test('istruzioni della guida a dialogo: non rivelare quali complementi ci sono',
   assert.match(ISTRUZIONI_TUTOR, /Tocca una parola che non hai ancora analizzato/);
   assert.doesNotMatch(ISTRUZIONI_TUTOR, /^4\. Complemento oggetto/m);
 });
+
+test('l\'app fa rispettare le regole all\'IA: niente complementi rivelati, niente parole come opzioni', async () => {
+  const { problemiTurno, correggiTurno } = await import('../latino/js/tutor-ia.js');
+  const parole = ['Deae', 'lacrimas', 'puellarum', 'spectant'];
+  const base = { esito: 'giusto', riscontro: 'Brava.', tipo: 'scegli', segna: [], analisi: [] };
+  const brutto = { ...base, domanda: 'Qual è il complemento oggetto di **spectant**?', opzioni: ['lacrimas', 'puellarum', 'Deae'] };
+  assert.equal(problemiTurno(brutto, parole).length, 2);
+  const c = correggiTurno(brutto, parole);
+  assert.equal(c.tipo, 'tocca');
+  assert.equal(c.domanda, 'Tocca una parola che non hai ancora analizzato.');
+  for (const d of ['Dov\'è il complemento di stato in luogo?', 'C\'è un attributo nella frase?', 'Trova il complemento di specificazione.', 'Tocca il complemento d\'agente.'])
+    assert.equal(problemiTurno({ ...base, domanda: d, opzioni: ['a', 'b'] }, parole).length, 1, d);
+  for (const d of ['Che funzione ha **puellarum**?', 'Quale complemento è **lacrimas**?', 'In che caso è **puellarum**?', 'Tocca una parola che non hai ancora analizzato.', 'Qual è il soggetto di **spectant**?'])
+    assert.equal(problemiTurno({ ...base, domanda: d, opzioni: ['genitivo', 'dativo'] }, parole).length, 0, d);
+  assert.equal(problemiTurno({ ...base, domanda: 'Chi?', opzioni: ['nauta e filiabus', 'altro'] }, ['nauta', 'filiabus']).length, 1);
+});
