@@ -7,7 +7,7 @@ import { lexicon } from './vocab.js';
 import { tokenize } from './testo.js';
 import { chiamaJSON, modelloIA } from './ai.js';
 
-import { ISTRUZIONI_TUTOR, SCHEMA_TUTOR, validaTurno, schedaForme, controlliGrammaticali } from './tutor-ia.js';
+import { ISTRUZIONI_TUTOR, SCHEMA_TUTOR, validaTurno, schedaForme, controlliGrammaticali, problemiTurno, correggiTurno } from './tutor-ia.js';
 
 let T = null;   // dialogo in corso
 let cb = {};
@@ -72,6 +72,12 @@ async function turno(azione) {
   try {
     r = validaTurno(await chiamaJSON(ISTRUZIONI_TUTOR, user, SCHEMA_TUTOR, 'passo_guida', 0.2), T.parole.length);
     if (!r) throw new Error('Risposta dell\'intelligenza artificiale non valida.');
+    // l'app controlla che l'IA rispetti le regole (niente complementi rivelati, niente parole come opzioni): un secondo tentativo, poi corregge da sola
+    const prob = problemiTurno(r, T.parole);
+    if (prob.length && T === t0) {
+      const r2 = validaTurno(await chiamaJSON(ISTRUZIONI_TUTOR, `${user}\n\nATTENZIONE: la tua risposta precedente non rispetta le regole: ${prob.join('; ')}. Rifai la risposta rispettandole.`, SCHEMA_TUTOR, 'passo_guida', 0.2).catch(() => null), T.parole.length);
+      r = correggiTurno(r2 && !problemiTurno(r2, T.parole).length ? r2 : (r2 || r), T.parole);
+    }
   } catch (e) {
     if (T !== t0) return false;
     T.attesa = false;

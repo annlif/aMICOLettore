@@ -14,6 +14,7 @@ REGOLE FERME
 - NON RIVELARE CHE COSA C'È NELLA FRASE. Non chiedere mai "Qual è il complemento oggetto?", "Qual è il complemento di specificazione?", "Dov'è il complemento di luogo?" o "C'è un attributo?": così le diresti quali complementi ci sono. Fai invece scegliere a lei la prossima parola da analizzare ("Tocca una parola che non hai ancora analizzato") oppure chiedi della parola che ha toccato: "In che caso è **X**?", "A quale domanda risponde?", "Che funzione ha?". Solo il verbo principale e il soggetto si possono chiedere direttamente, perché ci sono sempre (anche sottinteso).
 - Quando le fai scegliere la funzione o il complemento, le opzioni devono essere varie e plausibili (anche funzioni che nella frase non ci sono), non solo quelle presenti. Non usare come opzioni le parole della frase: per indicare una parola, Micol la tocca.
 - Se dice "Non ho capito", riformula la domanda più semplice o scomponila in passi più piccoli.
+- Micol è una ragazza: usa il femminile ("Brava", "sei stata attenta").
 - Parla solo della frase. Micol può anche scriverti una risposta o una domanda: rispondi solo se riguarda la frase o il latino, altrimenti riportala gentilmente alla frase.
 
 LA TRADUZIONE DI MICOL
@@ -73,6 +74,33 @@ export function validaTurno(r, n) {
     segna: (r.segna || []).filter((x) => okList(x.parole) && RUOLI.includes(x.ruolo)),
     analisi: (r.analisi || []).filter((x) => okList(x.parole) && x.funzione).map((x) => ({ parole: x.parole, funzione: taglia(x.funzione, 120), caso: taglia(x.caso, 60) })),
   };
+}
+
+const nomeCompl = String.raw`(complemento\s+(oggetto|predicativo|di\s+\p{L}+|d'\p{L}+|in\s+\p{L}+)|attribut[oi]|apposizion[ei]|nome del predicato)`;
+// "Qual è il complemento oggetto?", "Dov'è il complemento di luogo?", "C'è un attributo?", "Trova il complemento di…"
+const RIVELA = new RegExp(String.raw`(qual[ei]?|dov['’]?\s*è|dove|c['’]\s*è|ci sono|trova|tocca|indica|cerca|individua|riconosci)[^?.!]{0,50}?${nomeCompl}`, 'iu');
+const pulisci = (t) => t.replace(/\*\*/g, '').trim().toLowerCase();
+
+/**
+ * Regole che l'app fa rispettare all'IA: niente domande che rivelano quali complementi ci sono, niente parole della frase
+ * come opzioni. Restituisce l'elenco dei problemi (vuoto se va bene).
+ */
+export function problemiTurno(r, parole) {
+  const p = [];
+  if (r.tipo !== 'fine' && r.tipo !== 'traduci' && RIVELA.test(r.domanda)) p.push(`la domanda «${r.domanda}» dice a Micol quale complemento c'è nella frase: chiedile invece di toccare una parola non ancora analizzata, oppure chiedi caso, domanda o funzione della parola che ha toccato`);
+  const ws = new Set(parole.map(pulisci));
+  if (r.opzioni.some((o) => ws.has(pulisci(o)) || pulisci(o).split(/\s+(?:e|o)\s+/).every((x) => ws.has(x)))) p.push('le opzioni contengono parole della frase: le parole Micol le tocca, usa tipo "tocca"');
+  return p;
+}
+
+/** Se l'IA non ha rispettato le regole nemmeno al secondo tentativo, l'app corregge il passo da sola. */
+export function correggiTurno(r, parole) {
+  const ws = new Set(parole.map(pulisci));
+  let opzioni = r.opzioni.filter((o) => !ws.has(pulisci(o)) && !pulisci(o).split(/\s+(?:e|o)\s+/).every((x) => ws.has(x)));
+  let { domanda, tipo } = r;
+  if (tipo !== 'fine' && tipo !== 'traduci' && RIVELA.test(domanda)) { domanda = 'Tocca una parola che non hai ancora analizzato.'; tipo = 'tocca'; opzioni = []; }
+  if (tipo === 'scegli' && opzioni.length < 2) { tipo = 'tocca'; opzioni = []; }
+  return { ...r, domanda, tipo, opzioni };
 }
 
 /** Le forme delle parole (certe), come le vede l'IA: "[2] insulae: insula, insulae, f. (nome) → genitivo singolare; ...". */
